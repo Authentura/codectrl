@@ -8,26 +8,33 @@ use std::{
 };
 
 #[derive(Debug, Default, Deserialize, Serialize)]
-pub struct App {
+struct GuiAppState {}
+
+#[derive(Debug, Default, Deserialize, Serialize)]
+pub struct GuiApp {
     #[serde(skip)]
     received: Arc<RwLock<VecDeque<String>>>,
     #[serde(skip)]
     pub receiver: Option<Arc<Mutex<Receiver<String>>>>,
     #[serde(skip)]
     update_thread: Option<JoinHandle<()>>,
+    data: GuiAppState,
+    title: String,
 }
 
-impl App {
-    pub fn new(receiver: Receiver<String>) -> Self {
+impl GuiApp {
+    pub fn new(title: &str, receiver: Receiver<String>) -> Self {
         Self {
             received: Arc::new(RwLock::new(VecDeque::new())),
             receiver: Some(Arc::new(Mutex::new(receiver))),
             update_thread: None,
+            data: GuiAppState::default(),
+            title: title.into(),
         }
     }
 }
 
-impl epi::App for App {
+impl epi::App for GuiApp {
     fn update(&mut self, ctx: &CtxRef, _frame: &mut Frame<'_>) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Hello");
@@ -66,7 +73,7 @@ impl epi::App for App {
         frame: &mut Frame<'_>,
         _storage: Option<&dyn Storage>,
     ) {
-        let receiver = Arc::clone(self.receiver.as_ref().unwrap());
+        let rx = Arc::clone(self.receiver.as_ref().unwrap());
         let received = Arc::clone(&self.received);
         let ctx = Arc::clone(&frame.repaint_signal());
 
@@ -74,7 +81,7 @@ impl epi::App for App {
             ThreadBuilder::new()
                 .name("codeCTRL_update_thread".into())
                 .spawn_unchecked(move || loop {
-                    let recd = receiver.lock().unwrap().recv();
+                    let recd = rx.lock().unwrap().recv();
 
                     if let Ok(recd) = recd {
                         received.write().unwrap().push_front(recd);
@@ -93,5 +100,5 @@ impl epi::App for App {
     //     epi::set_value(storage, epi::APP_KEY, self);
     // }
 
-    fn name(&self) -> &str { "codeCTRL" }
+    fn name(&self) -> &str { self.title.as_str() }
 }

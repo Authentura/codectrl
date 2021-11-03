@@ -1,18 +1,23 @@
 #![feature(async_closure)]
 #![feature(thread_spawn_unchecked)]
+#![warn(clippy::pedantic)]
 
-mod app;
+mod gui_app;
+mod text_app;
 
 extern crate clap;
 
-use app::App;
+use crate::text_app::TextApp;
 use clap::{crate_authors, crate_version, App as ClapApp, Arg};
+use gui_app::GuiApp;
 use server::{Mode, Server};
 use std::thread;
 
+static NAME: &str = "codeCTRL";
+
 #[tokio::main]
 async fn main() {
-    let matches = ClapApp::new("codeCTRL")
+    let matches = ClapApp::new(NAME)
         .version(crate_version!())
         .author(crate_authors!(", "))
         .arg(
@@ -42,13 +47,23 @@ async fn main() {
         server.run_server();
     });
 
-    let app = App::new(receiver);
+    match running_mode {
+        Mode::Full => {
+            let app = GuiApp::new(NAME, receiver);
 
-    let options = egui_glow::NativeOptions {
-        transparent: true,
-        drag_and_drop_support: true,
-        ..egui_glow::NativeOptions::default()
-    };
+            let options = egui_glow::NativeOptions {
+                transparent: true,
+                drag_and_drop_support: true,
+                ..egui_glow::NativeOptions::default()
+            };
 
-    eframe::run_native(Box::new(app), options);
+            eframe::run_native(Box::new(app), options);
+        },
+        Mode::Headless => {
+            let mut app = TextApp::new(NAME, receiver)
+                .expect("Could not create headless application");
+
+            app.draw().unwrap();
+        },
+    }
 }
