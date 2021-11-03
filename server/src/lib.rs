@@ -1,12 +1,11 @@
+#[derive(Copy, Clone)]
 pub enum Mode {
     Full,
     Headless,
 }
 
 impl Default for Mode {
-    fn default() -> Self {
-        Self::Full
-    }
+    fn default() -> Self { Self::Full }
 }
 
 pub async fn server(mode: Mode) {

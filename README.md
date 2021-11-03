@@ -1,7 +1,7 @@
 # codeCTRL
 
 ## Requirements
-The MSRV (minimum supported Rust version): 1.56.1.
+The MSRV (minimum supported Rust version): 1.56.1 (on the nightly toolchain).
 
 Below you will find the requirements to build on each platform. The supported platform
 (s) are:

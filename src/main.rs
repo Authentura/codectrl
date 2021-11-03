@@ -1,7 +1,10 @@
+#![feature(async_closure)]
+
 extern crate clap;
 
 use clap::{crate_authors, crate_version, App, Arg};
 use server::{server, Mode};
+use std::thread;
 
 #[tokio::main]
 async fn main() {
@@ -29,5 +32,9 @@ async fn main() {
         running_mode = Mode::Headless;
     }
 
-    server(running_mode).await;
+    let server_thread = thread::spawn(async move || {
+        server(running_mode).await;
+    });
+
+    let _ = server_thread.join().expect("Could not join server thread");
 }
