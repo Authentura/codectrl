@@ -30,8 +30,3 @@ Minimum supported Fedora version: 34.
 
 You will need to install the "Development Tools" group. You can do this by running: 
 `sudo dnf groupinstall "Development Tools" -y`.
-
-##### Dependencies
-
-- `libxcb-devel`
-- `xcb-util**-devel`
