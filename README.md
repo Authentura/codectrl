@@ -21,7 +21,7 @@ The current *officially* supported Linux distributions are the following:
 Support is planned for the following:
 
 - Arch (and it's derivatives)
-- Ubuntu/Debian
+- Ubuntu/[Debian](#Debian)
 - RHEL 7+ (and compatible distros, i.e. Rocky Linux)
 
 #### Fedora
@@ -30,3 +30,12 @@ Minimum supported Fedora version: 34.
 
 You will need to install the "Development Tools" group. You can do this by running: 
 `sudo dnf groupinstall "Development Tools" -y`.
+
+#### Debian
+Buildable on Debian Sid.
+
+##### Dependencies
+
+- `libxcb-render0-dev`
+- `libxcb-shape0-dev`
+- `libxcb-xfixes0-dev`

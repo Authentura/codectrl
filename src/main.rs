@@ -1,14 +1,18 @@
 #![feature(async_closure)]
+#![feature(thread_spawn_unchecked)]
+
+mod app;
 
 extern crate clap;
 
-use clap::{crate_authors, crate_version, App, Arg};
-use server::{server, Mode};
+use app::App;
+use clap::{crate_authors, crate_version, App as ClapApp, Arg};
+use server::{Mode, Server};
 use std::thread;
 
 #[tokio::main]
 async fn main() {
-    let matches = App::new("codeCTRL")
+    let matches = ClapApp::new("codeCTRL")
         .version(crate_version!())
         .author(crate_authors!(", "))
         .arg(
@@ -32,9 +36,19 @@ async fn main() {
         running_mode = Mode::Headless;
     }
 
-    let server_thread = thread::spawn(async move || {
-        server(running_mode).await;
+    let (server, receiver) = Server::new(running_mode);
+
+    thread::spawn(move || {
+        server.run_server();
     });
 
-    let _ = server_thread.join().expect("Could not join server thread");
+    let app = App::new(receiver);
+
+    let options = egui_glow::NativeOptions {
+        transparent: true,
+        drag_and_drop_support: true,
+        ..egui_glow::NativeOptions::default()
+    };
+
+    eframe::run_native(Box::new(app), options);
 }
