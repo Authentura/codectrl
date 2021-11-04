@@ -15,14 +15,14 @@ use std::{
 };
 use tui::{
     backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, Borders, Paragraph},
     Terminal,
 };
 
-pub struct TextAppState {}
+// pub struct TextAppState {}
 
 pub struct TextApp {
     terminal: Terminal<CrosstermBackend<Stdout>>,
@@ -32,10 +32,15 @@ pub struct TextApp {
     received: Arc<RwLock<VecDeque<String>>>,
     pub receiver: Option<Arc<Mutex<Receiver<String>>>>,
     update_thread: Option<JoinHandle<()>>,
+    socket_address: String,
 }
 
 impl TextApp {
-    pub fn new(title: &str, receiver: Receiver<String>) -> Result<Self, Box<dyn Error>> {
+    pub fn new(
+        title: &str,
+        receiver: Receiver<String>,
+        socket_address: String,
+    ) -> Result<Self, Box<dyn Error>> {
         let mut stdout = io::stdout();
         execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
         let backend = CrosstermBackend::new(stdout);
@@ -48,6 +53,7 @@ impl TextApp {
             received: Arc::new(RwLock::new(VecDeque::new())),
             receiver: Some(Arc::new(Mutex::new(receiver))),
             update_thread: None,
+            socket_address,
         })
     }
 
@@ -122,8 +128,16 @@ impl TextApp {
                     })
                     .collect::<Vec<Spans>>();
 
+                let socket_paragraph = Paragraph::new(Spans::from(vec![
+                    Span::styled(
+                        "Listening on: ",
+                        Style::default().add_modifier(Modifier::BOLD),
+                    ),
+                    Span::from(self.socket_address.clone()),
+                ]));
                 let paragraph = Paragraph::new(logs).block(block);
 
+                f.render_widget(socket_paragraph, chunks[0]);
                 f.render_widget(paragraph, chunks[1]);
             })?;
 

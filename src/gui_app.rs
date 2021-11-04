@@ -20,16 +20,18 @@ pub struct GuiApp {
     update_thread: Option<JoinHandle<()>>,
     data: GuiAppState,
     title: String,
+    socket_address: String,
 }
 
 impl GuiApp {
-    pub fn new(title: &str, receiver: Receiver<String>) -> Self {
+    pub fn new(title: &str, receiver: Receiver<String>, socket_address: String) -> Self {
         Self {
             received: Arc::new(RwLock::new(VecDeque::new())),
             receiver: Some(Arc::new(Mutex::new(receiver))),
             update_thread: None,
             data: GuiAppState::default(),
             title: title.into(),
+            socket_address,
         }
     }
 }
@@ -37,7 +39,7 @@ impl GuiApp {
 impl epi::App for GuiApp {
     fn update(&mut self, ctx: &CtxRef, _frame: &mut Frame<'_>) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Hello");
+            ui.heading(format!("Listening on: {}", self.socket_address));
         });
 
         egui::TopBottomPanel::bottom("")
@@ -58,7 +60,12 @@ impl epi::App for GuiApp {
                                 egui::Layout::top_down(egui::Align::Min),
                                 |ui| {
                                     for received in self.received.read().unwrap().iter() {
-                                        ui.label(format!("Received: {}", received));
+                                        ui.horizontal_wrapped(|ui| {
+                                            ui.add(
+                                                egui::Label::new("Received:").strong(),
+                                            );
+                                            ui.label(received);
+                                        });
                                     }
                                 },
                             );
@@ -79,7 +86,7 @@ impl epi::App for GuiApp {
 
         self.update_thread = Some(unsafe {
             ThreadBuilder::new()
-                .name("codeCTRL_update_thread".into())
+                .name(format!("{}_update_thread", self.title))
                 .spawn_unchecked(move || loop {
                     let recd = rx.lock().unwrap().recv();
 
