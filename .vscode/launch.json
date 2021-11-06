@@ -8,7 +8,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Build",
+            "name": "Run",
             "cargo": {
                 "args": [
                     "build",
@@ -21,55 +21,21 @@
             "args": [],
             "cwd": "${workspaceFolder}"
         },
+        
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Run (debug)",
+            "name": "Run (headless)",
             "cargo": {
                 "args": [
-                    "run",
+                    "build",
                 ],
                 "filter": {
                     "name": "codectrl",
                     "kind": "bin"
                 }
             },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Run (release)",
-            "cargo": {
-                "args": [
-                    "run",
-                    "--release"
-                ],
-                "filter": {
-                    "name": "codectrl",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Run (headless) (debug)",
-            "cargo": {
-                "args": [
-                    "run",
-                    "--",
-                    "-H"
-                ],
-                "filter": {
-                    "name": "codectrl",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
+            "args": ["-H"],
             "cwd": "${workspaceFolder}"
         },
     ]
