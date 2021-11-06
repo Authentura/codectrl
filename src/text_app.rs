@@ -1,3 +1,5 @@
+use crate::common::{Received, Receiver};
+use chrono::Local;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
@@ -9,7 +11,7 @@ use std::{
     collections::VecDeque,
     error::Error,
     io::{self, Stdout},
-    sync::{mpsc::Receiver, Arc, Mutex, RwLock},
+    sync::{mpsc::Receiver as Rx, Arc, Mutex, RwLock},
     thread::{Builder as ThreadBuilder, JoinHandle},
     time::{Duration, Instant},
 };
@@ -29,8 +31,8 @@ pub struct TextApp {
     tick_rate: Duration,
     title: String,
 
-    received: Arc<RwLock<VecDeque<String>>>,
-    pub receiver: Option<Arc<Mutex<Receiver<String>>>>,
+    received: Received,
+    pub receiver: Receiver,
     update_thread: Option<JoinHandle<()>>,
     socket_address: String,
 }
@@ -38,7 +40,7 @@ pub struct TextApp {
 impl TextApp {
     pub fn new(
         title: &str,
-        receiver: Receiver<String>,
+        receiver: Rx<String>,
         socket_address: String,
     ) -> Result<Self, Box<dyn Error>> {
         let mut stdout = io::stdout();
@@ -68,7 +70,7 @@ impl TextApp {
                     let recd = rx.lock().unwrap().recv();
 
                     if let Ok(recd) = recd {
-                        received.write().unwrap().push_front(recd);
+                        received.write().unwrap().push_front((recd, Local::now()));
                     }
                 })
                 .unwrap_or_else(|_| {
@@ -120,10 +122,10 @@ impl TextApp {
                     .map(|x| {
                         Spans::from(vec![
                             Span::styled(
-                                "Received: ",
+                                format!("Received ({}): ", &x.1.to_rfc2822()),
                                 Style::default().add_modifier(Modifier::BOLD),
                             ),
-                            Span::from(x.clone()),
+                            Span::from(x.0.clone()),
                         ])
                     })
                     .collect::<Vec<Spans>>();

@@ -1,9 +1,11 @@
+use crate::common::{Received, Receiver};
+use chrono::Local;
 use egui::CtxRef;
 use epi::{Frame, Storage};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
-    sync::{mpsc::Receiver, Arc, Mutex, RwLock},
+    sync::{mpsc::Receiver as Rx, Arc, Mutex, RwLock},
     thread::{Builder as ThreadBuilder, JoinHandle},
 };
 
@@ -13,9 +15,9 @@ struct GuiAppState {}
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct GuiApp {
     #[serde(skip)]
-    received: Arc<RwLock<VecDeque<String>>>,
+    received: Received,
     #[serde(skip)]
-    pub receiver: Option<Arc<Mutex<Receiver<String>>>>,
+    pub receiver: Receiver,
     #[serde(skip)]
     update_thread: Option<JoinHandle<()>>,
     data: GuiAppState,
@@ -24,7 +26,7 @@ pub struct GuiApp {
 }
 
 impl GuiApp {
-    pub fn new(title: &str, receiver: Receiver<String>, socket_address: String) -> Self {
+    pub fn new(title: &str, receiver: Rx<String>, socket_address: String) -> Self {
         Self {
             received: Arc::new(RwLock::new(VecDeque::new())),
             receiver: Some(Arc::new(Mutex::new(receiver))),
@@ -62,9 +64,13 @@ impl epi::App for GuiApp {
                                     for received in self.received.read().unwrap().iter() {
                                         ui.horizontal_wrapped(|ui| {
                                             ui.add(
-                                                egui::Label::new("Received:").strong(),
+                                                egui::Label::new(format!(
+                                                    "Received ({}):",
+                                                    &(received.1).to_rfc2822()
+                                                ))
+                                                .strong(),
                                             );
-                                            ui.label(received);
+                                            ui.label(&received.0);
                                         });
                                     }
                                 },
@@ -91,7 +97,7 @@ impl epi::App for GuiApp {
                     let recd = rx.lock().unwrap().recv();
 
                     if let Ok(recd) = recd {
-                        received.write().unwrap().push_front(recd);
+                        received.write().unwrap().push_front((recd, Local::now()));
                         ctx.request_repaint();
                     }
                 })
