@@ -1,5 +1,6 @@
 use crate::common::{Received, Receiver};
 use chrono::Local;
+use code_ctrl_logger::Log;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
@@ -40,7 +41,7 @@ pub struct TextApp {
 impl TextApp {
     pub fn new(
         title: &str,
-        receiver: Rx<String>,
+        receiver: Rx<Log<String>>,
         socket_address: String,
     ) -> Result<Self, Box<dyn Error>> {
         let mut stdout = io::stdout();
@@ -125,7 +126,7 @@ impl TextApp {
                                 format!("Received ({}): ", &x.1.to_rfc2822()),
                                 Style::default().add_modifier(Modifier::BOLD),
                             ),
-                            Span::from(x.0.clone()),
+                            Span::from(format!("{:#?}", &x.0)),
                         ])
                     })
                     .collect::<Vec<Spans>>();

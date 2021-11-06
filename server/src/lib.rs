@@ -1,3 +1,4 @@
+use code_ctrl_logger::Log;
 use std::{
     error::Error,
     sync::{
@@ -13,12 +14,12 @@ use tokio::{
 
 #[derive(Clone)]
 pub struct Server {
-    sender: Arc<SyncSender<String>>,
+    sender: Arc<SyncSender<Log<String>>>,
     port: String,
 }
 
 impl Server {
-    pub fn new(port: &str) -> (Self, Receiver<String>) {
+    pub fn new(port: &str) -> (Self, Receiver<Log<String>>) {
         let (sender, receiver) = sync_channel(2);
 
         (
@@ -58,7 +59,7 @@ impl Server {
         loop {
             let (mut socket, _) = listener.accept().await?;
 
-            let mut buf = [0; 1024];
+            let mut buf = [0; 2048];
 
             loop {
                 let n = match socket.read(&mut buf).await {
@@ -75,14 +76,11 @@ impl Server {
                     break;
                 }
 
-                let mut string = String::from_utf8(buf[..n].to_vec())
-                    .expect("Could not convert socket byffer to valid UTF-8 string");
+                // let mut data: Log<_> = serde_cbor::from_reader(&buf[..n])?;
 
-                let index = string.find("\r\n\r\n").unwrap_or_default();
-                string = String::from_utf8(string.as_bytes()[index..].to_vec()).unwrap();
-                string = string.replace("\r\n\r\n", "");
+                let data: Log<_> = serde_cbor::from_reader(&buf[..n])?;
 
-                if let Err(e) = self.sender.send(string) {
+                if let Err(e) = self.sender.send(data) {
                     eprintln!("Failed to send through channel: {}", e);
                     break;
                 }

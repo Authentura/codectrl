@@ -1,5 +1,6 @@
 use crate::common::{Received, Receiver};
 use chrono::Local;
+use code_ctrl_logger::Log;
 use egui::CtxRef;
 use epi::{Frame, Storage};
 use serde::{Deserialize, Serialize};
@@ -26,7 +27,7 @@ pub struct GuiApp {
 }
 
 impl GuiApp {
-    pub fn new(title: &str, receiver: Rx<String>, socket_address: String) -> Self {
+    pub fn new(title: &str, receiver: Rx<Log<String>>, socket_address: String) -> Self {
         Self {
             received: Arc::new(RwLock::new(VecDeque::new())),
             receiver: Some(Arc::new(Mutex::new(receiver))),
@@ -70,7 +71,7 @@ impl epi::App for GuiApp {
                                                 ))
                                                 .strong(),
                                             );
-                                            ui.label(&received.0);
+                                            ui.label(format!("{:#?}", &received.0));
                                         });
                                     }
                                 },

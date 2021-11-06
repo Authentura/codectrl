@@ -254,11 +254,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "code_ctrl_logger"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_cbor",
+]
+
+[[package]]
 name = "codectrl"
 version = "0.1.0"
 dependencies = [
  "chrono",
  "clap",
+ "code_ctrl_logger",
  "crossterm 0.22.1",
  "eframe",
  "egui",
@@ -1519,6 +1528,9 @@ dependencies = [
 name = "server"
 version = "0.0.0"
 dependencies = [
+ "code_ctrl_logger",
+ "serde",
+ "serde_cbor",
  "tokio",
 ]
 
@@ -1704,10 +1716,7 @@ dependencies = [
  "memchr",
  "mio",
  "num_cpus",
- "once_cell",
- "parking_lot",
  "pin-project-lite",
- "signal-hook-registry",
  "tokio-macros",
  "winapi",
 ]
