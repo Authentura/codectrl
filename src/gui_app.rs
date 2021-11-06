@@ -97,15 +97,7 @@ impl epi::App for GuiApp {
                 })
                 .expect("Could not start codeCTRL update thread")
         });
-
-        // if let Some(storage) = storage {
-        //     *self = epi::get_value(storage,
-        // epi::APP_KEY).unwrap_or_default(); }
     }
-
-    // fn save(&mut self, storage: &mut dyn Storage) {
-    //     epi::set_value(storage, epi::APP_KEY, self);
-    // }
 
     fn name(&self) -> &str { self.title.as_str() }
 }
