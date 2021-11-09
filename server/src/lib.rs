@@ -76,9 +76,13 @@ impl Server {
                     break;
                 }
 
-                // let mut data: Log<_> = serde_cbor::from_reader(&buf[..n])?;
-
-                let data: Log<_> = serde_cbor::from_reader(&buf[..n])?;
+                let data = match serde_cbor::from_reader(&buf[..n]) {
+                    Ok(data) => data,
+                    Err(e) => {
+                        eprintln!("Error: {}", e);
+                        break;
+                    },
+                };
 
                 if let Err(e) = self.sender.send(data) {
                     eprintln!("Failed to send through channel: {}", e);

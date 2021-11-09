@@ -83,6 +83,11 @@ impl<T: Message + Debug> Log<T> {
         ret
     }
 
+    // We have a non-async wrapper over _log so that we can log from non-async
+    // scopes.
+    //
+    // TODO: Provide a direct wrapper so that async environments do not need to call
+    // a non-async wrapper, just for that to call an async wrapper.
     async fn _log(log: &Self, port: &str) -> Result<(), Box<dyn Error>> {
         let socket = TcpSocket::new_v4()?;
         let mut stream = socket
