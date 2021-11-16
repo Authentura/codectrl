@@ -1,3 +1,29 @@
+// In this file, we create the main graphical GUI for codeCTRL. A layout was
+// proposed in issue #3, where Sebastian proposed a layout similar to this:
+// _________________________________________________________________________
+// | [ Filter search ] [x] Case insensitive [x] Regex | Some other settings|
+// |-----------------------------------------------------------------------|
+// |    _______________________________________________________________    |
+// |    | x | Message | Host | File name | Line number | Time | ...   |    |
+// |    ---------------------------------------------------------------    |
+// |    _______________________________________________________________    |
+// |    |   | Message | Host | File name | Line number | Time | ...   |    |
+// |    ---------------------------------------------------------------    |
+// |    _______________________________________________________________    |
+// |    |   | Message | Host | File name | Line number | Time | ...   |    |
+// |    ---------------------------------------------------------------    |
+// |_______________________________________________________________________|
+// |  Log details                    |  Code snippet                       |
+// |                                 |                                     |
+// |                                 |                                     |
+// |                                 |                                     |
+// |                                 |                                     |
+// |                                 |                                     |
+// ----------------------------------|--------------------------------------
+//
+// Further changes can be discussed and implemented at later dates, but this is
+// the proposal so far.
+
 use crate::common::{Received, Receiver};
 use chrono::{DateTime, Local};
 use code_ctrl_logger::Log;
