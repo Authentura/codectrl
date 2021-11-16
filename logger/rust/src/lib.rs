@@ -23,7 +23,7 @@ use tokio::{io::AsyncWriteExt, net::TcpSocket, runtime::Runtime};
 pub trait Message: Sized {}
 impl<T: Debug> Message for T {}
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 /// The struct containing the formatted data received from the backtrace.
 pub struct BacktraceData {
     /// The canonical name of the function/closure that called the `Log::log`
@@ -35,13 +35,14 @@ pub struct BacktraceData {
     pub code: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct Log<T: Message> {
     pub stack: VecDeque<BacktraceData>,
     pub line_number: u32,
     pub code_snippet: BTreeMap<u32, String>,
     pub message: String,
     pub message_type: String,
+    pub file_name: String,
     #[serde(skip)]
     _t: PhantomData<T>,
 }
@@ -56,6 +57,7 @@ impl<T: Message + Debug> Log<T> {
         let mut log = Self {
             stack: VecDeque::new(),
             line_number: 0,
+            file_name: String::new(),
             code_snippet: BTreeMap::new(),
             message: format!("{:#?}", &message),
             message_type: std::any::type_name::<T>().to_string(),
@@ -71,6 +73,13 @@ impl<T: Message + Debug> Log<T> {
             log.code_snippet =
                 Self::get_code_snippet(&last.file_path, last.line_number, surround);
             log.line_number = last.line_number;
+
+            log.file_name = last
+                .file_path
+                .split("/")
+                .skip_while(|s| *s != "src")
+                .collect::<Vec<_>>()
+                .join("/");
         }
 
         let rt = Runtime::new()?;
