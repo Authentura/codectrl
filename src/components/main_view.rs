@@ -15,6 +15,7 @@ pub fn main_view(app_state: &mut GuiAppState, ctx: &CtxRef, socket_address: &str
                         .striped(true)
                         .spacing((0.0, 10.0))
                         .min_col_width(ui.available_width() / 6.0)
+                        .max_col_width(ui.available_width() / 6.0)
                         .show(ui, |ui| {
                             ui.heading("");
                             ui.heading("Message");
