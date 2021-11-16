@@ -38,6 +38,16 @@ pub fn details_view(app_state: &mut GuiAppState, ctx: &CtxRef) {
                             .show(ui, |ui| {
                                 ui.vertical(|ui| {
                                     ui.horizontal_wrapped(|ui| {
+                                        ui.add(egui::Label::new("Position:").strong());
+
+                                        ui.label(format!(
+                                            "{}:{}",
+                                            &clicked_item.0.file_name,
+                                            clicked_item.0.line_number
+                                        ));
+                                    });
+
+                                    ui.horizontal_wrapped(|ui| {
                                         ui.add(egui::Label::new("Message:").strong());
 
                                         ui.label(
@@ -53,42 +63,66 @@ pub fn details_view(app_state: &mut GuiAppState, ctx: &CtxRef) {
                                         ui.label(&clicked_item.0.message_type);
                                     });
 
-                                    ui.collapsing("Stack trace", |ui| {
-                                        for (index, stack) in
-                                            clicked_item.0.stack.iter().enumerate()
-                                        {
-                                            ui.collapsing(
-                                                format!("Stack layer {}", index),
-                                                |ui| {
-                                                    ui.horizontal(|ui| {
-                                                        ui.add(
-                                                            egui::Label::new("Position:")
-                                                                .strong(),
-                                                        );
+                                    ui.horizontal_wrapped(|ui| {
+                                        ui.add(egui::Label::new("Received at:").strong());
 
-                                                        ui.label(format!(
-                                                            "{}:{} column {}",
-                                                            stack.file_path,
-                                                            stack.line_number,
-                                                            stack.column_number
-                                                        ));
-                                                    });
-
-                                                    ui.horizontal(|ui| {
-                                                        ui.add(
-                                                            egui::Label::new("Code:")
-                                                                .strong(),
-                                                        );
-
-                                                        ui.add(
-                                                            egui::Label::new(&stack.code)
-                                                                .code(),
-                                                        );
-                                                    });
-                                                },
-                                            );
-                                        }
+                                        ui.label(&clicked_item.1.format("%F %X"));
                                     });
+
+                                    ui.horizontal_wrapped(|ui| {
+                                        ui.add(
+                                            egui::Label::new("Received from:").strong(),
+                                        );
+
+                                        ui.label(&clicked_item.0.address);
+                                    });
+
+                                    ui.collapsing(
+                                        format!(
+                                            "Stack trace ({} layer(s))",
+                                            clicked_item.0.stack.len()
+                                        ),
+                                        |ui| {
+                                            for (index, stack) in
+                                                clicked_item.0.stack.iter().enumerate()
+                                            {
+                                                ui.collapsing(
+                                                    format!("Stack layer {}", index),
+                                                    |ui| {
+                                                        ui.horizontal(|ui| {
+                                                            ui.add(
+                                                                egui::Label::new(
+                                                                    "Position:",
+                                                                )
+                                                                .strong(),
+                                                            );
+
+                                                            ui.label(format!(
+                                                                "{}:{} column {}",
+                                                                stack.file_path,
+                                                                stack.line_number,
+                                                                stack.column_number
+                                                            ));
+                                                        });
+
+                                                        ui.horizontal(|ui| {
+                                                            ui.add(
+                                                                egui::Label::new("Code:")
+                                                                    .strong(),
+                                                            );
+
+                                                            ui.add(
+                                                                egui::Label::new(
+                                                                    &stack.code,
+                                                                )
+                                                                .code(),
+                                                            );
+                                                        });
+                                                    },
+                                                );
+                                            }
+                                        },
+                                    );
                                 });
                             });
 

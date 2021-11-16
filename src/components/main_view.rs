@@ -91,7 +91,7 @@ pub fn main_view(app_state: &mut GuiAppState, ctx: &CtxRef, socket_address: &str
                                 });
 
                                 ui.label(&received.0.message.replace("\"", ""));
-                                ui.label("Not known");
+                                ui.label(&received.0.address);
                                 ui.label(&received.0.file_name);
                                 ui.label(&received.0.line_number);
                                 ui.label(&received.1.format("%F %X"));

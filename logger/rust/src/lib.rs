@@ -43,6 +43,7 @@ pub struct Log<T: Message> {
     pub message: String,
     pub message_type: String,
     pub file_name: String,
+    pub address: String,
     #[serde(skip)]
     _t: PhantomData<T>,
 }
@@ -61,6 +62,7 @@ impl<T: Message + Debug> Log<T> {
             code_snippet: BTreeMap::new(),
             message: format!("{:#?}", &message),
             message_type: std::any::type_name::<T>().to_string(),
+            address: String::new(),
             _t: PhantomData::<T>,
         };
 
@@ -76,7 +78,7 @@ impl<T: Message + Debug> Log<T> {
 
             log.file_name = last
                 .file_path
-                .split("/")
+                .split('/')
                 .skip_while(|s| *s != "src")
                 .collect::<Vec<_>>()
                 .join("/");
@@ -86,7 +88,7 @@ impl<T: Message + Debug> Log<T> {
         let mut ret = Ok(());
 
         rt.block_on(async {
-            ret = Self::_log(&log, port).await;
+            ret = Self::_log(&mut log, port).await;
         });
 
         ret
@@ -97,11 +99,16 @@ impl<T: Message + Debug> Log<T> {
     //
     // TODO: Provide a direct wrapper so that async environments do not need to call
     // a non-async wrapper, just for that to call an async wrapper.
-    async fn _log(log: &Self, port: &str) -> Result<(), Box<dyn Error>> {
+    async fn _log(log: &mut Self, port: &str) -> Result<(), Box<dyn Error>> {
         let socket = TcpSocket::new_v4()?;
         let mut stream = socket
             .connect(format!("127.0.0.1:{}", port).parse().unwrap())
             .await?;
+
+        if let Ok(address) = stream.local_addr() {
+            log.address =
+                address.to_string().split(':').collect::<Vec<_>>()[0].to_string();
+        }
 
         let data = serde_cbor::to_vec(log)?;
 
