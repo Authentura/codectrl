@@ -24,7 +24,10 @@
 // Further changes can be discussed and implemented at later dates, but this is
 // the proposal so far.
 
-use crate::common::{Received, Receiver};
+use crate::{
+    common::{Received, Receiver},
+    components::{details_view, main_view},
+};
 use chrono::{DateTime, Local};
 use code_ctrl_logger::Log;
 use egui::CtxRef;
@@ -38,7 +41,7 @@ use std::{
 };
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
-enum Filter {
+pub enum Filter {
     Message,
     Time,
     FileName,
@@ -59,18 +62,18 @@ impl Display for Filter {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct GuiAppState {
-    search_filter: String,
-    filter_by: Filter,
+pub struct GuiAppState {
+    pub search_filter: String,
+    pub filter_by: Filter,
     #[serde(skip)]
-    received: Received,
-    is_case_sensitive: bool,
-    is_using_regex: bool,
-    is_newest_first: bool,
+    pub received: Received,
+    pub is_case_sensitive: bool,
+    pub is_using_regex: bool,
+    pub is_newest_first: bool,
     #[serde(skip)]
-    clicked_item: Option<(Log<String>, DateTime<Local>)>,
+    pub clicked_item: Option<(Log<String>, DateTime<Local>)>,
     #[serde(skip)]
-    preview_height: f32,
+    pub preview_height: f32,
 }
 
 impl Default for GuiAppState {
@@ -121,7 +124,8 @@ impl epi::App for GuiApp {
                     ui.label("Filter: ");
                     ui.text_edit_singleline(&mut self.data.search_filter);
 
-                    if ui.button("🗙").clicked() {
+                    // u1f5d9 = 🗙
+                    if ui.button("\u{1f5d9}").clicked() {
                         self.data.search_filter = "".into();
                     }
 
@@ -168,9 +172,9 @@ impl epi::App for GuiApp {
                     if ui
                         .button(
                             if self.data.is_newest_first {
-                                "⬇ Newest first"
+                                "\u{2b07} Newest first" // u2b07 = ⬇
                             } else {
-                                "⬆ Newest last"
+                                "\u{2b06} Newest last" // u2b06 = ⬆
                             },
                         )
                         .clicked()
@@ -180,128 +184,10 @@ impl epi::App for GuiApp {
                 });
             });
 
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.vertical_centered(|ui| {
-                ui.heading(format!("Listening on: {}", self.socket_address));
-
-                egui::ScrollArea::vertical()
-                    .max_width(ui.available_width())
-                    .max_height(ui.available_height() - self.data.preview_height)
-                    .auto_shrink([false, false])
-                    .show(ui, |ui| {
-                        egui::Grid::new("received_grid")
-                            .striped(true)
-                            .spacing((0.0, 10.0))
-                            .min_col_width(ui.available_width() / 6.0)
-                            .show(ui, |ui| {
-                                ui.heading("");
-                                ui.heading("Message");
-                                ui.heading("Host");
-                                ui.heading("File name");
-                                ui.heading("Line number");
-                                ui.heading("Date & time");
-                                ui.end_row();
-
-                                let received_vec = self.data.received.read().unwrap();
-                                let mut received_vec: Vec<_> =
-                                    received_vec.iter().collect();
-
-                                received_vec.sort_by(|(_, a_time), (_, b_time)| {
-                                    if self.data.is_newest_first {
-                                        b_time.partial_cmp(a_time).unwrap()
-                                    } else {
-                                        a_time.partial_cmp(b_time).unwrap()
-                                    }
-                                });
-
-                                for received in received_vec.iter().filter(|(log, _)| {
-                                    match self.data.filter_by {
-                                        Filter::Message =>
-                                            if self.data.is_case_sensitive {
-                                                log.message
-                                                    .contains(&self.data.search_filter)
-                                            } else {
-                                                log.message.to_lowercase().contains(
-                                                    &self
-                                                        .data
-                                                        .search_filter
-                                                        .to_lowercase(),
-                                                )
-                                            },
-                                        Filter::Time => todo!(),
-                                        Filter::FileName =>
-                                            if self.data.is_case_sensitive {
-                                                log.file_name
-                                                    .contains(&self.data.search_filter)
-                                            } else {
-                                                log.message.to_lowercase().contains(
-                                                    &self
-                                                        .data
-                                                        .search_filter
-                                                        .to_lowercase(),
-                                                )
-                                            },
-                                        Filter::Address => todo!(),
-                                        Filter::LineNumber => todo!(),
-                                    }
-                                }) {
-                                    ui.horizontal(|ui| {
-                                        if let Some(clicked_item) =
-                                            &self.data.clicked_item
-                                        {
-                                            let _ =
-                                                ui.radio(*received == clicked_item, "");
-                                        } else {
-                                            let _ = ui.radio(false, "");
-                                        }
-
-                                        if ui.button("Examine 🔎").clicked() {
-                                            self.data.clicked_item =
-                                                Some((*received).clone())
-                                        };
-                                    });
-
-                                    ui.label(&received.0.message.replace("\"", ""));
-                                    ui.label("Not known");
-                                    ui.label(&received.0.file_name);
-                                    ui.label(&received.0.line_number);
-                                    ui.label(&received.1.format("%F %X"));
-                                    ui.end_row();
-                                }
-                            });
-                    });
-            });
-        });
+        main_view(&mut self.data, ctx, &self.socket_address);
 
         if self.data.clicked_item.is_some() {
-            egui::TopBottomPanel::bottom("log_information")
-                .resizable(true)
-                .default_height(350.0)
-                .max_height(450.0)
-                .min_height(250.0)
-                .show(ctx, |ui| {
-                    self.data.preview_height = ui.available_height() + 2.0;
-                    egui::Grid::new("log_information_grid")
-                        .num_columns(2)
-                        .min_col_width(ui.available_width() / 2.0)
-                        .show(ui, |ui| {
-                            ui.label("");
-                            ui.with_layout(egui::Layout::right_to_left(), |ui| {
-                                if ui.button("🗙 Close").clicked() {
-                                    self.data.clicked_item = None;
-                                }
-                            });
-                            ui.end_row();
-
-                            ui.heading("Details");
-                            ui.heading("Code");
-                            ui.end_row();
-
-                            ui.vertical(|ui| ui.label("Test"));
-                            ui.vertical(|ui| ui.label("Test"));
-                            ui.end_row();
-                        });
-                });
+            details_view(&mut self.data, ctx);
         } else {
             self.data.preview_height = 0.0;
         }

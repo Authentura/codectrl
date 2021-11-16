@@ -1,7 +1,9 @@
 #![feature(async_closure, thread_spawn_unchecked)]
 #![warn(clippy::pedantic)]
+#![allow(clippy::module_name_repetitions)]
 
 mod common;
+mod components;
 mod gui_app;
 mod text_app;
 
