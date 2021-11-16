@@ -91,7 +91,14 @@ pub fn main_view(app_state: &mut GuiAppState, ctx: &CtxRef, socket_address: &str
                                     };
                                 });
 
-                                ui.label(&received.0.message.replace("\"", ""));
+                                let mut message = received.0.message.replace("\"", "");
+
+                                if received.0.message.len() > 100 {
+                                    message.truncate(97);
+                                    message.push_str("...");
+                                }
+
+                                ui.label(message);
                                 ui.label(&received.0.address);
                                 ui.label(&received.0.file_name);
                                 ui.label(&received.0.line_number);
