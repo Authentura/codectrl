@@ -24,10 +24,7 @@
 // Further changes can be discussed and implemented at later dates, but this is
 // the proposal so far.
 
-use crate::{
-    common::{Received, Receiver},
-    components::{details_view, main_view},
-};
+use crate::components::{details_view, main_view};
 use chrono::{DateTime, Local};
 use code_ctrl_logger::Log;
 use egui::CtxRef;
@@ -39,6 +36,9 @@ use std::{
     sync::{mpsc::Receiver as Rx, Arc, Mutex, RwLock},
     thread::{Builder as ThreadBuilder, JoinHandle},
 };
+
+pub type Received = Arc<RwLock<VecDeque<(Log<String>, DateTime<Local>)>>>;
+pub type Receiver = Option<Arc<Mutex<Rx<Log<String>>>>>;
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub enum Filter {
@@ -62,7 +62,7 @@ impl Display for Filter {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct GuiAppState {
+pub struct AppState {
     pub search_filter: String,
     pub filter_by: Filter,
     #[serde(skip)]
@@ -76,7 +76,7 @@ pub struct GuiAppState {
     pub preview_height: f32,
 }
 
-impl Default for GuiAppState {
+impl Default for AppState {
     fn default() -> Self {
         Self {
             search_filter: "".into(),
@@ -92,29 +92,29 @@ impl Default for GuiAppState {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
-pub struct GuiApp {
+pub struct App {
     #[serde(skip)]
     pub receiver: Receiver,
     #[serde(skip)]
     update_thread: Option<JoinHandle<()>>,
-    data: GuiAppState,
+    data: AppState,
     title: String,
     socket_address: String,
 }
 
-impl GuiApp {
+impl App {
     pub fn new(title: &str, receiver: Rx<Log<String>>, socket_address: String) -> Self {
         Self {
             receiver: Some(Arc::new(Mutex::new(receiver))),
             update_thread: None,
-            data: GuiAppState::default(),
+            data: AppState::default(),
             title: title.into(),
             socket_address,
         }
     }
 }
 
-impl epi::App for GuiApp {
+impl epi::App for App {
     fn update(&mut self, ctx: &CtxRef, _frame: &mut Frame<'_>) {
         egui::TopBottomPanel::top("top_bar")
             .resizable(false)
