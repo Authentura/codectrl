@@ -1,7 +1,7 @@
-use crate::gui_app::{Filter, GuiAppState};
+use crate::app::{Filter, AppState};
 use egui::CtxRef;
 
-pub fn main_view(app_state: &mut GuiAppState, ctx: &CtxRef, socket_address: &str) {
+pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {
             ui.heading(format!("Listening on: {}", socket_address));
@@ -36,7 +36,7 @@ pub fn main_view(app_state: &mut GuiAppState, ctx: &CtxRef, socket_address: &str
                                 }
                             });
 
-                            for received in
+                            for received @ (log, time) in
                                 received_vec.iter().filter(|(log, time)| match app_state
                                     .filter_by
                                 {
@@ -91,18 +91,18 @@ pub fn main_view(app_state: &mut GuiAppState, ctx: &CtxRef, socket_address: &str
                                     };
                                 });
 
-                                let mut message = received.0.message.replace("\"", "");
+                                let mut message = log.message.replace("\"", "");
 
-                                if received.0.message.len() > 100 {
+                                if log.message.len() > 100 {
                                     message.truncate(97);
                                     message.push_str("...");
                                 }
 
                                 ui.label(message);
-                                ui.label(&received.0.address);
-                                ui.label(&received.0.file_name);
-                                ui.label(&received.0.line_number);
-                                ui.label(&received.1.format("%F %X"));
+                                ui.label(&log.address);
+                                ui.label(&log.file_name);
+                                ui.label(&log.line_number);
+                                ui.label(&time.format("%F %X"));
                                 ui.end_row();
                             }
                         });

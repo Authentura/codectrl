@@ -1,8 +1,8 @@
-use crate::gui_app::GuiAppState;
+use crate::app::AppState;
 use egui::CtxRef;
 
 #[allow(clippy::too_many_lines)]
-pub fn details_view(app_state: &mut GuiAppState, ctx: &CtxRef) {
+pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {
     egui::TopBottomPanel::bottom("log_information")
         .resizable(true)
         .default_height(350.0)
@@ -31,7 +31,7 @@ pub fn details_view(app_state: &mut GuiAppState, ctx: &CtxRef) {
                 .min_col_width(ui.available_width() / 2.0)
                 .min_row_height(ui.available_height())
                 .show(ui, |ui| {
-                    if let Some(clicked_item) = app_state.clicked_item.as_ref() {
+                    if let Some((log, time)) = app_state.clicked_item.as_ref() {
                         egui::ScrollArea::vertical()
                             .id_source("detail_scroll")
                             .auto_shrink([false, false])
@@ -42,17 +42,14 @@ pub fn details_view(app_state: &mut GuiAppState, ctx: &CtxRef) {
 
                                         ui.label(format!(
                                             "{}:{}",
-                                            &clicked_item.0.file_name,
-                                            clicked_item.0.line_number
+                                            &log.file_name, log.line_number
                                         ));
                                     });
 
                                     ui.horizontal_wrapped(|ui| {
                                         ui.add(egui::Label::new("Message:").strong());
 
-                                        ui.label(
-                                            clicked_item.0.message.replace("\"", ""),
-                                        );
+                                        ui.label(log.message.replace("\"", ""));
                                     });
 
                                     ui.horizontal_wrapped(|ui| {
@@ -60,13 +57,13 @@ pub fn details_view(app_state: &mut GuiAppState, ctx: &CtxRef) {
                                             egui::Label::new("Message type:").strong(),
                                         );
 
-                                        ui.label(&clicked_item.0.message_type);
+                                        ui.label(&log.message_type);
                                     });
 
                                     ui.horizontal_wrapped(|ui| {
                                         ui.add(egui::Label::new("Received at:").strong());
 
-                                        ui.label(&clicked_item.1.format("%F %X"));
+                                        ui.label(&time.format("%F %X"));
                                     });
 
                                     ui.horizontal_wrapped(|ui| {
@@ -74,17 +71,17 @@ pub fn details_view(app_state: &mut GuiAppState, ctx: &CtxRef) {
                                             egui::Label::new("Received from:").strong(),
                                         );
 
-                                        ui.label(&clicked_item.0.address);
+                                        ui.label(&log.address);
                                     });
 
                                     ui.collapsing(
                                         format!(
                                             "Stack trace ({} layer(s))",
-                                            clicked_item.0.stack.len()
+                                            log.stack.len()
                                         ),
                                         |ui| {
                                             for (index, stack) in
-                                                clicked_item.0.stack.iter().enumerate()
+                                                log.stack.iter().enumerate()
                                             {
                                                 ui.collapsing(
                                                     format!("Stack layer {}", index),
@@ -132,10 +129,10 @@ pub fn details_view(app_state: &mut GuiAppState, ctx: &CtxRef) {
                             .max_height(ui.available_height())
                             .max_width(ui.available_width())
                             .show(ui, |ui| {
-                                let code = clicked_item.0.code_snippet.iter().fold(
+                                let code = log.code_snippet.iter().fold(
                                     String::new(),
                                     |code, (line_number, line)| {
-                                        if *line_number == clicked_item.0.line_number {
+                                        if *line_number == log.line_number {
                                             format!(
                                                 "{}{:>>2}  {}\n",
                                                 code, line_number, line
