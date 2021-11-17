@@ -3,7 +3,6 @@
 #![allow(clippy::module_name_repetitions)]
 
 mod app;
-mod common;
 mod components;
 
 extern crate clap;
