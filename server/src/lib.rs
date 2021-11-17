@@ -57,7 +57,7 @@ impl Server {
         let listener = socket.listen(1024)?;
 
         loop {
-            let (mut socket, _) = listener.accept().await?;
+            let (mut socket, peer_address) = listener.accept().await?;
 
             let mut buf = [0; 2048];
 
@@ -76,13 +76,16 @@ impl Server {
                     break;
                 }
 
-                let data = match serde_cbor::from_reader(&buf[..n]) {
+                let mut data: Log<String> = match serde_cbor::from_reader(&buf[..n]) {
                     Ok(data) => data,
                     Err(e) => {
                         eprintln!("Error: {}", e);
                         break;
                     },
                 };
+
+                data.address = peer_address.to_string().split(':').collect::<Vec<_>>()[0]
+                    .to_string();
 
                 if let Err(e) = self.sender.send(data) {
                     eprintln!("Failed to send through channel: {}", e);
