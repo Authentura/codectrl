@@ -7,7 +7,7 @@ authors = ["pwnCtrl <contact@pwnctrl.com>", "Samuel Boyden <sam@stboyden.com>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-code_ctrl_logger = { path = "../logger/rust", default-features = false, features = ["types-only"] }
+code_ctrl_logger = { path = "../loggers/rust", default-features = false, features = ["types-only"] }
 tokio = { version = "1.13", default-features = false, features = ["net", "rt-multi-thread", "io-util"] }
 serde = "1.0"
 serde_cbor = "0.11"
