@@ -32,7 +32,7 @@ use epi::{Frame, Storage};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
-    fmt::Display,
+    fmt::{self, Display},
     sync::{mpsc::Receiver as Rx, Arc, Mutex, RwLock},
     thread::{Builder as ThreadBuilder, JoinHandle},
 };
@@ -50,7 +50,7 @@ pub enum Filter {
 }
 
 impl Display for Filter {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Message => write!(f, "Message"),
             Self::Time => write!(f, "Time"),
