@@ -1,0 +1,3 @@
+[submodule "loggers/rust-logger"]
+	path = loggers/rust-logger
+	url = https://github.com/pwnCTRL/codectrl-rust-logger
