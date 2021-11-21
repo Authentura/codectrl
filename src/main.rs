@@ -53,7 +53,6 @@ async fn main() {
     let app = App::new(NAME, receiver, socket_address);
 
     let options = egui_glow::NativeOptions {
-        transparent: true,
         drag_and_drop_support: true,
         ..egui_glow::NativeOptions::default()
     };
