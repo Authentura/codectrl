@@ -8,9 +8,9 @@ description = "A source code analytic tool. Using egui version 0.15.0."
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-code_ctrl_logger = { path = "loggers/rust-logger", default-features = false, features = ["types-only"] }
 chrono = "0.4"
 clap = "2.33"
+code_ctrl_logger = { path = "loggers/rust-logger", default-features = false, features = ["types-only"] }
 eframe = "0.15"
 egui = { version = "0.15", features = ["persistence", "multi_threaded"] }
 egui_glow = "0.15"
