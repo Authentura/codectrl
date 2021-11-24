@@ -1,6 +1,10 @@
-#![feature(async_closure, thread_spawn_unchecked)]
+#![feature(async_closure, thread_spawn_unchecked, let_chains)]
 #![warn(clippy::pedantic)]
-#![allow(clippy::module_name_repetitions, clippy::struct_excessive_bools)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::struct_excessive_bools,
+    incomplete_features
+)]
 
 mod app;
 mod components;

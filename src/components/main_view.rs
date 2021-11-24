@@ -1,6 +1,8 @@
-use crate::app::{Filter, AppState};
+use crate::app::{AppState, Filter};
 use egui::CtxRef;
+use regex::Regex;
 
+#[allow(clippy::too_many_lines)]
 pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {
@@ -43,6 +45,32 @@ pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
                                     Filter::Message =>
                                         if app_state.is_case_sensitive {
                                             log.message.contains(&app_state.search_filter)
+                                        } else if app_state.is_using_regex {
+                                            let regex = if app_state.is_case_sensitive {
+                                                Regex::new(
+                                                    &app_state
+                                                        .search_filter
+                                                        .to_lowercase(),
+                                                )
+                                            } else {
+                                                Regex::new(&app_state.search_filter)
+                                            };
+
+                                            if let Ok(re) = regex {
+                                                if app_state.is_case_sensitive {
+                                                    re.captures_iter(&log.message)
+                                                        .next()
+                                                        .is_some()
+                                                } else {
+                                                    re.captures_iter(
+                                                        &log.message.to_lowercase(),
+                                                    )
+                                                    .next()
+                                                    .is_some()
+                                                }
+                                            } else {
+                                                false
+                                            }
                                         } else {
                                             log.message.to_lowercase().contains(
                                                 &app_state.search_filter.to_lowercase(),
@@ -56,6 +84,32 @@ pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
                                         if app_state.is_case_sensitive {
                                             log.file_name
                                                 .contains(&app_state.search_filter)
+                                        } else if app_state.is_using_regex {
+                                            let regex = if app_state.is_case_sensitive {
+                                                Regex::new(
+                                                    &app_state
+                                                        .search_filter
+                                                        .to_lowercase(),
+                                                )
+                                            } else {
+                                                Regex::new(&app_state.search_filter)
+                                            };
+
+                                            if let Ok(re) = regex {
+                                                if app_state.is_case_sensitive {
+                                                    re.captures_iter(&log.file_name)
+                                                        .next()
+                                                        .is_some()
+                                                } else {
+                                                    re.captures_iter(
+                                                        &log.file_name.to_lowercase(),
+                                                    )
+                                                    .next()
+                                                    .is_some()
+                                                }
+                                            } else {
+                                                false
+                                            }
                                         } else {
                                             log.message.to_lowercase().contains(
                                                 &app_state.search_filter.to_lowercase(),
