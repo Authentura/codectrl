@@ -131,7 +131,7 @@ pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {
                                                     ui.label(format!(
                                                         "{}. {}",
                                                         index + 1,
-                                                        warning.to_string()
+                                                        warning
                                                     ));
                                                 }
                                             },

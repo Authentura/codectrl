@@ -128,7 +128,7 @@ pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
                                                 ui.label(format!(
                                                     "{}. {}",
                                                     index + 1,
-                                                    warning.to_string()
+                                                    warning
                                                 ));
                                             }
                                         });
