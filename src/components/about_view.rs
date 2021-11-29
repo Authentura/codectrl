@@ -1,9 +1,10 @@
 use crate::app::{AboutState, AppState};
 use clap::{crate_authors, crate_description, crate_version};
-use egui::{CtxRef, TextStyle};
+use egui::{CtxRef, Id, TextStyle};
 
 pub fn about_view(app_state: &mut AppState, ctx: &CtxRef) {
-    egui::Window::new("")
+    egui::Window::new(app_state.about_state.to_string())
+        .id(Id::new("about_view"))
         .resizable(false)
         .collapsible(false)
         .title_bar(true)
