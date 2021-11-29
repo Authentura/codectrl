@@ -2,7 +2,7 @@ use crate::{
     app::{AppState, Filter},
     components::regex_filter,
 };
-use egui::CtxRef;
+use egui::{Color32, CtxRef};
 
 #[allow(clippy::too_many_lines)]
 pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
@@ -105,6 +105,34 @@ pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
                                         app_state.clicked_item =
                                             Some((*received).clone());
                                     };
+
+                                    if !log.warnings.is_empty() {
+                                        ui.add(
+                                            egui::Label::new(format!(
+                                                "\u{26a0} {}", // u26a0 = ⚠
+                                                log.warnings.len()
+                                            ))
+                                            .text_color(Color32::YELLOW),
+                                        )
+                                        .on_hover_ui_at_pointer(|ui| {
+                                            ui.heading(
+                                                "Logger generated the following \
+                                                 warning(s)",
+                                            );
+
+                                            ui.label("");
+
+                                            for (index, warning) in
+                                                log.warnings.iter().enumerate()
+                                            {
+                                                ui.label(format!(
+                                                    "{}. {}",
+                                                    index + 1,
+                                                    warning.to_string()
+                                                ));
+                                            }
+                                        });
+                                    }
                                 });
 
                                 let mut message = log.message.replace("\"", "");

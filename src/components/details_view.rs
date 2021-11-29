@@ -120,6 +120,23 @@ pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {
                                             }
                                         },
                                     );
+
+                                    if !log.warnings.is_empty() {
+                                        ui.collapsing(
+                                            format!("{} Warning(s)", log.warnings.len()),
+                                            |ui| {
+                                                for (index, warning) in
+                                                    log.warnings.iter().enumerate()
+                                                {
+                                                    ui.label(format!(
+                                                        "{}. {}",
+                                                        index + 1,
+                                                        warning.to_string()
+                                                    ));
+                                                }
+                                            },
+                                        );
+                                    }
                                 });
                             });
 
