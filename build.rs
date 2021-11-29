@@ -42,7 +42,7 @@ fn main() {
     versions_file
         .write_all(
             format!(
-                "pub const BUILD_DEPS: [(&'static str, &'static str); {}] = [",
+                "pub const BUILD_DEPS: [(&str, &str); {}] = [",
                 packages.len()
             )
             .as_ref(),
