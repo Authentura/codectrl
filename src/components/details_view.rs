@@ -81,7 +81,7 @@ pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {
                                         ),
                                         |ui| {
                                             for (index, stack) in
-                                                log.stack.iter().enumerate()
+                                                log.stack.iter().rev().enumerate()
                                             {
                                                 ui.collapsing(
                                                     format!("Stack layer {}", index),
