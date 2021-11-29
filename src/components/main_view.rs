@@ -4,7 +4,6 @@ use crate::{
 };
 use egui::{Color32, CtxRef};
 
-#[allow(clippy::too_many_lines)]
 pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {

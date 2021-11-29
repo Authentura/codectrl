@@ -1,7 +1,6 @@
 use crate::app::AppState;
 use egui::CtxRef;
 
-#[allow(clippy::too_many_lines)]
 pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {
     egui::TopBottomPanel::bottom("log_information")
         .resizable(true)
