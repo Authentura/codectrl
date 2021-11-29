@@ -5,9 +5,7 @@ pub fn regex_filter(
     match_string: &str,
     case_sensitive: bool,
 ) -> bool {
-    let regex_string = regex_string.to_string();
-
-    if let Ok(regex) = RegexBuilder::new(&regex_string)
+    if let Ok(regex) = RegexBuilder::new(regex_string)
         .case_insensitive(!case_sensitive)
         .build()
     {
