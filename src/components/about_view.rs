@@ -71,6 +71,8 @@ pub fn about_view(app_state: &mut AppState, ctx: &CtxRef) {
                                 crate_version!(),
                                 super::BUILD_TIME
                             ));
+                            ui.heading(format!("Commit: {}", super::GIT_COMMIT));
+                            ui.heading(format!("Branch: {}", super::GIT_BRANCH));
                             ui.heading("");
                             ui.heading(crate_description!());
                         },

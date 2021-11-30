@@ -3,6 +3,7 @@ use std::{
     env, fs,
     io::{Read, Write},
     path,
+    process::Command,
 };
 use toml::value::Map;
 
@@ -67,4 +68,18 @@ fn main() {
             .as_ref(),
         )
         .unwrap();
+
+    let output = Command::new("git")
+        .args(&["rev-parse", "--short=7", "HEAD"])
+        .output()
+        .unwrap();
+    let git_hash = String::from_utf8(output.stdout).unwrap();
+    let output = Command::new("git")
+        .args(&["rev-parse", "--abbrev-ref", "HEAD"])
+        .output()
+        .unwrap();
+    let git_branch = String::from_utf8(output.stdout).unwrap();
+
+    println!("cargo:rustc-env=GIT_COMMIT={}", git_hash);
+    println!("cargo:rustc-env=GIT_BRANCH={}", git_branch);
 }
