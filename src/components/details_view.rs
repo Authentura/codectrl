@@ -11,10 +11,12 @@ pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {
             app_state.preview_height = ui.available_height() + 2.0;
 
             ui.horizontal(|ui| {
-                ui.heading("Details");
-                ui.add_space(ui.available_width() / 2.0 - 20.0);
-
-                ui.heading("Code");
+                ui.add(
+                    egui::Label::new("Log information")
+                        .heading()
+                        .underline()
+                        .strong(),
+                );
 
                 ui.with_layout(egui::Layout::right_to_left(), |ui| {
                     // u1f5d9 = 🗙
@@ -23,6 +25,16 @@ pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {
                     }
                 });
             });
+
+            ui.separator();
+            egui::Grid::new("log_information_grid_headers")
+                .num_columns(2)
+                .max_col_width(ui.available_width() / 2.0)
+                .min_col_width(ui.available_width() / 2.0)
+                .show(ui, |ui| {
+                    ui.heading("Details");
+                    ui.heading("Code");
+                });
 
             egui::Grid::new("log_information_grid")
                 .num_columns(2)
@@ -143,7 +155,7 @@ pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {
                             .id_source("code_scroll")
                             .auto_shrink([false, false])
                             .max_height(ui.available_height())
-                            .max_width(ui.available_width())
+                            .max_width(ui.available_width() - 10.0)
                             .show(ui, |ui| {
                                 let code = log.code_snippet.0.iter().fold(
                                     String::new(),

@@ -88,14 +88,14 @@ impl Server {
                     },
                 };
 
-                if data.message.len() > 100 {
+                if data.message.len() > 1000 {
                     warn!(target: "log_server",
-                        "Log message is quite long: max recommended characters is 100, \
+                        "Log message is quite long: max recommended characters is 1000, \
                          log had {}",
                         data.message.len()
                     );
 
-                    data.warnings.push("Message exceeds 100 characters".into());
+                    data.warnings.push("Message exceeds 1000 characters".into());
                 }
 
                 if data.message.is_empty() {
