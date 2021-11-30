@@ -145,7 +145,7 @@ pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {
                             .max_height(ui.available_height())
                             .max_width(ui.available_width())
                             .show(ui, |ui| {
-                                let code = log.code_snippet.iter().fold(
+                                let code = log.code_snippet.0.iter().fold(
                                     String::new(),
                                     |code, (line_number, line)| {
                                         if *line_number == log.line_number {
