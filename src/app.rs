@@ -92,6 +92,7 @@ pub struct AppState {
     pub is_using_regex: bool,
     pub is_newest_first: bool,
     pub is_about_open: bool,
+    pub is_message_preview_open: bool,
     #[serde(skip)]
     pub clicked_item: Option<(Log<String>, DateTime<Local>)>,
     #[serde(skip)]
@@ -110,6 +111,7 @@ impl Default for AppState {
             is_using_regex: false,
             is_newest_first: true,
             is_about_open: false,
+            is_message_preview_open: false,
             clicked_item: None,
             preview_height: 0.0,
             about_state: AboutState::About,

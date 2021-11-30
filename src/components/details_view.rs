@@ -1,4 +1,4 @@
-use crate::app::AppState;
+use crate::{app::AppState, components::message_preview_view};
 use egui::CtxRef;
 
 pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {
@@ -60,7 +60,25 @@ pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {
                                     ui.horizontal_wrapped(|ui| {
                                         ui.add(egui::Label::new("Message:").strong());
 
-                                        ui.label(log.message.replace("\"", ""));
+                                        if log.message.len() <= 200 {
+                                            ui.label(log.message.replace("\"", ""));
+                                        } else {
+                                            // u25b6 = ▶
+                                            if ui
+                                                .button("View message \u{25b6}")
+                                                .clicked()
+                                            {
+                                                app_state.is_message_preview_open =
+                                                    !app_state.is_message_preview_open;
+                                            }
+
+                                            message_preview_view(
+                                                &mut app_state.is_message_preview_open,
+                                                ctx,
+                                                &log.message,
+                                                &log.message_type,
+                                            );
+                                        }
                                     });
 
                                     ui.horizontal_wrapped(|ui| {
@@ -162,12 +180,12 @@ pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {
                                     |code, (line_number, line)| {
                                         if *line_number == log.line_number {
                                             format!(
-                                                "{}{:>>2}  {}\n",
+                                                "{}{:>>3}  {}\n",
                                                 code, line_number, line
                                             )
                                         } else {
                                             format!(
-                                                "{}{: >2}  {}\n",
+                                                "{}{: >3}  {}\n",
                                                 code, line_number, line
                                             )
                                         }
