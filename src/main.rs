@@ -14,7 +14,7 @@ extern crate clap;
 
 use app::App;
 use clap::{crate_authors, crate_version, App as ClapApp, Arg};
-use server::Server;
+use code_ctrl_log_server::Server;
 use std::{collections::HashMap, env, thread};
 
 static NAME: &str = "codeCTRL";

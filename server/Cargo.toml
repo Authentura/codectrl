@@ -1,5 +1,5 @@
 [package]
-name = "server"
+name = "code_ctrl_log_server"
 version = "0.0.0"
 edition = "2021"
 authors = ["pwnCtrl <contact@pwnctrl.com>", "Samuel Boyden <sam@stboyden.com>"]
@@ -8,6 +8,8 @@ authors = ["pwnCtrl <contact@pwnctrl.com>", "Samuel Boyden <sam@stboyden.com>"]
 
 [dependencies]
 code_ctrl_logger = { path = "../loggers/rust-logger", default-features = false, features = ["types-only"] }
+log = { version = "0.4", features = ["release_max_level_warn", "max_level_info"]}
+simple_logger = "1.15"
 serde = "1.0"
 serde_cbor = "0.11"
-tokio = { version = "1.13", default-features = false, features = ["net", "rt-multi-thread", "io-util"] }
+tokio = { version = "1.14", default-features = false, features = ["net", "rt-multi-thread", "io-util"] }
