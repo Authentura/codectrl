@@ -1,3 +1,3 @@
-mod log_grid;
+mod information_grid;
 
-pub use log_grid::draw_information_grid;
+pub use information_grid::draw_information_grid;
