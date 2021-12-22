@@ -4,6 +4,7 @@ mod common;
 mod details_view;
 mod details_view_components;
 mod main_view;
+mod main_view_components;
 mod message_preview_view;
 
 pub use about_view::*;

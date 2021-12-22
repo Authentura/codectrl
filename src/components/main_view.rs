@@ -1,8 +1,53 @@
 use crate::{
     app::{AppState, Filter},
-    components::regex_filter,
+    components::{main_view_components::draw_log_item, regex_filter},
 };
-use egui::{Color32, CtxRef};
+use chrono::{DateTime, Local};
+use code_ctrl_logger::Log;
+use egui::CtxRef;
+
+fn app_state_filter(
+    is_case_sensitive: bool,
+    is_using_regex: bool,
+    search_filter: &str,
+    filter_by: &Filter,
+    log: &Log<String>,
+    time: &DateTime<Local>,
+) -> bool {
+    match filter_by {
+        Filter::Message =>
+            if is_case_sensitive {
+                log.message.contains(search_filter)
+            } else if is_using_regex {
+                regex_filter(search_filter, &log.message, is_case_sensitive)
+            } else {
+                log.message
+                    .to_lowercase()
+                    .contains(&*search_filter.to_lowercase())
+            },
+        Filter::Time => time.format("%F %X").to_string().contains(&*search_filter),
+        Filter::FileName =>
+            if is_case_sensitive {
+                log.file_name.contains(&*search_filter)
+            } else if is_using_regex {
+                regex_filter(search_filter, &log.file_name, is_case_sensitive)
+            } else {
+                log.message
+                    .to_lowercase()
+                    .contains(&*search_filter.to_lowercase())
+            },
+        Filter::Address => false, // TODO: do custom ip address/host filter
+        Filter::LineNumber => {
+            let number = search_filter.parse::<u32>().unwrap_or(0);
+
+            if number == 0 {
+                return true;
+            }
+
+            log.line_number == number
+        },
+    }
+}
 
 pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
     egui::CentralPanel::default().show(ctx, |ui| {
@@ -39,114 +84,17 @@ pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
                                 }
                             });
 
-                            for received @ (log, time) in
-                                received_vec.iter().filter(|(log, time)| match app_state
-                                    .filter_by
-                                {
-                                    Filter::Message =>
-                                        if app_state.is_case_sensitive {
-                                            log.message.contains(&app_state.search_filter)
-                                        } else if app_state.is_using_regex {
-                                            regex_filter(
-                                                &app_state.search_filter,
-                                                &log.message,
-                                                app_state.is_case_sensitive,
-                                            )
-                                        } else {
-                                            log.message.to_lowercase().contains(
-                                                &app_state.search_filter.to_lowercase(),
-                                            )
-                                        },
-                                    Filter::Time => time
-                                        .format("%F %X")
-                                        .to_string()
-                                        .contains(&app_state.search_filter),
-                                    Filter::FileName =>
-                                        if app_state.is_case_sensitive {
-                                            log.file_name
-                                                .contains(&app_state.search_filter)
-                                        } else if app_state.is_using_regex {
-                                            regex_filter(
-                                                &app_state.search_filter,
-                                                &log.file_name,
-                                                app_state.is_case_sensitive,
-                                            )
-                                        } else {
-                                            log.message.to_lowercase().contains(
-                                                &app_state.search_filter.to_lowercase(),
-                                            )
-                                        },
-                                    Filter::Address => false,
-                                    Filter::LineNumber => {
-                                        let number = app_state
-                                            .search_filter
-                                            .parse::<u32>()
-                                            .unwrap_or(0);
-
-                                        if number == 0 {
-                                            return true;
-                                        }
-
-                                        log.line_number == number
-                                    },
-                                })
-                            {
-                                ui.horizontal(|ui| {
-                                    if let Some(clicked_item) = &app_state.clicked_item {
-                                        let _checked =
-                                            ui.radio(*received == clicked_item, "");
-                                    } else {
-                                        let _checked = ui.radio(false, "");
-                                    }
-
-                                    // u1f50e = 🔎
-                                    if ui.button("Examine \u{1f50e}").clicked() {
-                                        app_state.clicked_item =
-                                            Some((*received).clone());
-                                    };
-
-                                    if !log.warnings.is_empty() {
-                                        ui.add(
-                                            egui::Label::new(format!(
-                                                "\u{26a0} {}", // u26a0 = ⚠
-                                                log.warnings.len()
-                                            ))
-                                            .text_color(Color32::YELLOW),
-                                        )
-                                        .on_hover_ui_at_pointer(|ui| {
-                                            ui.heading(
-                                                "Logger generated the following \
-                                                 warning(s)",
-                                            );
-
-                                            ui.label("");
-
-                                            for (index, warning) in
-                                                log.warnings.iter().enumerate()
-                                            {
-                                                ui.label(format!(
-                                                    "{}. {}",
-                                                    index + 1,
-                                                    warning
-                                                ));
-                                            }
-                                        });
-                                    }
-                                });
-
-                                let mut message = log.message.replace("\"", "");
-
-                                if log.message.len() > 100 {
-                                    message.truncate(97);
-                                    message.push_str("...");
-                                }
-
-                                ui.label(message);
-                                ui.label(&log.address);
-                                ui.label(&log.file_name);
-                                ui.label(&log.line_number);
-                                ui.label(&time.format("%F %X"));
-                                ui.end_row();
+                            for received in received_vec.iter().filter(|(log, time)| {
+                                app_state_filter(
+                                    app_state.is_case_sensitive,
+                                    app_state.is_using_regex,
+                                    &app_state.search_filter,
+                                    &app_state.filter_by,
+                                    log,
+                                    time,
+                                )
+                            }) {
+                                draw_log_item(&mut app_state.clicked_item, received, ui);
                             }
                         });
                 });
