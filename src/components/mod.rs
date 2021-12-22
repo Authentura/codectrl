@@ -1,6 +1,7 @@
 mod about_view;
 mod common;
 mod details_view;
+mod details_view_components;
 mod main_view;
 mod message_preview_view;
 
