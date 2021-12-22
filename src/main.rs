@@ -9,6 +9,7 @@
 
 mod app;
 mod components;
+mod consts;
 
 extern crate clap;
 
