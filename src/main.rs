@@ -1,16 +1,21 @@
 #![feature(async_closure, thread_spawn_unchecked)]
 #![warn(clippy::pedantic)]
-#![allow(clippy::module_name_repetitions)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::struct_excessive_bools,
+    clippy::too_many_lines,
+    incomplete_features
+)]
 
 mod app;
-mod common;
 mod components;
+mod consts;
 
 extern crate clap;
 
 use app::App;
 use clap::{crate_authors, crate_version, App as ClapApp, Arg};
-use server::Server;
+use code_ctrl_log_server::Server;
 use std::{collections::HashMap, env, thread};
 
 static NAME: &str = "codeCTRL";
@@ -54,7 +59,6 @@ async fn main() {
     let app = App::new(NAME, receiver, socket_address);
 
     let options = egui_glow::NativeOptions {
-        transparent: true,
         drag_and_drop_support: true,
         ..egui_glow::NativeOptions::default()
     };

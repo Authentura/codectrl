@@ -10,8 +10,8 @@ A logger for any language ***must*** implement the following schema:
         - `column_number : uint`
         - `code : string`
 - `line_number : uint`: The line number where the log function was called.
-- `code_snippet : map<uint, string>`: Where each `uint` represents the line 
-  number, and where each `string` is the line of code.
+- `code_snippet : map<string, string>`: Where each `string` key represents the line 
+  number, and where each `string` value is the line of code.
 - `message : string`: A custom message to be displayed in codeCTRL. Can 
   technically be anything but it would be better if a more informative message was supplied.
 - `message_type : string`: The type of the message that was sent through the log function.

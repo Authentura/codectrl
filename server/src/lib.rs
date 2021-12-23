@@ -1,4 +1,6 @@
 use code_ctrl_logger::Log;
+use log::{error, warn};
+use simple_logger::SimpleLogger;
 use std::{
     error::Error,
     sync::{
@@ -44,6 +46,8 @@ impl Server {
     }
 
     async fn _run_server(&mut self) -> Result<(), Box<dyn Error>> {
+        SimpleLogger::new().init()?;
+
         let socket = TcpSocket::new_v4()?;
         socket.set_reuseaddr(true)?;
         #[cfg(unix)]
@@ -59,36 +63,58 @@ impl Server {
         loop {
             let (mut socket, peer_address) = listener.accept().await?;
 
-            let mut buf = [0; 2048];
+            let mut buf = Vec::with_capacity(2048);
 
             loop {
-                let n = match socket.read(&mut buf).await {
+                let n = match socket.read_to_end(&mut buf).await {
                     Ok(n) if n == 0 => break,
                     Ok(n) => n,
                     Err(e) => {
-                        eprintln!("Failed to read from socket: {}", e);
+                        error!(target: "log_server", "Failed to read from socket: {}", e);
                         break;
                     },
                 };
 
                 if let Err(e) = socket.write_all(&buf[0..n]).await {
-                    eprintln!("Failed to write to socket: {:?}", e);
+                    error!(target: "log_server", "Failed to write response to socket: {:?}", e);
                     break;
                 }
 
                 let mut data: Log<String> = match serde_cbor::from_reader(&buf[..n]) {
                     Ok(data) => data,
                     Err(e) => {
-                        eprintln!("Error: {}", e);
+                        error!(target: "log_server", "{}", e);
                         break;
                     },
                 };
+
+                if data.message.len() > 1000 {
+                    warn!(target: "log_server",
+                        "Log message is quite long: max recommended characters is 1000, \
+                         log had {}",
+                        data.message.len()
+                    );
+
+                    data.warnings.push("Message exceeds 1000 characters".into());
+                }
+
+                if data.message.is_empty() {
+                    data.warnings.push("No message was given".into());
+                }
+
+                if data.message_type.is_empty() {
+                    data.warnings.push("Message type was not supplied".into());
+                }
+
+                if data.stack.is_empty() {
+                    data.warnings.push("Stacktrace is empty".into());
+                }
 
                 data.address = peer_address.to_string().split(':').collect::<Vec<_>>()[0]
                     .to_string();
 
                 if let Err(e) = self.sender.send(data) {
-                    eprintln!("Failed to send through channel: {}", e);
+                    error!(target: "log_server", "Failed to send data to main channel: {}", e);
                     break;
                 }
             }

@@ -24,7 +24,7 @@
 // Further changes can be discussed and implemented at later dates, but this is
 // the proposal so far.
 
-use crate::components::{details_view, main_view};
+use crate::components::{about_view, details_view, main_view};
 use chrono::{DateTime, Local};
 use code_ctrl_logger::Log;
 use egui::CtxRef;
@@ -32,7 +32,7 @@ use epi::{Frame, Storage};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
-    fmt::Display,
+    fmt::{self, Display},
     sync::{mpsc::Receiver as Rx, Arc, Mutex, RwLock},
     thread::{Builder as ThreadBuilder, JoinHandle},
 };
@@ -50,13 +50,34 @@ pub enum Filter {
 }
 
 impl Display for Filter {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Message => write!(f, "Message"),
             Self::Time => write!(f, "Time"),
             Self::FileName => write!(f, "File name"),
             Self::Address => write!(f, "Address"),
             Self::LineNumber => write!(f, "Line number"),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+pub enum AboutState {
+    About,
+    Credits,
+    License,
+}
+
+impl Default for AboutState {
+    fn default() -> Self { Self::About }
+}
+
+impl Display for AboutState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::About => write!(f, "About"),
+            Self::Credits => write!(f, "Credits"),
+            Self::License => write!(f, "License"),
         }
     }
 }
@@ -70,10 +91,14 @@ pub struct AppState {
     pub is_case_sensitive: bool,
     pub is_using_regex: bool,
     pub is_newest_first: bool,
+    pub is_about_open: bool,
+    pub is_message_preview_open: bool,
     #[serde(skip)]
     pub clicked_item: Option<(Log<String>, DateTime<Local>)>,
     #[serde(skip)]
     pub preview_height: f32,
+    #[serde(skip)]
+    pub about_state: AboutState,
 }
 
 impl Default for AppState {
@@ -85,8 +110,11 @@ impl Default for AppState {
             is_case_sensitive: false,
             is_using_regex: false,
             is_newest_first: true,
+            is_about_open: false,
+            is_message_preview_open: false,
             clicked_item: None,
             preview_height: 0.0,
+            about_state: AboutState::About,
         }
     }
 }
@@ -116,6 +144,8 @@ impl App {
 
 impl epi::App for App {
     fn update(&mut self, ctx: &CtxRef, _frame: &mut Frame<'_>) {
+        about_view(&mut self.data, ctx);
+
         egui::TopBottomPanel::top("top_bar")
             .resizable(false)
             .default_height(200.0)
@@ -169,18 +199,25 @@ impl epi::App for App {
 
                     ui.separator();
 
-                    if ui
-                        .button(
-                            if self.data.is_newest_first {
-                                "\u{2b07} Newest first" // u2b07 = ⬇
-                            } else {
-                                "\u{2b06} Newest last" // u2b06 = ⬆
-                            },
-                        )
-                        .clicked()
-                    {
-                        self.data.is_newest_first = !self.data.is_newest_first;
-                    }
+                    ui.with_layout(egui::Layout::right_to_left(), |ui| {
+                        // u2139 = ℹ
+                        if ui.button("\u{2139} About").clicked() {
+                            self.data.is_about_open = !self.data.is_about_open;
+                        }
+
+                        if ui
+                            .button(
+                                if self.data.is_newest_first {
+                                    "\u{2b07} Newest first" // u2b07 = ⬇
+                                } else {
+                                    "\u{2b06} Newest last" // u2b06 = ⬆
+                                },
+                            )
+                            .clicked()
+                        {
+                            self.data.is_newest_first = !self.data.is_newest_first;
+                        }
+                    });
                 });
             });
 
