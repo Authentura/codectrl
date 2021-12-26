@@ -1,3 +1,9 @@
 [submodule "loggers/rust-logger"]
 	path = loggers/rust-logger
 	url = https://github.com/pwnCTRL/codectrl-rust-logger
+[submodule "loggers/python-logger"]
+	path = loggers/python-logger
+	url = https://github.com/pwnCTRL/codectrl-python-logger
+[submodule "loggers/cxx-logger"]
+	path = loggers/cxx-logger
+	url = https://github.com/pwnCTRL/codectrl-cxx-logger
