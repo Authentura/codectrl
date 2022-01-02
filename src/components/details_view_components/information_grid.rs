@@ -1,14 +1,14 @@
 use crate::{app::AppState, components::message_preview_view};
 use chrono::{DateTime, Local};
 use code_ctrl_logger::Log;
-use egui::{CtxRef, Ui};
+use egui::{CtxRef, RichText, Ui};
 
 pub fn draw_information_grid(app_state: &mut AppState, ctx: &CtxRef, ui: &mut Ui) {
     app_state.preview_height = ui.available_height() + 2.0;
 
     ui.horizontal(|ui| {
-        ui.add(
-            egui::Label::new("Log information")
+        ui.label(
+            RichText::new("Log information")
                 .heading()
                 .underline()
                 .strong(),
@@ -60,13 +60,13 @@ fn detail_scroll(
         .show(ui, |ui| {
             ui.vertical(|ui| {
                 ui.horizontal_wrapped(|ui| {
-                    ui.add(egui::Label::new("Position:").strong());
+                    ui.label(RichText::new("Position:").strong());
 
                     ui.label(format!("{}:{}", &log.file_name, log.line_number));
                 });
 
                 ui.horizontal_wrapped(|ui| {
-                    ui.add(egui::Label::new("Message:").strong());
+                    ui.label(RichText::new("Message:").strong());
 
                     if log.message.len() <= 200 {
                         ui.label(log.message.replace("\"", ""));
@@ -87,19 +87,19 @@ fn detail_scroll(
                 });
 
                 ui.horizontal_wrapped(|ui| {
-                    ui.add(egui::Label::new("Message type:").strong());
+                    ui.label(RichText::new("Message type:").strong());
 
                     ui.label(&log.message_type);
                 });
 
                 ui.horizontal_wrapped(|ui| {
-                    ui.add(egui::Label::new("Received at:").strong());
+                    ui.label(RichText::new("Received at:").strong());
 
-                    ui.label(&time.format("%F %X"));
+                    ui.label(RichText::new(time.format("%F %X").to_string()));
                 });
 
                 ui.horizontal_wrapped(|ui| {
-                    ui.add(egui::Label::new("Received from:").strong());
+                    ui.label(RichText::new("Received from:").strong());
 
                     ui.label(&log.address);
                 });
@@ -110,7 +110,7 @@ fn detail_scroll(
                         for (index, stack) in log.stack.iter().rev().enumerate() {
                             ui.collapsing(format!("Stack layer {}", index), |ui| {
                                 ui.horizontal(|ui| {
-                                    ui.add(egui::Label::new("Position:").strong());
+                                    ui.label(RichText::new("Position:").strong());
 
                                     ui.label(format!(
                                         "{}:{} column {}",
@@ -121,9 +121,9 @@ fn detail_scroll(
                                 });
 
                                 ui.horizontal(|ui| {
-                                    ui.add(egui::Label::new("Code:").strong());
+                                    ui.label(RichText::new("Code:").strong());
 
-                                    ui.add(egui::Label::new(&stack.code).code());
+                                    ui.label(RichText::new(&stack.code).code());
                                 });
                             });
                         }

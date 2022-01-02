@@ -143,7 +143,7 @@ impl App {
 }
 
 impl epi::App for App {
-    fn update(&mut self, ctx: &CtxRef, _frame: &mut Frame<'_>) {
+    fn update(&mut self, ctx: &CtxRef, _frame: &Frame) {
         about_view(&mut self.data, ctx);
 
         egui::TopBottomPanel::top("top_bar")
@@ -230,15 +230,9 @@ impl epi::App for App {
         }
     }
 
-    fn setup(
-        &mut self,
-        _ctx: &CtxRef,
-        frame: &mut Frame<'_>,
-        _storage: Option<&dyn Storage>,
-    ) {
+    fn setup(&mut self, _ctx: &CtxRef, frame: &Frame, _storage: Option<&dyn Storage>) {
         let rx = Arc::clone(self.receiver.as_ref().unwrap());
         let received = Arc::clone(&self.data.received);
-        let ctx = Arc::clone(&frame.repaint_signal());
 
         self.update_thread = Some(unsafe {
             ThreadBuilder::new()
@@ -248,7 +242,7 @@ impl epi::App for App {
 
                     if let Ok(recd) = recd {
                         received.write().unwrap().push_front((recd, Local::now()));
-                        ctx.request_repaint();
+                        frame.request_repaint();
                     }
                 })
                 .expect("Could not start codeCTRL update thread")

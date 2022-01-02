@@ -1,6 +1,6 @@
 use chrono::{DateTime, Local};
 use code_ctrl_logger::Log;
-use egui::{Color32, Ui};
+use egui::{Color32, RichText, Ui};
 
 type Received = (Log<String>, DateTime<Local>);
 
@@ -17,17 +17,14 @@ pub fn draw_log_item(
         }
 
         // u1f50e = 🔎
-        if ui.button("Examine \u{1f50e}").clicked() {
+        if ui.button("Examine \u{1f50e}").clicked() { 
             *clicked_item = Some((*received).clone());
         };
 
         if !log.warnings.is_empty() {
-            ui.add(
-                egui::Label::new(format!(
-                    "\u{26a0} {}", // u26a0 = ⚠
-                    log.warnings.len()
-                ))
-                .text_color(Color32::YELLOW),
+            ui.label(
+                RichText::new(format!("\u{26a0} {}", log.warnings.len())) // u26a0 = ⚠
+                    .color(Color32::YELLOW),
             )
             .on_hover_ui_at_pointer(|ui| {
                 ui.heading("Logger generated the following warning(s)");
@@ -51,7 +48,7 @@ pub fn draw_log_item(
     ui.label(message);
     ui.label(&log.address);
     ui.label(&log.file_name);
-    ui.label(&log.line_number);
-    ui.label(&time.format("%F %X"));
+    ui.label(format!("{}", log.line_number));
+    ui.label(time.format("%F %X").to_string());
     ui.end_row();
 }
