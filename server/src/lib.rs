@@ -1,4 +1,4 @@
-use code_ctrl_logger::Log;
+use codectrl_logger::Log;
 use log::{error, warn};
 use simple_logger::SimpleLogger;
 use std::{

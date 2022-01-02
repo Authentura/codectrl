@@ -26,7 +26,7 @@
 
 use crate::components::{about_view, details_view, main_view};
 use chrono::{DateTime, Local};
-use code_ctrl_logger::Log;
+use codectrl_logger::Log;
 use egui::CtxRef;
 use epi::{Frame, Storage};
 use serde::{Deserialize, Serialize};

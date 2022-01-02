@@ -3,7 +3,7 @@ use crate::{
     components::{main_view_components::draw_log_item, regex_filter},
 };
 use chrono::{DateTime, Local};
-use code_ctrl_logger::Log;
+use codectrl_logger::Log;
 use egui::CtxRef;
 
 fn app_state_filter(

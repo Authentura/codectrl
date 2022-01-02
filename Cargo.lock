@@ -244,33 +244,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "code_ctrl_log_server"
-version = "0.0.0"
-dependencies = [
- "code_ctrl_logger",
- "log",
- "serde",
- "serde_cbor",
- "simple_logger",
- "tokio",
-]
-
-[[package]]
-name = "code_ctrl_logger"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_cbor",
-]
-
-[[package]]
 name = "codectrl"
 version = "0.1.0"
 dependencies = [
  "chrono",
  "clap",
- "code_ctrl_log_server",
- "code_ctrl_logger",
+ "codectrl_log_server",
+ "codectrl_logger",
  "eframe",
  "egui",
  "egui_glow",
@@ -281,6 +261,26 @@ dependencies = [
  "serde_json",
  "tokio",
  "toml",
+]
+
+[[package]]
+name = "codectrl_log_server"
+version = "0.0.0"
+dependencies = [
+ "codectrl_logger",
+ "log",
+ "serde",
+ "serde_cbor",
+ "simple_logger",
+ "tokio",
+]
+
+[[package]]
+name = "codectrl_logger"
+version = "0.2.0"
+dependencies = [
+ "serde",
+ "serde_cbor",
 ]
 
 [[package]]

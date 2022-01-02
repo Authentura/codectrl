@@ -1,6 +1,6 @@
 use crate::{app::AppState, components::message_preview_view};
 use chrono::{DateTime, Local};
-use code_ctrl_logger::Log;
+use codectrl_logger::Log;
 use egui::{CtxRef, RichText, Ui};
 
 pub fn draw_information_grid(app_state: &mut AppState, ctx: &CtxRef, ui: &mut Ui) {

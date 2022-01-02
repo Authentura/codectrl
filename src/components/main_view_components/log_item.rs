@@ -1,5 +1,5 @@
 use chrono::{DateTime, Local};
-use code_ctrl_logger::Log;
+use codectrl_logger::Log;
 use egui::{Color32, RichText, Ui};
 
 type Received = (Log<String>, DateTime<Local>);
