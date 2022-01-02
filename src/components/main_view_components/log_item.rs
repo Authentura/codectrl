@@ -19,7 +19,7 @@ pub fn draw_log_item(
         // u1f50e = 🔎
         if ui.button("Examine \u{1f50e}").clicked() { 
             *clicked_item = Some((*received).clone());
-        };
+        }
 
         if !log.warnings.is_empty() {
             ui.label(
