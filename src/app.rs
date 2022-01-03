@@ -24,7 +24,9 @@
 // Further changes can be discussed and implemented at later dates, but this is
 // the proposal so far.
 
-use crate::components::{about_view, dark_theme, details_view, fonts, main_view};
+use crate::components::{
+    about_view, dark_theme, details_view, fonts, main_view, main_view_empty,
+};
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{CtxRef, Visuals};
@@ -223,7 +225,23 @@ impl epi::App for App {
                 });
             });
 
-        main_view(&mut self.data, ctx, &self.socket_address);
+        let is_empty = {
+            let received = Arc::clone(&self.data.received);
+
+            let x = if let Ok(received) = received.read() {
+                received.is_empty()
+            } else {
+                false
+            };
+
+            x
+        };
+
+        if is_empty {
+            main_view_empty(ctx, &self.socket_address);
+        } else {
+            main_view(&mut self.data, ctx, &self.socket_address);
+        }
 
         if self.data.clicked_item.is_some() {
             details_view(&mut self.data, ctx);
