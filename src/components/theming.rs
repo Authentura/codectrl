@@ -54,7 +54,7 @@ pub fn fonts() -> FontDefinitions {
 
     fonts
         .family_and_size
-        .insert(TextStyle::Heading, (FontFamily::Proportional, 22.0));
+        .insert(TextStyle::Heading, (FontFamily::Proportional, 24.0));
 
     fonts
         .family_and_size
