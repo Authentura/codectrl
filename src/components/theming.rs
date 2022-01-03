@@ -15,6 +15,7 @@ pub const DARK_BACKGROUND_LIGHT: Color32 = Color32::from_rgb(49, 49, 49);
 pub const DARK_FOREGROUND_COLOUR: Color32 = Color32::from_rgb(240, 240, 240);
 pub const PWNCTRL_RED: Color32 = Color32::from_rgb(230, 55, 96);
 pub const CODECTRL_GREEN: Color32 = Color32::from_rgb(66, 184, 156);
+pub const CORNER_RADIUS: f32 = 5.0;
 
 lazy_static! {
     pub static ref DARK_STROKE: Stroke = Stroke::new(0.5, Color32::BLACK);
@@ -77,35 +78,35 @@ pub fn dark_theme() -> Visuals {
                 bg_fill: DARK_BACKGROUND,
                 bg_stroke: *DARK_STROKE,
                 fg_stroke: *DARK_FOREGROUND,
-                corner_radius: 2.0,
+                corner_radius: CORNER_RADIUS,
                 expansion: 0.0,
             },
             inactive: WidgetVisuals {
                 bg_fill: DARK_BACKGROUND_LIGHTER,
                 bg_stroke: *DARK_STROKE,
                 fg_stroke: *DARK_FOREGROUND,
-                corner_radius: 2.0,
+                corner_radius: CORNER_RADIUS,
                 expansion: 0.0,
             },
             hovered: WidgetVisuals {
                 bg_fill: HOVERED_BACKGROUND,
                 bg_stroke: *DARK_STROKE,
                 fg_stroke: *DARK_FOREGROUND,
-                corner_radius: 2.0,
+                corner_radius: CORNER_RADIUS,
                 expansion: 0.0,
             },
             active: WidgetVisuals {
                 bg_fill: Color32::from_additive_luminance(100),
                 bg_stroke: *DARK_STROKE,
                 fg_stroke: *DARK_FOREGROUND,
-                corner_radius: 2.0,
+                corner_radius: CORNER_RADIUS,
                 expansion: 0.0,
             },
             open: WidgetVisuals {
                 bg_fill: DARK_BACKGROUND,
                 bg_stroke: *DARK_STROKE,
                 fg_stroke: *DARK_FOREGROUND,
-                corner_radius: 2.0,
+                corner_radius: CORNER_RADIUS,
                 expansion: 0.0,
             },
         },
