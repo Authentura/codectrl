@@ -2,7 +2,7 @@ use crate::{
     app::AppState,
     components::about_view_components::{draw_about_body, draw_tab_bar},
 };
-use egui::{CtxRef, Id, RichText};
+use egui::{CtxRef, Id};
 
 pub fn about_view(app_state: &mut AppState, ctx: &CtxRef) {
     egui::Window::new(app_state.about_state.to_string())
@@ -20,8 +20,6 @@ pub fn about_view(app_state: &mut AppState, ctx: &CtxRef) {
 
             ui.vertical_centered(|ui| {
                 ui.separator();
-
-                ui.label(RichText::new("codeCTRL").heading().strong().underline());
 
                 draw_about_body(&app_state.about_state, ui);
             });

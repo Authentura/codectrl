@@ -24,10 +24,10 @@
 // Further changes can be discussed and implemented at later dates, but this is
 // the proposal so far.
 
-use crate::components::{about_view, details_view, main_view};
+use crate::components::{about_view, dark_theme, details_view, fonts, main_view};
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::CtxRef;
+use egui::{CtxRef, Visuals};
 use epi::{Frame, Storage};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -99,6 +99,7 @@ pub struct AppState {
     pub preview_height: f32,
     #[serde(skip)]
     pub about_state: AboutState,
+    pub current_theme: Visuals,
 }
 
 impl Default for AppState {
@@ -115,6 +116,7 @@ impl Default for AppState {
             clicked_item: None,
             preview_height: 0.0,
             about_state: AboutState::About,
+            current_theme: dark_theme(),
         }
     }
 }
@@ -230,9 +232,11 @@ impl epi::App for App {
         }
     }
 
-    fn setup(&mut self, _ctx: &CtxRef, frame: &Frame, _storage: Option<&dyn Storage>) {
+    fn setup(&mut self, ctx: &CtxRef, frame: &Frame, _storage: Option<&dyn Storage>) {
         let rx = Arc::clone(self.receiver.as_ref().unwrap());
         let received = Arc::clone(&self.data.received);
+        ctx.set_visuals(self.data.current_theme.clone());
+        ctx.set_fonts(fonts());
 
         self.update_thread = Some(unsafe {
             ThreadBuilder::new()

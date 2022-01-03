@@ -45,10 +45,20 @@ pub fn draw_about_body(about_state: &AboutState, ui: &mut Ui) {
                 });
             },
             AboutState::License => {
+                ui.heading("codeCTRL License");
                 ui.add(
                     egui::TextEdit::multiline(&mut include_str!("../../../LICENSE"))
                         .desired_width(ui.available_width())
                         .text_style(TextStyle::Monospace),
+                );
+
+                ui.heading("Red Hat Display and Red Hat Mono License");
+                ui.add(
+                    egui::TextEdit::multiline(&mut include_str!(
+                        "../../../assets/fonts/red-hat/LICENSE"
+                    ))
+                    .desired_width(ui.available_width())
+                    .text_style(TextStyle::Monospace),
                 );
             },
         });
