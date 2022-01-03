@@ -255,6 +255,7 @@ dependencies = [
  "egui",
  "egui_glow",
  "epi",
+ "lazy_static",
  "regex",
  "serde",
  "serde_cbor",
