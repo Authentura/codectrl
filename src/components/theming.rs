@@ -121,6 +121,7 @@ pub fn dark_theme() -> Visuals {
         faint_bg_color: DARK_BACKGROUND_LIGHT,
         extreme_bg_color: DARK_BACKGROUND_DARKER,
         code_bg_color: DARK_BACKGROUND_DARKER,
+        collapsing_header_frame: true,
         ..Visuals::default()
     }
 }
