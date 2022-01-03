@@ -64,7 +64,10 @@ pub fn fonts() -> FontDefinitions {
 
     fonts
         .family_and_size
-        .insert(TextStyle::Small, (FontFamily::Proportional, 12.0));
+        .insert(TextStyle::Small, (FontFamily::Proportional, 36.0)); // this may be confusing so I'll explain: since we don't use the small textstyle
+                                                                     // anywhere within the gui, we can instead use it as an "extra" style. i.e, we
+                                                                     // can make it extra large for the main_view_empty function to have a extra
+                                                                     // large "codeCTRL" that would otherwise be hard to draw.
 
     fonts
 }

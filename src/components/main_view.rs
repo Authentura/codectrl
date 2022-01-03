@@ -1,10 +1,12 @@
 use crate::{
     app::{AppState, Filter},
-    components::{main_view_components::draw_log_item, regex_filter},
+    components::{
+        main_view_components::draw_log_item, regex_filter, theming::CODECTRL_GREEN,
+    },
 };
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::CtxRef;
+use egui::{CtxRef, RichText};
 
 fn app_state_filter(
     is_case_sensitive: bool,
@@ -98,6 +100,21 @@ pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
                             }
                         });
                 });
+        });
+    });
+}
+
+pub fn main_view_empty(ctx: &CtxRef, socket_address: &str) {
+    egui::CentralPanel::default().show(ctx, |ui| {
+        ui.vertical_centered(|ui| {
+            ui.small(RichText::new("codeCTRL").color(CODECTRL_GREEN));
+            ui.heading(RichText::new("by pwnCTRL").italics());
+            ui.add_space(ui.available_height() / 3.0);
+
+            ui.heading(format!(
+                "Send logs to {} and they will appear here.",
+                socket_address
+            ));
         });
     });
 }
