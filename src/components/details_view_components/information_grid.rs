@@ -1,18 +1,18 @@
 use crate::{app::AppState, components::message_preview_view};
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::{CtxRef, RichText, Ui};
+use egui::{CtxRef, RichText, TextStyle, Ui};
 
 pub fn draw_information_grid(app_state: &mut AppState, ctx: &CtxRef, ui: &mut Ui) {
     app_state.preview_height = ui.available_height() + 2.0;
 
     ui.horizontal(|ui| {
-        ui.label(
-            RichText::new("Log information")
-                .heading()
-                .underline()
-                .strong(),
-        );
+        let heading_width = "Log information".chars().fold(0.0, |sum, c| {
+            sum + ui.fonts().glyph_width(TextStyle::Heading, c)
+        });
+
+        ui.add_space((ui.available_width() / 2.0) - heading_width * 0.5);
+        ui.heading("Log information");
 
         ui.with_layout(egui::Layout::right_to_left(), |ui| {
             // u1f5d9 = 🗙
@@ -60,13 +60,12 @@ fn detail_scroll(
         .show(ui, |ui| {
             ui.vertical(|ui| {
                 ui.horizontal_wrapped(|ui| {
-                    ui.label(RichText::new("Position:").strong());
-
+                    ui.label("Position:");
                     ui.label(format!("{}:{}", &log.file_name, log.line_number));
                 });
 
                 ui.horizontal_wrapped(|ui| {
-                    ui.label(RichText::new("Message:").strong());
+                    ui.label("Message:");
 
                     if log.message.len() <= 200 {
                         ui.label(log.message.replace("\"", ""));
@@ -87,26 +86,28 @@ fn detail_scroll(
                 });
 
                 ui.horizontal_wrapped(|ui| {
-                    ui.label(RichText::new("Message type:").strong());
-
+                    ui.label("Message type:");
                     ui.label(&log.message_type);
                 });
 
                 ui.horizontal_wrapped(|ui| {
-                    ui.label(RichText::new("Received at:").strong());
-
-                    ui.label(RichText::new(time.format("%F %X").to_string()));
+                    ui.label("Received at:");
+                    ui.label(time.format("%F %X").to_string());
                 });
 
                 ui.horizontal_wrapped(|ui| {
-                    ui.label(RichText::new("Received from:").strong());
-
+                    ui.label("Received from:");
                     ui.label(&log.address);
                 });
 
                 ui.collapsing(
-                    format!("Stack trace ({} layer(s))", log.stack.len()),
+                    format!("Stacktrace ({} layer(s))", log.stack.len()),
                     |ui| {
+                        if log.stack.is_empty() {
+                            ui.label("No stacktrace");
+                            return;
+                        }
+
                         for (index, stack) in log.stack.iter().rev().enumerate() {
                             ui.collapsing(format!("Stack layer {}", index), |ui| {
                                 ui.horizontal(|ui| {
