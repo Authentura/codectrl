@@ -8,6 +8,7 @@ fn draw_hover(ui: &mut Ui) { ui.label("Click to view log"); }
 
 pub fn draw_log_item(
     clicked_item: &mut Option<Received>,
+    do_scroll_to_selected_log: bool,
     received @ (log, time): &Received,
     ui: &mut Ui,
 ) {
@@ -68,7 +69,13 @@ pub fn draw_log_item(
                 overall
             });
 
-    response |= radio_response;
+    response |= radio_response.clone();
+
+    if let Some(clicked_item) = clicked_item {
+        if do_scroll_to_selected_log && *clicked_item == *received {
+            radio_response.scroll_to_me(egui::Align::Center);
+        }
+    }
 
     ui.end_row();
 

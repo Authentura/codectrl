@@ -113,7 +113,12 @@ pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
                                     time,
                                 )
                             }) {
-                                draw_log_item(&mut app_state.clicked_item, received, ui);
+                                draw_log_item(
+                                    &mut app_state.clicked_item,
+                                    app_state.do_scroll_to_selected_log,
+                                    received,
+                                    ui,
+                                );
                             }
                         });
                 });
