@@ -1,7 +1,9 @@
 use crate::{
     app::{AppState, Filter},
     components::{
-        main_view_components::draw_log_item, regex_filter, theming::CODECTRL_GREEN,
+        main_view_components::draw_log_item,
+        regex_filter,
+        theming::{CODECTRL_GREEN, DARK_HEADER_FOREGROUND_COLOUR},
     },
 };
 use chrono::{DateTime, Local};
@@ -68,11 +70,26 @@ pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
                         .max_col_width(ui.available_width() / 6.0)
                         .show(ui, |ui| {
                             ui.heading("");
-                            ui.heading("Message");
-                            ui.heading("Host");
-                            ui.heading("File name");
-                            ui.heading("Line number");
-                            ui.heading("Date & time");
+                            ui.heading(
+                                RichText::new("Message")
+                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
+                            );
+                            ui.heading(
+                                RichText::new("Host")
+                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
+                            );
+                            ui.heading(
+                                RichText::new("File name")
+                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
+                            );
+                            ui.heading(
+                                RichText::new("Line number")
+                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
+                            );
+                            ui.heading(
+                                RichText::new("Date & time")
+                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
+                            );
                             ui.end_row();
 
                             let received_vec = app_state.received.read().unwrap();
