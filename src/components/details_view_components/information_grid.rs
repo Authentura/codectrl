@@ -97,7 +97,7 @@ fn detail_scroll(
 
                 ui.horizontal_wrapped(|ui| {
                     ui.label("Message type:");
-                    ui.label(&log.message_type);
+                    ui.code(&log.message_type);
                 });
 
                 ui.horizontal_wrapped(|ui| {
