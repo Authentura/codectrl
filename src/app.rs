@@ -79,7 +79,7 @@ impl Display for AboutState {
         match self {
             Self::About => write!(f, "About"),
             Self::Credits => write!(f, "Credits"),
-            Self::License => write!(f, "License"),
+            Self::License => write!(f, "Licenses"),
         }
     }
 }

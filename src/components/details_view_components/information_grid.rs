@@ -1,4 +1,7 @@
-use crate::{app::AppState, components::message_preview_view};
+use crate::{
+    app::AppState,
+    components::{message_preview_view, DARK_HEADER_FOREGROUND_COLOUR},
+};
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{CtxRef, RichText, TextStyle, Ui};
@@ -12,7 +15,7 @@ pub fn draw_information_grid(app_state: &mut AppState, ctx: &CtxRef, ui: &mut Ui
         });
 
         ui.add_space((ui.available_width() / 2.0) - heading_width * 0.5);
-        ui.heading("Log information");
+        ui.heading(RichText::new("Log information").color(DARK_HEADER_FOREGROUND_COLOUR));
 
         ui.with_layout(egui::Layout::right_to_left(), |ui| {
             // u1f5d9 = 🗙
@@ -28,8 +31,8 @@ pub fn draw_information_grid(app_state: &mut AppState, ctx: &CtxRef, ui: &mut Ui
         .max_col_width(ui.available_width() / 2.0)
         .min_col_width(ui.available_width() / 2.0)
         .show(ui, |ui| {
-            ui.heading("Details");
-            ui.heading("Code");
+            ui.heading(RichText::new("Details").color(DARK_HEADER_FOREGROUND_COLOUR));
+            ui.heading(RichText::new("Code").color(DARK_HEADER_FOREGROUND_COLOUR));
         });
 
     egui::Grid::new("log_information_grid")

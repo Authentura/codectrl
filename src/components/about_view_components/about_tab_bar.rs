@@ -1,4 +1,4 @@
-use crate::app::AboutState;
+use crate::{app::AboutState, components::DARK_HEADER_FOREGROUND_COLOUR};
 use egui::{RichText, Ui};
 
 pub fn draw_tab_bar(about_state: &mut AboutState, ui: &mut Ui) {
@@ -6,7 +6,9 @@ pub fn draw_tab_bar(about_state: &mut AboutState, ui: &mut Ui) {
         if ui
             .selectable_label(
                 *about_state == AboutState::About,
-                RichText::new("About").heading(),
+                RichText::new(AboutState::About.to_string())
+                    .heading()
+                    .color(DARK_HEADER_FOREGROUND_COLOUR),
             )
             .clicked()
         {
@@ -16,7 +18,9 @@ pub fn draw_tab_bar(about_state: &mut AboutState, ui: &mut Ui) {
         if ui
             .selectable_label(
                 *about_state == AboutState::Credits,
-                RichText::new("Credits").heading(),
+                RichText::new(AboutState::Credits.to_string())
+                    .heading()
+                    .color(DARK_HEADER_FOREGROUND_COLOUR),
             )
             .clicked()
         {
@@ -26,7 +30,9 @@ pub fn draw_tab_bar(about_state: &mut AboutState, ui: &mut Ui) {
         if ui
             .selectable_label(
                 *about_state == AboutState::License,
-                RichText::new("License").heading(),
+                RichText::new(AboutState::License.to_string())
+                    .heading()
+                    .color(DARK_HEADER_FOREGROUND_COLOUR),
             )
             .clicked()
         {

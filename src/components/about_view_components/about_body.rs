@@ -1,6 +1,6 @@
-use crate::{app::AboutState, consts};
+use crate::{app::AboutState, components::DARK_HEADER_FOREGROUND_COLOUR, consts};
 use clap::{crate_authors, crate_description, crate_version};
-use egui::{TextStyle, Ui};
+use egui::{RichText, TextStyle, Ui};
 
 pub fn draw_about_body(about_state: &AboutState, ui: &mut Ui) {
     egui::ScrollArea::vertical()
@@ -45,17 +45,34 @@ pub fn draw_about_body(about_state: &AboutState, ui: &mut Ui) {
                 });
             },
             AboutState::License => {
-                ui.heading("codeCTRL License");
+                ui.heading(
+                    RichText::new("codeCTRL License")
+                        .color(DARK_HEADER_FOREGROUND_COLOUR),
+                );
                 ui.add(
                     egui::TextEdit::multiline(&mut include_str!("../../../LICENSE"))
                         .desired_width(ui.available_width())
                         .text_style(TextStyle::Monospace),
                 );
 
-                ui.heading("Red Hat Display and Red Hat Mono License");
+                ui.heading(
+                    RichText::new("Red Hat Mono License")
+                        .color(DARK_HEADER_FOREGROUND_COLOUR),
+                );
                 ui.add(
                     egui::TextEdit::multiline(&mut include_str!(
                         "../../../assets/fonts/red-hat/LICENSE"
+                    ))
+                    .desired_width(ui.available_width())
+                    .text_style(TextStyle::Monospace),
+                );
+
+                ui.heading(
+                    RichText::new("Roboto License").color(DARK_HEADER_FOREGROUND_COLOUR),
+                );
+                ui.add(
+                    egui::TextEdit::multiline(&mut include_str!(
+                        "../../../assets/fonts/roboto/LICENSE"
                     ))
                     .desired_width(ui.available_width())
                     .text_style(TextStyle::Monospace),
