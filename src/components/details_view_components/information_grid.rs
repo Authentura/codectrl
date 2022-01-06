@@ -43,7 +43,14 @@ pub fn draw_information_grid(app_state: &mut AppState, ctx: &CtxRef, ui: &mut Ui
         .show(ui, |ui| {
             if let Some((log, time)) = app_state.clicked_item.clone() {
                 detail_scroll(app_state, &log, &time, ctx, ui);
-                code_scroll(&log, ui);
+                code_scroll(
+                    &mut app_state.is_copying_line_indicator,
+                    &mut app_state.is_copying_line_numbers,
+                    &mut app_state.copy_language,
+                    &log,
+                    ctx,
+                    ui,
+                );
             }
 
             ui.end_row();
@@ -145,31 +152,91 @@ fn detail_scroll(
         });
 }
 
-fn code_scroll(log: &Log<String>, ui: &mut Ui) {
+fn code_scroll(
+    is_copying_line_numbers: &mut bool,
+    is_copying_line_indicator: &mut bool,
+    copy_language: &mut String,
+    log: &Log<String>,
+    ctx: &CtxRef,
+    ui: &mut Ui,
+) {
     egui::ScrollArea::vertical()
         .id_source("code_scroll")
         .auto_shrink([false, false])
         .max_height(ui.available_height())
         .max_width(ui.available_width() - 10.0)
         .show(ui, |ui| {
-            let code = log.code_snippet.0.iter().fold(
-                String::new(),
+            let (indicated_code, code, numbered_code) = log.code_snippet.0.iter().fold(
+                (String::new(), String::new(), String::new()),
                 |code, (line_number, line)| {
                     if *line_number == log.line_number {
-                        format!("{}{:>>3}  {}\n", code, line_number, line)
+                        (
+                            format!("{}{:>>3}  {}\n", code.0, line_number, line),
+                            format!("{}{}\n", code.1, line),
+                            format!("{}{: >3}  {}\n", code.2, line_number, line),
+                        )
                     } else {
-                        format!("{}{: >3}  {}\n", code, line_number, line)
+                        (
+                            format!("{}{: >3}  {}\n", code.0, line_number, line),
+                            format!("{}{}\n", code.1, line),
+                            format!("{}{: >3}  {}\n", code.2, line_number, line),
+                        )
                     }
                 },
             );
 
-            let mut code = code.trim_end().to_string();
+            let mut indicated_code = indicated_code.trim_end().to_string();
 
-            ui.add(
-                egui::TextEdit::multiline(&mut code)
+            ui.add_sized(
+                ui.available_size(),
+                egui::TextEdit::multiline(&mut indicated_code)
                     .desired_width(ui.available_width())
                     .interactive(false)
                     .code_editor(),
-            );
+            )
+            .interact(egui::Sense::click())
+            .on_hover_ui_at_pointer(|ui| {
+                ui.label("Right-click to open context menu");
+            })
+            .context_menu(|ui| {
+                ui.menu_button("Copy", |ui| {
+                    if ui.button("Copy with line number indictator").clicked() {
+                        ctx.output().copied_text = indicated_code.clone();
+                    }
+
+                    if ui.button("Copy only code").clicked() {
+                        ctx.output().copied_text = code.trim_end().to_string();
+                    }
+
+                    ui.menu_button("Copy code with Markdown formatting", |ui| {
+                        ui.checkbox(is_copying_line_numbers, "Copy line numbers");
+                        ui.checkbox(is_copying_line_indicator, "Copy line indicator");
+
+                        if *is_copying_line_indicator {
+                            *is_copying_line_numbers = true;
+                        }
+
+                        ui.horizontal(|ui| {
+                            ui.label("Language: ");
+                            ui.text_edit_singleline(copy_language);
+                        });
+
+                        if ui.button("Copy with settings").clicked() {
+                            let code = if *is_copying_line_indicator {
+                                indicated_code
+                            } else if *is_copying_line_numbers {
+                                numbered_code
+                            } else {
+                                code
+                            };
+
+                            let formatted_code =
+                                format!("```{}\n{}\n```", copy_language, code.trim_end());
+
+                            ctx.output().copied_text = formatted_code;
+                        }
+                    });
+                });
+            });
         });
 }

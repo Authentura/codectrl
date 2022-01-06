@@ -95,6 +95,8 @@ pub struct AppState {
     pub is_newest_first: bool,
     pub is_about_open: bool,
     pub is_message_preview_open: bool,
+    pub is_copying_line_numbers: bool,
+    pub is_copying_line_indicator: bool,
     #[serde(skip)]
     pub clicked_item: Option<(Log<String>, DateTime<Local>)>,
     #[serde(skip)]
@@ -102,6 +104,8 @@ pub struct AppState {
     #[serde(skip)]
     pub about_state: AboutState,
     pub current_theme: Visuals,
+    #[serde(skip)]
+    pub copy_language: String,
 }
 
 impl Default for AppState {
@@ -119,6 +123,9 @@ impl Default for AppState {
             preview_height: 0.0,
             about_state: AboutState::About,
             current_theme: dark_theme(),
+            copy_language: "".into(),
+            is_copying_line_numbers: false,
+            is_copying_line_indicator: false,
         }
     }
 }
