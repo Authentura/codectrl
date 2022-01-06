@@ -35,6 +35,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
     fmt::{self, Display},
+    process,
     sync::{mpsc::Receiver as Rx, Arc, Mutex, RwLock},
     thread::{Builder as ThreadBuilder, JoinHandle},
 };
@@ -97,6 +98,7 @@ pub struct AppState {
     pub is_message_preview_open: bool,
     pub is_copying_line_numbers: bool,
     pub is_copying_line_indicator: bool,
+    pub do_scroll_to_selected_log: bool,
     #[serde(skip)]
     pub clicked_item: Option<(Log<String>, DateTime<Local>)>,
     #[serde(skip)]
@@ -126,6 +128,7 @@ impl Default for AppState {
             copy_language: "".into(),
             is_copying_line_numbers: false,
             is_copying_line_indicator: false,
+            do_scroll_to_selected_log: false,
         }
     }
 }
@@ -162,6 +165,20 @@ impl epi::App for App {
             .default_height(200.0)
             .show(ctx, |ui| {
                 ui.horizontal_wrapped(|ui| {
+                    ui.menu_button("File", |ui| {
+                        if ui.button("Quit").clicked() {
+                            process::exit(0);
+                        }
+                    });
+
+                    ui.menu_button("Help", |ui| {
+                        if ui.button("About").clicked() {
+                            self.data.is_about_open = !self.data.is_about_open;
+                        }
+                    });
+
+                    ui.separator();
+
                     ui.label("Filter: ");
                     ui.text_edit_singleline(&mut self.data.search_filter);
 
@@ -207,28 +224,31 @@ impl epi::App for App {
 
                     ui.checkbox(&mut self.data.is_case_sensitive, "Case sensitive");
                     ui.checkbox(&mut self.data.is_using_regex, "Regex");
+                    ui.checkbox(
+                        &mut self.data.do_scroll_to_selected_log,
+                        "Scroll to selected log",
+                    );
 
-                    ui.separator();
+                    if ui
+                        .button(
+                            if self.data.is_newest_first {
+                                "\u{2b07} Newest first" // u2b07 = ⬇
+                            } else {
+                                "\u{2b06} Newest last" // u2b06 = ⬆
+                            },
+                        )
+                        .clicked()
+                    {
+                        self.data.is_newest_first = !self.data.is_newest_first;
+                    }
 
-                    ui.with_layout(egui::Layout::right_to_left(), |ui| {
-                        // u2139 = ℹ
-                        if ui.button("\u{2139} About").clicked() {
-                            self.data.is_about_open = !self.data.is_about_open;
+                    // u1f5d1 = ��
+                    if ui.button("\u{1f5d1} Clear logs").clicked() {
+                        if let Ok(mut received) = self.data.received.write() {
+                            received.clear();
+                            self.data.clicked_item = None;
                         }
-
-                        if ui
-                            .button(
-                                if self.data.is_newest_first {
-                                    "\u{2b07} Newest first" // u2b07 = ⬇
-                                } else {
-                                    "\u{2b06} Newest last" // u2b06 = ⬆
-                                },
-                            )
-                            .clicked()
-                        {
-                            self.data.is_newest_first = !self.data.is_newest_first;
-                        }
-                    });
+                    }
                 });
             });
 
