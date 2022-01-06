@@ -40,7 +40,7 @@ pub fn draw_log_item(
         })
         .inner;
 
-    let mut message = log.message.replace("\"", "");
+    let mut message = log.message.replace('\"', "");
 
     if log.message.len() > 100 {
         message.truncate(97);
