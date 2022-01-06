@@ -1,6 +1,7 @@
 #![feature(async_closure, thread_spawn_unchecked)]
 #![warn(clippy::pedantic)]
 #![allow(
+    clippy::blocks_in_if_conditions,
     clippy::module_name_repetitions,
     clippy::struct_excessive_bools,
     clippy::too_many_lines,

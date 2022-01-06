@@ -27,7 +27,7 @@ pub fn about_view(app_state: &mut AppState, ctx: &CtxRef) {
         ui.vertical_centered(|ui| {
             ui.separator();
 
-            draw_about_body(&app_state.about_state, ui);
+            draw_about_body(&app_state.about_state, ctx, ui);
         });
     });
 }

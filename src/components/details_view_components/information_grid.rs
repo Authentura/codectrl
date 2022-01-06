@@ -78,7 +78,7 @@ fn detail_scroll(
                     ui.label("Message:");
 
                     if log.message.len() <= 200 {
-                        ui.label(log.message.replace("\"", ""));
+                        ui.label(log.message.replace('\"', ""));
                     } else {
                         // u25b6 = ▶
                         if ui.button("View message \u{25b6}").clicked() {
