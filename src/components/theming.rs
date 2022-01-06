@@ -18,6 +18,8 @@ pub const DARK_HEADER_FOREGROUND_COLOUR: Color32 = Color32::from_rgb(240, 240, 2
 pub const HOVERED_BACKGROUND: Color32 = Color32::from_rgb(156, 72, 91);
 pub const PWNCTRL_RED: Color32 = Color32::from_rgb(230, 55, 96);
 
+const EXPANSION: f32 = 2.0;
+
 lazy_static! {
     pub static ref DARK_FOREGROUND: Stroke = Stroke::new(1.4, DARK_FOREGROUND_COLOUR);
     pub static ref DARK_STROKE: Stroke = Stroke::new(0.5, Color32::BLACK);
@@ -83,35 +85,35 @@ pub fn dark_theme() -> Visuals {
                 bg_stroke: *DARK_STROKE,
                 corner_radius: CORNER_RADIUS,
                 fg_stroke: *DARK_FOREGROUND,
-                expansion: 0.0,
+                expansion: EXPANSION,
             },
             inactive: WidgetVisuals {
                 bg_fill: DARK_BACKGROUND_LIGHTER,
                 bg_stroke: *DARK_STROKE,
                 corner_radius: CORNER_RADIUS,
                 fg_stroke: *DARK_FOREGROUND,
-                expansion: 0.0,
+                expansion: EXPANSION,
             },
             hovered: WidgetVisuals {
                 bg_fill: HOVERED_BACKGROUND,
                 bg_stroke: *DARK_STROKE,
                 corner_radius: CORNER_RADIUS,
                 fg_stroke: *DARK_FOREGROUND,
-                expansion: 0.0,
+                expansion: EXPANSION,
             },
             active: WidgetVisuals {
                 bg_fill: Color32::from_additive_luminance(100),
                 bg_stroke: *DARK_STROKE,
                 corner_radius: CORNER_RADIUS,
                 fg_stroke: *DARK_FOREGROUND,
-                expansion: 0.0,
+                expansion: EXPANSION,
             },
             open: WidgetVisuals {
                 bg_fill: DARK_BACKGROUND,
                 bg_stroke: *DARK_STROKE,
                 corner_radius: CORNER_RADIUS,
                 fg_stroke: *DARK_FOREGROUND,
-                expansion: 0.0,
+                expansion: EXPANSION,
             },
         },
         selection: Selection {
