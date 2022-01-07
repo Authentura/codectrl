@@ -29,7 +29,7 @@ use crate::components::{
 };
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::{CtxRef, Visuals};
+use egui::{CtxRef, TextStyle, Visuals};
 use epi::{Frame, Storage};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -164,91 +164,105 @@ impl epi::App for App {
             .resizable(false)
             .default_height(200.0)
             .show(ctx, |ui| {
-                ui.horizontal_wrapped(|ui| {
-                    ui.menu_button("File", |ui| {
-                        if ui.button("Quit").clicked() {
-                            process::exit(0);
-                        }
-                    });
-
-                    ui.menu_button("Help", |ui| {
-                        if ui.button("About").clicked() {
-                            self.data.is_about_open = !self.data.is_about_open;
-                        }
-                    });
-
-                    ui.separator();
-
-                    ui.label("Filter: ");
-                    ui.text_edit_singleline(&mut self.data.search_filter);
-
-                    // u1f5d9 = 🗙
-                    if ui.button("\u{1f5d9}").clicked() {
-                        self.data.search_filter = "".into();
-                    }
-
-                    ui.label("Filter by:");
-                    egui::ComboBox::from_label("")
-                        .selected_text(format!("{}", self.data.filter_by))
-                        .show_ui(ui, |ui| {
-                            ui.selectable_value(
-                                &mut self.data.filter_by,
-                                Filter::Message,
-                                format!("{}", Filter::Message),
-                            );
-
-                            ui.selectable_value(
-                                &mut self.data.filter_by,
-                                Filter::Time,
-                                format!("{}", Filter::Time),
-                            );
-
-                            ui.selectable_value(
-                                &mut self.data.filter_by,
-                                Filter::FileName,
-                                format!("{}", Filter::FileName),
-                            );
-
-                            ui.selectable_value(
-                                &mut self.data.filter_by,
-                                Filter::Address,
-                                format!("{}", Filter::Address),
-                            );
-
-                            ui.selectable_value(
-                                &mut self.data.filter_by,
-                                Filter::LineNumber,
-                                format!("{}", Filter::LineNumber),
-                            );
+                ui.vertical(|ui| {
+                    ui.horizontal_wrapped(|ui| {
+                        ui.menu_button("File", |ui| {
+                            if ui.button("Quit").clicked() {
+                                process::exit(0);
+                            }
                         });
 
-                    ui.checkbox(&mut self.data.is_case_sensitive, "Case sensitive");
-                    ui.checkbox(&mut self.data.is_using_regex, "Regex");
-                    ui.checkbox(
-                        &mut self.data.do_scroll_to_selected_log,
-                        "Scroll to selected log",
-                    );
+                        ui.menu_button("Help", |ui| {
+                            if ui.button("About").clicked() {
+                                self.data.is_about_open = !self.data.is_about_open;
+                            }
+                        });
 
-                    if ui
-                        .button(
-                            if self.data.is_newest_first {
-                                "\u{2b07} Newest first" // u2b07 = ⬇
-                            } else {
-                                "\u{2b06} Newest last" // u2b06 = ⬆
-                            },
-                        )
-                        .clicked()
-                    {
-                        self.data.is_newest_first = !self.data.is_newest_first;
-                    }
+                        ui.separator();
 
-                    // u1f5d1 = ��
-                    if ui.button("\u{1f5d1} Clear logs").clicked() {
-                        if let Ok(mut received) = self.data.received.write() {
-                            received.clear();
-                            self.data.clicked_item = None;
+                        ui.label("Filter: ");
+                        ui.text_edit_singleline(&mut self.data.search_filter);
+
+                        // u1f5d9 = 🗙
+                        if ui.button("\u{1f5d9}").clicked() {
+                            self.data.search_filter = "".into();
                         }
-                    }
+
+                        ui.label("Filter by:");
+                        egui::ComboBox::from_label("")
+                            .selected_text(format!("{}", self.data.filter_by))
+                            .show_ui(ui, |ui| {
+                                ui.selectable_value(
+                                    &mut self.data.filter_by,
+                                    Filter::Message,
+                                    format!("{}", Filter::Message),
+                                );
+
+                                ui.selectable_value(
+                                    &mut self.data.filter_by,
+                                    Filter::Time,
+                                    format!("{}", Filter::Time),
+                                );
+
+                                ui.selectable_value(
+                                    &mut self.data.filter_by,
+                                    Filter::FileName,
+                                    format!("{}", Filter::FileName),
+                                );
+
+                                ui.selectable_value(
+                                    &mut self.data.filter_by,
+                                    Filter::Address,
+                                    format!("{}", Filter::Address),
+                                );
+
+                                ui.selectable_value(
+                                    &mut self.data.filter_by,
+                                    Filter::LineNumber,
+                                    format!("{}", Filter::LineNumber),
+                                );
+                            });
+
+                        ui.checkbox(&mut self.data.is_case_sensitive, "Case sensitive");
+                        ui.checkbox(&mut self.data.is_using_regex, "Regex");
+                        ui.checkbox(
+                            &mut self.data.do_scroll_to_selected_log,
+                            "Scroll to selected log",
+                        );
+
+                        if ui
+                            .button(
+                                if self.data.is_newest_first {
+                                    "\u{2b07} Newest first" // u2b07 = ⬇
+                                } else {
+                                    "\u{2b06} Newest last" // u2b06 = ⬆
+                                },
+                            )
+                            .clicked()
+                        {
+                            self.data.is_newest_first = !self.data.is_newest_first;
+                        }
+
+                        // u1f5d1 = ��
+                        if ui.button("\u{1f5d1} Clear logs").clicked() {
+                            if let Ok(mut received) = self.data.received.write() {
+                                received.clear();
+                                self.data.clicked_item = None;
+                            }
+                        }
+                    });
+
+                    ui.horizontal(|ui| {
+                        let label_width =
+                            format!("Listening on: {}", self.socket_address)
+                                .chars()
+                                .fold(0.0, |sum, c| {
+                                    sum + ui.fonts().glyph_width(TextStyle::Body, c)
+                                });
+
+                        ui.add_space((ui.available_width() / 2.0) - label_width * 0.5);
+                        ui.label(format!("Listening on: {}", self.socket_address));
+                    });
                 });
             });
 
@@ -267,7 +281,7 @@ impl epi::App for App {
         if is_empty {
             main_view_empty(ctx, &self.socket_address);
         } else {
-            main_view(&mut self.data, ctx, &self.socket_address);
+            main_view(&mut self.data, ctx);
         }
 
         if self.data.clicked_item.is_some() {

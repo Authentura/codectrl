@@ -53,11 +53,9 @@ fn app_state_filter(
     }
 }
 
-pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
+pub fn main_view(app_state: &mut AppState, ctx: &CtxRef) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {
-            ui.heading(format!("Listening on: {}", socket_address));
-
             egui::ScrollArea::vertical()
                 .max_width(ui.available_width())
                 .max_height(ui.available_height() - app_state.preview_height)
