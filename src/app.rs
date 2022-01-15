@@ -29,7 +29,7 @@ use crate::components::{
 };
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::{CtxRef, TextStyle, Visuals};
+use egui::{CtxRef, Visuals};
 use epi::{Frame, Storage};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -250,17 +250,7 @@ impl epi::App for App {
                                 self.data.clicked_item = None;
                             }
                         }
-                    });
 
-                    ui.horizontal(|ui| {
-                        let label_width =
-                            format!("Listening on: {}", self.socket_address)
-                                .chars()
-                                .fold(0.0, |sum, c| {
-                                    sum + ui.fonts().glyph_width(TextStyle::Body, c)
-                                });
-
-                        ui.add_space((ui.available_width() / 2.0) - label_width * 0.5);
                         ui.label(format!("Listening on: {}", self.socket_address));
                     });
                 });
