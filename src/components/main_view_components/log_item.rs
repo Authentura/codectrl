@@ -1,3 +1,4 @@
+use crate::session::Session;
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{Color32, Label, RichText, Sense, Ui};
@@ -7,6 +8,7 @@ type Received = (Log<String>, DateTime<Local>);
 fn draw_hover(ui: &mut Ui) { ui.label("Click to view log"); }
 
 pub fn draw_log_item(
+    session: &Session,
     clicked_item: &mut Option<Received>,
     do_scroll_to_selected_log: bool,
     received @ (log, time): &Received,
@@ -27,11 +29,35 @@ pub fn draw_log_item(
                 )
                 .on_hover_ui_at_pointer(|ui| {
                     ui.heading("Logger generated the following warning(s)");
-
                     ui.label("");
 
                     for (index, warning) in log.warnings.iter().enumerate() {
-                        ui.label(format!("{}. {}", index + 1, warning));
+                        ui.label(format!("{index}. {warning}", index = index + 1));
+                    }
+                });
+            }
+
+            let mut contains_alerts = vec![];
+            session.message_alerts.iter().for_each(|alert| {
+                if log.message.contains(alert) {
+                    contains_alerts.push(alert);
+                }
+            });
+
+            if !contains_alerts.is_empty() {
+                ui.label(
+                    RichText::new(format!(
+                        "\u{2757} {alert_count}",
+                        alert_count = contains_alerts.len()
+                    ))
+                    .color(Color32::RED),
+                )
+                .on_hover_ui_at_pointer(|ui| {
+                    ui.heading("Message contains the following alert word(s)");
+                    ui.label("");
+
+                    for (index, alert) in contains_alerts.iter().enumerate() {
+                        ui.label(format!("{index}. {alert}", index = index + 1));
                     }
                 });
             }

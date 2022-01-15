@@ -24,8 +24,12 @@
 // Further changes can be discussed and implemented at later dates, but this is
 // the proposal so far.
 
-use crate::components::{
-    about_view, dark_theme, details_view, fonts, main_view, main_view_empty,
+use crate::{
+    components::{
+        about_view, dark_theme, details_view, fonts, main_view, main_view_empty,
+        settings_view,
+    },
+    session::Session,
 };
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
@@ -46,7 +50,7 @@ use std::{
 pub type Received = Arc<RwLock<VecDeque<(Log<String>, DateTime<Local>)>>>;
 pub type Receiver = Option<Arc<Mutex<Rx<Log<String>>>>>;
 
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub enum Filter {
     Message,
     Time,
@@ -67,7 +71,7 @@ impl Display for Filter {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub enum AboutState {
     About,
     Credits,
@@ -88,20 +92,24 @@ impl Display for AboutState {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AppState {
     pub search_filter: String,
     pub filter_by: Filter,
     #[serde(skip)]
     pub received: Received,
-    pub is_case_sensitive: bool,
-    pub is_using_regex: bool,
-    pub is_newest_first: bool,
-    pub is_about_open: bool,
-    pub is_message_preview_open: bool,
-    pub is_copying_line_numbers: bool,
-    pub is_copying_line_indicator: bool,
     pub do_scroll_to_selected_log: bool,
+    #[serde(skip)]
+    pub is_about_open: bool,
+    #[serde(skip)]
+    pub is_settings_open: bool,
+    pub is_autosave: bool,
+    pub is_case_sensitive: bool,
+    pub is_copying_line_indicator: bool,
+    pub is_copying_line_numbers: bool,
+    pub is_message_preview_open: bool,
+    pub is_newest_first: bool,
+    pub is_using_regex: bool,
     #[serde(skip)]
     pub clicked_item: Option<(Log<String>, DateTime<Local>)>,
     #[serde(skip)]
@@ -111,6 +119,8 @@ pub struct AppState {
     pub current_theme: Visuals,
     #[serde(skip)]
     pub copy_language: String,
+    #[serde(skip)]
+    pub alert_string: String,
 }
 
 impl Default for AppState {
@@ -132,6 +142,9 @@ impl Default for AppState {
             is_copying_line_numbers: false,
             is_copying_line_indicator: false,
             do_scroll_to_selected_log: false,
+            is_autosave: false,
+            is_settings_open: false,
+            alert_string: "".into(),
         }
     }
 }
@@ -142,6 +155,7 @@ pub struct App {
     pub receiver: Receiver,
     #[serde(skip)]
     update_thread: Option<JoinHandle<()>>,
+    session: Session,
     data: AppState,
     title: String,
     socket_address: String,
@@ -154,15 +168,16 @@ impl App {
             update_thread: None,
             data: AppState::default(),
             title: title.into(),
+            session: Session::default(),
             socket_address,
         }
     }
 
-    fn save_file(&self) {
+    fn save_file(&mut self) {
         let file_path = if let Ok(file_path) = FileDialog::new()
             .set_filename(&format!(
-                "session-{date}.cdctrl",
-                date = Local::now().format("%Y-%m-%d")
+                "{session_name}.cdctrl",
+                session_name = self.session.session_name
             ))
             .add_filter("codeCTRL Session", &["cdctrl"])
             .show_save_single_file()
@@ -177,8 +192,10 @@ impl App {
             None => return,
         };
 
-        let data =
-            serde_cbor::to_vec(&self.data.received).expect("Could not serialise logs");
+        self.session.app_state = self.data.clone();
+        self.session.received = self.data.received.clone();
+
+        let data = serde_cbor::to_vec(&self.session).expect("Could not serialise logs");
 
         let mut file = match File::create(&file_path) {
             Ok(file_path) => file_path,
@@ -244,41 +261,47 @@ impl App {
 
         let reader = BufReader::new(file);
 
-        let data: VecDeque<(Log<String>, DateTime<Local>)> =
-            match serde_cbor::from_reader(reader) {
-                Ok(data) => {
-                    let dialog = MessageDialog::new()
-                        .set_title("Successfully loaded file data")
-                        .set_text("Loaded data from file successfully.")
-                        .show_alert();
+        let session: Session = match serde_cbor::from_reader(reader) {
+            Ok(data) => {
+                let dialog = MessageDialog::new()
+                    .set_title("Successfully loaded file data")
+                    .set_text("Loaded data from file successfully.")
+                    .show_alert();
 
-                    drop(dialog);
+                drop(dialog);
 
-                    data
-                },
-                Err(error) => {
-                    let dialog = MessageDialog::new()
-                        .set_title("Could not parse log data")
-                        .set_text(&format!(
-                            "Could not properly parse log data from file \
-                             \"{file_path}\": {error}",
-                            file_path = file_path.to_string_lossy(),
-                        ))
-                        .show_alert();
+                data
+            },
+            Err(error) => {
+                let dialog = MessageDialog::new()
+                    .set_title("Could not parse log data")
+                    .set_text(&format!(
+                        "Could not properly parse log data from file \"{file_path}\": \
+                         {error}",
+                        file_path = file_path.to_string_lossy(),
+                    ))
+                    .show_alert();
 
-                    drop(dialog);
+                drop(dialog);
 
-                    return;
-                },
-            };
+                return;
+            },
+        };
 
-        self.data.received = Arc::new(RwLock::new(data));
+        self.session = session.clone();
+        self.data.received = session.received;
     }
 }
 
 impl epi::App for App {
     fn update(&mut self, ctx: &CtxRef, _frame: &Frame) {
         about_view(&mut self.data, ctx);
+        settings_view(
+            &mut self.session,
+            &mut self.data.is_settings_open,
+            &mut self.data.alert_string,
+            ctx,
+        );
 
         egui::TopBottomPanel::top("top_bar")
             .resizable(false)
@@ -293,6 +316,14 @@ impl epi::App for App {
 
                             if ui.button("Load").clicked() {
                                 self.load_file();
+                            }
+
+                            ui.separator();
+
+                            ui.checkbox(&mut self.data.is_autosave, "Auto Save");
+
+                            if ui.button("Settings").clicked() {
+                                self.data.is_settings_open = !self.data.is_settings_open;
                             }
 
                             ui.separator();
@@ -403,7 +434,7 @@ impl epi::App for App {
         if is_empty {
             main_view_empty(ctx, &self.socket_address);
         } else {
-            main_view(&mut self.data, ctx);
+            main_view(&mut self.data, &self.session, ctx);
         }
 
         if self.data.clicked_item.is_some() {
