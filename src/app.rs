@@ -381,6 +381,8 @@ impl epi::App for App {
                             }
                         }
 
+                        ui.separator();
+
                         ui.label(format!("Listening on: {}", self.socket_address));
                     });
                 });
