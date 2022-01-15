@@ -11,6 +11,7 @@
 mod app;
 mod components;
 mod consts;
+mod session;
 
 extern crate clap;
 
