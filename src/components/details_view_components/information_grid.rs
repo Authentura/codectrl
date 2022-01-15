@@ -171,15 +171,15 @@ fn code_scroll(
                 |code, (line_number, line)| {
                     if *line_number == log.line_number {
                         (
-                            format!("{}{:>>3}  {}\n", code.0, line_number, line),
-                            format!("{}{}\n", code.1, line),
-                            format!("{}{: >3}  {}\n", code.2, line_number, line),
+                            format!("{code}{line_number:>>3}  {line}\n", code = code.0),
+                            format!("{code}{line}\n", code = code.1),
+                            format!("{code}{line_number: >3}  {line}\n", code = code.2),
                         )
                     } else {
                         (
-                            format!("{}{: >3}  {}\n", code.0, line_number, line),
-                            format!("{}{}\n", code.1, line),
-                            format!("{}{: >3}  {}\n", code.2, line_number, line),
+                            format!("{code}{line_number: >3}  {line}\n", code = code.0),
+                            format!("{code}{line}\n", code = code.1),
+                            format!("{code}{line_number: >3}  {line}\n", code = code.2),
                         )
                     }
                 },
