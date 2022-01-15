@@ -31,10 +31,13 @@ use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{CtxRef, Visuals};
 use epi::{Frame, Storage};
+use native_dialog::{FileDialog, MessageDialog};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
     fmt::{self, Display},
+    fs::File,
+    io::{BufReader, Write},
     process,
     sync::{mpsc::Receiver as Rx, Arc, Mutex, RwLock},
     thread::{Builder as ThreadBuilder, JoinHandle},
@@ -154,6 +157,123 @@ impl App {
             socket_address,
         }
     }
+
+    fn save_file(&self) {
+        let file_path = if let Ok(file_path) = FileDialog::new()
+            .set_filename(&format!(
+                "session-{date}.cdctrl",
+                date = Local::now().format("%Y-%m-%d")
+            ))
+            .add_filter("codeCTRL Session", &["cdctrl"])
+            .show_save_single_file()
+        {
+            file_path
+        } else {
+            None
+        };
+
+        let file_path = match file_path {
+            Some(file_path) => file_path,
+            None => return,
+        };
+
+        let data =
+            serde_cbor::to_vec(&self.data.received).expect("Could not serialise logs");
+
+        let mut file = match File::create(&file_path) {
+            Ok(file_path) => file_path,
+            Err(error) => {
+                let dialog = MessageDialog::new()
+                    .set_title("Could not save file")
+                    .set_text(&format!(
+                        "Could not save file \"{file_path}\": {error}",
+                        file_path = file_path.to_string_lossy(),
+                    ))
+                    .show_alert();
+
+                drop(dialog);
+
+                return;
+            },
+        };
+
+        if let Err(error) = file.write_all(data.as_slice()) {
+            let dialog = MessageDialog::new()
+                .set_title("Could not write to file")
+                .set_text(&format!(
+                    "Could not write to file \"{file_path}\": {error}",
+                    file_path = file_path.to_string_lossy(),
+                ))
+                .show_alert();
+
+            drop(dialog);
+        }
+    }
+
+    fn load_file(&mut self) {
+        let file_path = if let Ok(file_path) = FileDialog::new()
+            .add_filter("codeCTRL Session", &["cdctrl"])
+            .show_open_single_file()
+        {
+            file_path
+        } else {
+            None
+        };
+
+        let file_path = match file_path {
+            Some(file_path) => file_path,
+            None => return,
+        };
+
+        let file = match File::open(&file_path) {
+            Ok(file_path) => file_path,
+            Err(error) => {
+                let dialog = MessageDialog::new()
+                    .set_title("Could not open file")
+                    .set_text(&format!(
+                        "Could not open file \"{file_path}\": {error}",
+                        file_path = file_path.to_string_lossy(),
+                    ))
+                    .show_alert();
+
+                drop(dialog);
+
+                return;
+            },
+        };
+
+        let reader = BufReader::new(file);
+
+        let data: VecDeque<(Log<String>, DateTime<Local>)> =
+            match serde_cbor::from_reader(reader) {
+                Ok(data) => {
+                    let dialog = MessageDialog::new()
+                        .set_title("Successfully loaded file data")
+                        .set_text("Loaded data from file successfully.")
+                        .show_alert();
+
+                    drop(dialog);
+
+                    data
+                },
+                Err(error) => {
+                    let dialog = MessageDialog::new()
+                        .set_title("Could not parse log data")
+                        .set_text(&format!(
+                            "Could not properly parse log data from file \
+                             \"{file_path}\": {error}",
+                            file_path = file_path.to_string_lossy(),
+                        ))
+                        .show_alert();
+
+                    drop(dialog);
+
+                    return;
+                },
+            };
+
+        self.data.received = Arc::new(RwLock::new(data));
+    }
 }
 
 impl epi::App for App {
@@ -167,6 +287,16 @@ impl epi::App for App {
                 ui.vertical(|ui| {
                     ui.horizontal_wrapped(|ui| {
                         ui.menu_button("File", |ui| {
+                            if ui.button("Save").clicked() {
+                                self.save_file();
+                            }
+
+                            if ui.button("Load").clicked() {
+                                self.load_file();
+                            }
+
+                            ui.separator();
+
                             if ui.button("Quit").clicked() {
                                 process::exit(0);
                             }
