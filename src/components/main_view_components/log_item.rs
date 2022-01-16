@@ -14,6 +14,8 @@ pub fn draw_log_item(
     received @ (log, time): &Received,
     ui: &mut Ui,
 ) {
+    let mut message = log.message.replace('\"', "");
+
     let radio_response = ui
         .horizontal(|ui| {
             let response = if let Some(clicked_item) = &clicked_item {
@@ -38,13 +40,24 @@ pub fn draw_log_item(
             }
 
             let mut contains_alerts = vec![];
-            session.message_alerts.iter().for_each(|alert| {
-                if log.message.contains(alert) {
+            let mut exact_alert = String::new();
+
+            for alert in &session.message_alerts {
+                if message == *alert {
+                    exact_alert = message.clone();
+                } else if message.contains(alert) {
                     contains_alerts.push(alert);
                 }
-            });
+            }
 
-            if !contains_alerts.is_empty() {
+            if !exact_alert.is_empty() {
+                ui.label(RichText::new("!!").color(Color32::RED))
+                    .on_hover_ui_at_pointer(|ui| {
+                        ui.heading("Message exactly matches the following alert");
+                        ui.label("");
+                        ui.label(exact_alert);
+                    });
+            } else if !contains_alerts.is_empty() {
                 ui.label(
                     RichText::new(format!(
                         "\u{2757} {alert_count}",
@@ -65,8 +78,6 @@ pub fn draw_log_item(
             response
         })
         .inner;
-
-    let mut message = log.message.replace('\"', "");
 
     if log.message.len() > 100 {
         message.truncate(97);
