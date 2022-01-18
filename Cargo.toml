@@ -17,7 +17,7 @@ egui = { version = "0.16", features = ["persistence", "multi_threaded"] }
 egui_glow = "0.16"
 epi = "0.16"
 lazy_static = "1.4"
-native-dialog = "0.6"
+rfd = "0.6"
 regex = "1.5"
 serde = { version = "1.0", features = ["derive"] }
 serde_cbor = "0.11"
