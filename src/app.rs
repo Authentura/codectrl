@@ -35,7 +35,7 @@ use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{CtxRef, Visuals};
 use epi::{Frame, Storage};
-use native_dialog::{FileDialog, MessageDialog};
+use rfd::{FileDialog, MessageDialog};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
@@ -174,22 +174,17 @@ impl App {
     }
 
     fn save_file(&mut self) {
-        let file_path = if let Ok(file_path) = FileDialog::new()
-            .set_filename(&format!(
+        let file_path = if let Some(file_path) = FileDialog::new()
+            .set_file_name(&format!(
                 "{session_name}.cdctrl",
                 session_name = self.session.session_name
             ))
             .add_filter("codeCTRL Session", &["cdctrl"])
-            .show_save_single_file()
+            .save_file()
         {
             file_path
         } else {
-            None
-        };
-
-        let file_path = match file_path {
-            Some(file_path) => file_path,
-            None => return,
+            return;
         };
 
         self.session.app_state = self.data.clone();
@@ -200,60 +195,49 @@ impl App {
         let mut file = match File::create(&file_path) {
             Ok(file_path) => file_path,
             Err(error) => {
-                let dialog = MessageDialog::new()
+                MessageDialog::new()
                     .set_title("Could not save file")
-                    .set_text(&format!(
+                    .set_description(&format!(
                         "Could not save file \"{file_path}\": {error}",
                         file_path = file_path.to_string_lossy(),
                     ))
-                    .show_alert();
-
-                drop(dialog);
+                    .show();
 
                 return;
             },
         };
 
         if let Err(error) = file.write_all(data.as_slice()) {
-            let dialog = MessageDialog::new()
+            MessageDialog::new()
                 .set_title("Could not write to file")
-                .set_text(&format!(
+                .set_description(&format!(
                     "Could not write to file \"{file_path}\": {error}",
                     file_path = file_path.to_string_lossy(),
                 ))
-                .show_alert();
-
-            drop(dialog);
+                .show();
         }
     }
 
     fn load_file(&mut self) {
-        let file_path = if let Ok(file_path) = FileDialog::new()
+        let file_path = if let Some(file_path) = FileDialog::new()
             .add_filter("codeCTRL Session", &["cdctrl"])
-            .show_open_single_file()
+            .pick_file()
         {
             file_path
         } else {
-            None
-        };
-
-        let file_path = match file_path {
-            Some(file_path) => file_path,
-            None => return,
+            return;
         };
 
         let file = match File::open(&file_path) {
             Ok(file_path) => file_path,
             Err(error) => {
-                let dialog = MessageDialog::new()
+                MessageDialog::new()
                     .set_title("Could not open file")
-                    .set_text(&format!(
+                    .set_description(&format!(
                         "Could not open file \"{file_path}\": {error}",
                         file_path = file_path.to_string_lossy(),
                     ))
-                    .show_alert();
-
-                drop(dialog);
+                    .show();
 
                 return;
             },
@@ -263,26 +247,22 @@ impl App {
 
         let session: Session = match serde_cbor::from_reader(reader) {
             Ok(data) => {
-                let dialog = MessageDialog::new()
+                MessageDialog::new()
                     .set_title("Successfully loaded file data")
-                    .set_text("Loaded data from file successfully.")
-                    .show_alert();
-
-                drop(dialog);
+                    .set_description("Loaded data from file successfully.")
+                    .show();
 
                 data
             },
             Err(error) => {
-                let dialog = MessageDialog::new()
+                MessageDialog::new()
                     .set_title("Could not parse log data")
-                    .set_text(&format!(
+                    .set_description(&format!(
                         "Could not properly parse log data from file \"{file_path}\": \
                          {error}",
                         file_path = file_path.to_string_lossy(),
                     ))
-                    .show_alert();
-
-                drop(dialog);
+                    .show();
 
                 return;
             },
