@@ -313,6 +313,8 @@ impl epi::App for App {
             .resizable(false)
             .default_height(200.0)
             .show(ctx, |ui| {
+                ui.add_space(4.0);
+
                 ui.horizontal_wrapped(|ui| {
                     ui.menu_button("File", |ui| {
                         if ui.button("Save project").clicked() {
@@ -421,6 +423,8 @@ impl epi::App for App {
 
                     ui.label(format!("Listening on: {}", self.socket_address));
                 });
+
+                ui.add_space(2.0);
             });
 
         let is_empty = {
