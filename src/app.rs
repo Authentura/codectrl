@@ -39,9 +39,11 @@ use rfd::{FileDialog, MessageDialog};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
+    error::Error,
     fmt::{self, Display},
     fs::File,
-    io::{BufReader, Write},
+    io::{BufReader, Error as IOError, ErrorKind, Write},
+    path::Path,
     process,
     sync::{mpsc::Receiver as Rx, Arc, Mutex, RwLock},
     thread::{Builder as ThreadBuilder, JoinHandle},
@@ -173,7 +175,7 @@ impl App {
         }
     }
 
-    fn save_file(&mut self) {
+    fn save_file_dialog(&mut self) {
         let file_path = if let Some(file_path) = FileDialog::new()
             .set_file_name(&format!(
                 "{session_name}.cdctrl",
@@ -218,7 +220,7 @@ impl App {
         }
     }
 
-    fn load_file(&mut self) {
+    fn load_file_dialog(&mut self) {
         let file_path = if let Some(file_path) = FileDialog::new()
             .add_filter("codeCTRL Session", &["cdctrl"])
             .pick_file()
@@ -271,6 +273,30 @@ impl App {
         self.session = session.clone();
         self.data.received = session.received;
     }
+
+    pub fn load_from_file(file_path: &Path, app: &mut App) -> Result<(), Box<dyn Error>> {
+        let file = File::open(file_path)?;
+
+        let reader = BufReader::new(file);
+
+        let session: Session = match serde_cbor::from_reader(reader) {
+            Ok(data) => data,
+            Err(error) => {
+                return Err(Box::new(IOError::new(
+                    ErrorKind::Other,
+                    format!(
+                        "Could not parse log data from file \"{file_path}\": {error}",
+                        file_path = file_path.to_string_lossy()
+                    ),
+                )));
+            },
+        };
+
+        app.session = session.clone();
+        app.data.received = session.received;
+
+        Ok(())
+    }
 }
 
 impl epi::App for App {
@@ -289,12 +315,12 @@ impl epi::App for App {
             .show(ctx, |ui| {
                 ui.horizontal_wrapped(|ui| {
                     ui.menu_button("File", |ui| {
-                        if ui.button("Save").clicked() {
-                            self.save_file();
+                        if ui.button("Save project").clicked() {
+                            self.save_file_dialog();
                         }
 
-                        if ui.button("Load").clicked() {
-                            self.load_file();
+                        if ui.button("Open project").clicked() {
+                            self.load_file_dialog();
                         }
 
                         ui.separator();
