@@ -2,8 +2,14 @@
 name = "codectrl"
 version = "0.1.0"
 edition = "2021"
-authors = ["pwnCtrl <contact@pwnctrl.com>", "Samuel Boyden <s.boyden@pwnctrl.com>", "Sebestyen Morris <s.morris@pwnctrl.com>"]
+authors = [
+    "pwnCtrl <contact@pwnctrl.com>",
+    "Samuel Boyden <s.boyden@pwnctrl.com>",
+    "Sebestyen Morris <s.morris@pwnctrl.com>",
+    "Dasith Vidanage <d.vidanage@pwnctrl.com>",
+]
 description = "A source code analytic tool. Using egui version 0.16."
+rust-version = "1.58.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
