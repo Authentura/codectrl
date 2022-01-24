@@ -1,5 +1,5 @@
 [package]
-name = "code_ctrl_log_server"
+name = "codectrl_log_server"
 version = "0.0.0"
 edition = "2021"
 authors = ["pwnCtrl <contact@pwnctrl.com>", "Samuel Boyden <sam@stboyden.com>"]
@@ -7,9 +7,8 @@ authors = ["pwnCtrl <contact@pwnctrl.com>", "Samuel Boyden <sam@stboyden.com>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-code_ctrl_logger = { path = "../loggers/rust-logger", default-features = false, features = ["types-only"] }
+codectrl_logger = { path = "../loggers/rust-logger", default-features = false, features = ["types-only"] }
 log = { version = "0.4", features = ["release_max_level_warn", "max_level_info"]}
-simple_logger = "1.15"
+simple_logger = { version = "1.15", default-features = false, features = ["colors", "threads"]}
 serde = "1.0"
 serde_cbor = "0.11"
-tokio = { version = "1.14", default-features = false, features = ["net", "rt-multi-thread", "io-util"] }

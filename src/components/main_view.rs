@@ -1,10 +1,15 @@
 use crate::{
     app::{AppState, Filter},
-    components::{main_view_components::draw_log_item, regex_filter},
+    components::{
+        main_view_components::draw_log_item,
+        regex_filter,
+        theming::{CODECTRL_GREEN, DARK_HEADER_FOREGROUND_COLOUR},
+    },
+    session::Session,
 };
 use chrono::{DateTime, Local};
-use code_ctrl_logger::Log;
-use egui::CtxRef;
+use codectrl_logger::Log;
+use egui::{CtxRef, RichText};
 
 fn app_state_filter(
     is_case_sensitive: bool,
@@ -49,11 +54,9 @@ fn app_state_filter(
     }
 }
 
-pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
+pub fn main_view(app_state: &mut AppState, session: &Session, ctx: &CtxRef) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {
-            ui.heading(format!("Listening on: {}", socket_address));
-
             egui::ScrollArea::vertical()
                 .max_width(ui.available_width())
                 .max_height(ui.available_height() - app_state.preview_height)
@@ -66,11 +69,26 @@ pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
                         .max_col_width(ui.available_width() / 6.0)
                         .show(ui, |ui| {
                             ui.heading("");
-                            ui.heading("Message");
-                            ui.heading("Host");
-                            ui.heading("File name");
-                            ui.heading("Line number");
-                            ui.heading("Date & time");
+                            ui.heading(
+                                RichText::new("Message")
+                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
+                            );
+                            ui.heading(
+                                RichText::new("Host")
+                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
+                            );
+                            ui.heading(
+                                RichText::new("File name")
+                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
+                            );
+                            ui.heading(
+                                RichText::new("Line number")
+                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
+                            );
+                            ui.heading(
+                                RichText::new("Date & time")
+                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
+                            );
                             ui.end_row();
 
                             let received_vec = app_state.received.read().unwrap();
@@ -94,10 +112,31 @@ pub fn main_view(app_state: &mut AppState, ctx: &CtxRef, socket_address: &str) {
                                     time,
                                 )
                             }) {
-                                draw_log_item(&mut app_state.clicked_item, received, ui);
+                                draw_log_item(
+                                    session,
+                                    &mut app_state.clicked_item,
+                                    app_state.do_scroll_to_selected_log,
+                                    received,
+                                    ui,
+                                );
                             }
                         });
                 });
+        });
+    });
+}
+
+pub fn main_view_empty(ctx: &CtxRef, socket_address: &str) {
+    egui::CentralPanel::default().show(ctx, |ui| {
+        ui.vertical_centered(|ui| {
+            ui.small(RichText::new("codeCTRL").color(CODECTRL_GREEN));
+            ui.heading(RichText::new("by pwnCTRL").italics());
+            ui.add_space(ui.available_height() / 3.0);
+
+            ui.heading(format!(
+                "Send logs to {} and they will appear here.",
+                socket_address
+            ));
         });
     });
 }

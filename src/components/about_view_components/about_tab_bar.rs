@@ -1,12 +1,14 @@
-use crate::app::AboutState;
-use egui::{TextStyle, Ui};
+use crate::{app::AboutState, components::DARK_HEADER_FOREGROUND_COLOUR};
+use egui::{RichText, Ui};
 
 pub fn draw_tab_bar(about_state: &mut AboutState, ui: &mut Ui) {
     ui.horizontal_wrapped(|ui| {
         if ui
-            .add(
-                egui::SelectableLabel::new(*about_state == AboutState::About, "About")
-                    .text_style(TextStyle::Heading),
+            .selectable_label(
+                *about_state == AboutState::About,
+                RichText::new(AboutState::About.to_string())
+                    .heading()
+                    .color(DARK_HEADER_FOREGROUND_COLOUR),
             )
             .clicked()
         {
@@ -14,12 +16,11 @@ pub fn draw_tab_bar(about_state: &mut AboutState, ui: &mut Ui) {
         }
 
         if ui
-            .add(
-                egui::SelectableLabel::new(
-                    *about_state == AboutState::Credits,
-                    "Credits",
-                )
-                .text_style(TextStyle::Heading),
+            .selectable_label(
+                *about_state == AboutState::Credits,
+                RichText::new(AboutState::Credits.to_string())
+                    .heading()
+                    .color(DARK_HEADER_FOREGROUND_COLOUR),
             )
             .clicked()
         {
@@ -27,12 +28,11 @@ pub fn draw_tab_bar(about_state: &mut AboutState, ui: &mut Ui) {
         }
 
         if ui
-            .add(
-                egui::SelectableLabel::new(
-                    *about_state == AboutState::License,
-                    "License",
-                )
-                .text_style(TextStyle::Heading),
+            .selectable_label(
+                *about_state == AboutState::License,
+                RichText::new(AboutState::License.to_string())
+                    .heading()
+                    .color(DARK_HEADER_FOREGROUND_COLOUR),
             )
             .clicked()
         {

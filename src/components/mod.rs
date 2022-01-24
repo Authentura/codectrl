@@ -6,9 +6,14 @@ mod details_view_components;
 mod main_view;
 mod main_view_components;
 mod message_preview_view;
+mod settings_view;
+mod theming;
+
+use common::regex_filter;
 
 pub use about_view::*;
-use common::regex_filter;
 pub use details_view::*;
 pub use main_view::*;
 pub use message_preview_view::*;
+pub use settings_view::*;
+pub use theming::*;

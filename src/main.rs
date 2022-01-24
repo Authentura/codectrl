@@ -1,6 +1,7 @@
 #![feature(async_closure, thread_spawn_unchecked)]
 #![warn(clippy::pedantic)]
 #![allow(
+    clippy::blocks_in_if_conditions,
     clippy::module_name_repetitions,
     clippy::struct_excessive_bools,
     clippy::too_many_lines,
@@ -10,13 +11,14 @@
 mod app;
 mod components;
 mod consts;
+mod session;
 
 extern crate clap;
 
 use app::App;
 use clap::{crate_authors, crate_version, App as ClapApp, Arg};
-use code_ctrl_log_server::Server;
-use std::{collections::HashMap, env, thread};
+use codectrl_log_server::Server;
+use std::{collections::HashMap, env, path::Path, thread};
 
 static NAME: &str = "codeCTRL";
 
@@ -37,15 +39,30 @@ async fn main() {
                      by the PORT environment variable",
                 ),
         )
+        .arg(
+            Arg::with_name("PROJECT")
+                .takes_value(true)
+                .index(1)
+                .help("The project file to load (optional)."),
+        )
         .get_matches();
 
     let has_port = matches.is_present("port");
+
     let port = if has_port {
         matches.value_of("port").unwrap()
     } else if command_line.contains_key("PORT") {
         command_line.get("PORT").unwrap()
     } else {
         "3001"
+    };
+
+    let has_project = matches.is_present("PROJECT");
+
+    let project_file = if has_project {
+        Some(matches.value_of("PROJECT").unwrap())
+    } else {
+        None
     };
 
     let socket_address = format!("127.0.0.1:{}", port);
@@ -56,7 +73,18 @@ async fn main() {
         server.run_server().unwrap();
     });
 
-    let app = App::new(NAME, receiver, socket_address);
+    let mut app = App::new(NAME, receiver, socket_address);
+
+    if let Some(project_file) = project_file {
+        let file_path = match Path::new(project_file).canonicalize() {
+            Ok(file_path) => file_path,
+            Err(error) => panic!("Could not cannonicalise PROJECT file path: {error}"),
+        };
+
+        if let Err(error) = App::load_from_file(&file_path, &mut app) {
+            panic!("An error occured: {error}")
+        }
+    }
 
     let options = egui_glow::NativeOptions {
         drag_and_drop_support: true,

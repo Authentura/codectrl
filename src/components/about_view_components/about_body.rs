@@ -1,8 +1,8 @@
-use crate::{app::AboutState, consts};
+use crate::{app::AboutState, components::DARK_HEADER_FOREGROUND_COLOUR, consts};
 use clap::{crate_authors, crate_description, crate_version};
-use egui::{TextStyle, Ui};
+use egui::{CtxRef, CursorIcon, RichText, Sense, TextStyle, Ui};
 
-pub fn draw_about_body(about_state: &AboutState, ui: &mut Ui) {
+pub fn draw_about_body(about_state: &AboutState, ctx: &CtxRef, ui: &mut Ui) {
     egui::ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| match about_state {
@@ -26,7 +26,30 @@ pub fn draw_about_body(about_state: &AboutState, ui: &mut Ui) {
                         ui.spacing();
                         ui.vertical(|ui| {
                             for author in crate_authors!(", ").split(", ") {
-                                ui.label(author);
+                                if let Some((index, _)) = author.match_indices('<').next()
+                                {
+                                    let (name, email) = author.split_at(index);
+
+                                    let name = name.trim();
+                                    let email =
+                                        email.trim().replace('<', "").replace('>', "");
+
+                                    let author_label = egui::Label::new(
+                                        RichText::new(name)
+                                            .color(ctx.style().visuals.hyperlink_color),
+                                    );
+
+                                    if ui
+                                        .add(author_label.sense(Sense::click()))
+                                        .on_hover_cursor(CursorIcon::PointingHand)
+                                        .on_hover_ui_at_pointer(|ui| {
+                                            ui.label("Click to copy email address");
+                                        })
+                                        .clicked()
+                                    {
+                                        ctx.output().copied_text = email;
+                                    }
+                                }
                             }
                         });
                     });
@@ -45,10 +68,37 @@ pub fn draw_about_body(about_state: &AboutState, ui: &mut Ui) {
                 });
             },
             AboutState::License => {
+                ui.heading(
+                    RichText::new("codeCTRL License")
+                        .color(DARK_HEADER_FOREGROUND_COLOUR),
+                );
                 ui.add(
                     egui::TextEdit::multiline(&mut include_str!("../../../LICENSE"))
                         .desired_width(ui.available_width())
                         .text_style(TextStyle::Monospace),
+                );
+
+                ui.heading(
+                    RichText::new("Red Hat Mono License")
+                        .color(DARK_HEADER_FOREGROUND_COLOUR),
+                );
+                ui.add(
+                    egui::TextEdit::multiline(&mut include_str!(
+                        "../../../assets/fonts/red-hat/LICENSE"
+                    ))
+                    .desired_width(ui.available_width())
+                    .text_style(TextStyle::Monospace),
+                );
+
+                ui.heading(
+                    RichText::new("Roboto License").color(DARK_HEADER_FOREGROUND_COLOUR),
+                );
+                ui.add(
+                    egui::TextEdit::multiline(&mut include_str!(
+                        "../../../assets/fonts/roboto/LICENSE"
+                    ))
+                    .desired_width(ui.available_width())
+                    .text_style(TextStyle::Monospace),
                 );
             },
         });

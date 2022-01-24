@@ -1,4 +1,4 @@
-use code_ctrl_logger::Log;
+use codectrl_logger::Log;
 use log::{error, warn};
 use simple_logger::SimpleLogger;
 use std::{
@@ -100,6 +100,7 @@ impl Server {
 
                 if data.message.is_empty() {
                     data.warnings.push("No message was given".into());
+                    data.message = "<None>".into();
                 }
 
                 if data.message_type.is_empty() {
@@ -108,6 +109,11 @@ impl Server {
 
                 if data.stack.is_empty() {
                     data.warnings.push("Stacktrace is empty".into());
+                }
+
+                if data.file_name.is_empty() {
+                    data.warnings.push("No file name found".into());
+                    data.file_name = "<None>".into();
                 }
 
                 data.address = peer_address.to_string().split(':').collect::<Vec<_>>()[0]
