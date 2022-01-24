@@ -7,6 +7,7 @@ authors = [
     "Samuel Boyden <s.boyden@pwnctrl.com>",
     "Sebestyen Morris <s.morris@pwnctrl.com>",
     "Dasith Vidanage <d.vidanage@pwnctrl.com>",
+    "Balázs Cene (@bczsalba on Github) <bczsalba@gmail.com>"
 ]
 description = "A source code analytic tool. Using egui version 0.16."
 rust-version = "1.58.1"
