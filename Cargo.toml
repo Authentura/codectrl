@@ -33,3 +33,4 @@ tokio = { version = "1.14", default-features = false, features = ["net", "rt-mul
 
 [build-dependencies]
 chrono = "0.4"
+toml = "0.5"
