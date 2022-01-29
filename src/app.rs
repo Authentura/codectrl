@@ -451,9 +451,6 @@ impl epi::App for App {
         ctx.set_visuals(self.data.current_theme.clone());
         ctx.set_fonts(fonts());
 
-        while self.update_thread.is_some() {} // we don't want to create a new update thread while one exists, so we block
-                                              // until it doesn't.
-
         self.update_thread = Some(unsafe {
             ThreadBuilder::new()
                 .name("update_thread".into())
