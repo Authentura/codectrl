@@ -1,14 +1,14 @@
-use crate::session::Session;
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{Color32, Label, RichText, Sense, Ui};
+use std::collections::BTreeSet;
 
 type Received = (Log<String>, DateTime<Local>);
 
 fn draw_hover(ui: &mut Ui) { ui.label("Click to view log"); }
 
 pub fn draw_log_item(
-    session: &Session,
+    message_alerts: &BTreeSet<String>,
     clicked_item: &mut Option<Received>,
     do_scroll_to_selected_log: bool,
     received @ (log, time): &Received,
@@ -42,7 +42,7 @@ pub fn draw_log_item(
             let mut contains_alerts = vec![];
             let mut exact_alert = String::new();
 
-            for alert in &session.message_alerts {
+            for alert in message_alerts {
                 if message == *alert {
                     exact_alert = message.clone();
                 } else if message.contains(alert) {

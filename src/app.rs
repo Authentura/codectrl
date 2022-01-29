@@ -24,12 +24,9 @@
 // Further changes can be discussed and implemented at later dates, but this is
 // the proposal so far.
 
-use crate::{
-    components::{
-        about_view, dark_theme, details_view, fonts, main_view, main_view_empty,
-        settings_view,
-    },
-    session::Session,
+use crate::components::{
+    about_view, dark_theme, details_view, fonts, main_view, main_view_empty,
+    settings_view,
 };
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
@@ -38,7 +35,7 @@ use epi::{Frame, Storage};
 use rfd::{FileDialog, MessageDialog};
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::VecDeque,
+    collections::{BTreeSet, VecDeque},
     error::Error,
     fmt::{self, Display},
     fs::File,
@@ -94,6 +91,13 @@ impl Display for AboutState {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Session {
+    pub session_timestamp: String,
+    pub received: VecDeque<(Log<String>, DateTime<Local>)>,
+    pub message_alerts: BTreeSet<String>,
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AppState {
     pub search_filter: String,
@@ -123,6 +127,9 @@ pub struct AppState {
     pub copy_language: String,
     #[serde(skip)]
     pub alert_string: String,
+    pub message_alerts: BTreeSet<String>,
+    #[serde(skip)]
+    session_timestamp: String,
 }
 
 impl Default for AppState {
@@ -147,6 +154,8 @@ impl Default for AppState {
             is_autosave: false,
             is_settings_open: false,
             alert_string: "".into(),
+            message_alerts: BTreeSet::new(),
+            session_timestamp: "".into(),
         }
     }
 }
@@ -157,29 +166,29 @@ pub struct App {
     pub receiver: Receiver,
     #[serde(skip)]
     update_thread: Option<JoinHandle<()>>,
-    session: Session,
     data: AppState,
-    title: String,
+    title: &'static str,
     socket_address: String,
 }
 
 impl App {
-    pub fn new(title: &str, receiver: Rx<Log<String>>, socket_address: String) -> Self {
+    pub fn new(receiver: Rx<Log<String>>, socket_address: String) -> Self {
         Self {
             receiver: Some(Arc::new(Mutex::new(receiver))),
             update_thread: None,
             data: AppState::default(),
-            title: title.into(),
-            session: Session::default(),
+            title: "codeCTRL",
             socket_address,
         }
     }
 
     fn save_file_dialog(&mut self) {
+        self.data.session_timestamp = Local::now().format("%F %X").to_string();
+
         let file_path = if let Some(file_path) = FileDialog::new()
             .set_file_name(&format!(
-                "{session_name}.cdctrl",
-                session_name = self.session.session_name
+                "{file_name}.cdctrl",
+                file_name = self.data.session_timestamp
             ))
             .add_filter("codeCTRL Session", &["cdctrl"])
             .save_file()
@@ -189,10 +198,19 @@ impl App {
             return;
         };
 
-        self.session.app_state = self.data.clone();
-        self.session.received = self.data.received.clone();
+        let AppState {
+            session_timestamp,
+            message_alerts,
+            ..
+        } = self.data.clone();
 
-        let data = serde_cbor::to_vec(&self.session).expect("Could not serialise logs");
+        let session = Session {
+            session_timestamp,
+            received: self.data.received.read().unwrap().clone(),
+            message_alerts,
+        };
+
+        let data = serde_cbor::to_vec(&session).expect("Could not serialise logs");
 
         let mut file = match File::create(&file_path) {
             Ok(file_path) => file_path,
@@ -230,48 +248,15 @@ impl App {
             return;
         };
 
-        let file = match File::open(&file_path) {
-            Ok(file_path) => file_path,
-            Err(error) => {
-                MessageDialog::new()
-                    .set_title("Could not open file")
-                    .set_description(&format!(
-                        "Could not open file \"{file_path}\": {error}",
-                        file_path = file_path.to_string_lossy(),
-                    ))
-                    .show();
-
-                return;
-            },
-        };
-
-        let reader = BufReader::new(file);
-
-        let session: Session = match serde_cbor::from_reader(reader) {
-            Ok(data) => {
-                MessageDialog::new()
-                    .set_title("Successfully loaded file data")
-                    .set_description("Loaded data from file successfully.")
-                    .show();
-
-                data
-            },
-            Err(error) => {
-                MessageDialog::new()
-                    .set_title("Could not parse log data")
-                    .set_description(&format!(
-                        "Could not properly parse log data from file \"{file_path}\": \
-                         {error}",
-                        file_path = file_path.to_string_lossy(),
-                    ))
-                    .show();
-
-                return;
-            },
-        };
-
-        self.session = session.clone();
-        self.data.received = session.received;
+        match Self::load_from_file(&file_path, self) {
+            Ok(_) => MessageDialog::new()
+                .set_title("Successfully loaded file data")
+                .set_description("Successfully loaded file data"),
+            Err(error) => MessageDialog::new()
+                .set_title("Could not parse log data")
+                .set_description(&format!("{error}")),
+        }
+        .show();
     }
 
     pub fn load_from_file(file_path: &Path, app: &mut App) -> Result<(), Box<dyn Error>> {
@@ -281,19 +266,26 @@ impl App {
 
         let session: Session = match serde_cbor::from_reader(reader) {
             Ok(data) => data,
-            Err(error) => {
+            Err(error) =>
                 return Err(Box::new(IOError::new(
                     ErrorKind::Other,
                     format!(
                         "Could not parse log data from file \"{file_path}\": {error}",
                         file_path = file_path.to_string_lossy()
                     ),
-                )));
-            },
+                ))),
         };
 
-        app.session = session.clone();
-        app.data.received = session.received;
+        let AppState {
+            received,
+            session_timestamp,
+            message_alerts,
+            ..
+        } = &mut app.data;
+
+        *received.write().unwrap() = session.received;
+        *session_timestamp = session.session_timestamp;
+        *message_alerts = session.message_alerts;
 
         Ok(())
     }
@@ -303,7 +295,7 @@ impl epi::App for App {
     fn update(&mut self, ctx: &CtxRef, _frame: &Frame) {
         about_view(&mut self.data, ctx);
         settings_view(
-            &mut self.session,
+            &mut self.data.message_alerts,
             &mut self.data.is_settings_open,
             &mut self.data.alert_string,
             ctx,
@@ -442,7 +434,7 @@ impl epi::App for App {
         if is_empty {
             main_view_empty(ctx, &self.socket_address);
         } else {
-            main_view(&mut self.data, &self.session, ctx);
+            main_view(&mut self.data, ctx);
         }
 
         if self.data.clicked_item.is_some() {
@@ -455,14 +447,25 @@ impl epi::App for App {
     fn setup(&mut self, ctx: &CtxRef, frame: &Frame, _storage: Option<&dyn Storage>) {
         let rx = Arc::clone(self.receiver.as_ref().unwrap());
         let received = Arc::clone(&self.data.received);
+
         ctx.set_visuals(self.data.current_theme.clone());
         ctx.set_fonts(fonts());
 
+        while self.update_thread.is_some() {} // we don't want to create a new update thread while one exists, so we block
+                                              // until it doesn't.
+
         self.update_thread = Some(unsafe {
             ThreadBuilder::new()
-                .name(format!("{}_update_thread", self.title))
+                .name("update_thread".into())
                 .spawn_unchecked(move || loop {
-                    let recd = rx.lock().unwrap().recv();
+                    let recd = match rx.try_lock() {
+                        Ok(lock) => lock,
+                        Err(error) => {
+                            eprintln!("Could not get lock on mutex: {error}");
+                            continue;
+                        },
+                    }
+                    .recv();
 
                     if let Ok(recd) = recd {
                         received.write().unwrap().push_front((recd, Local::now()));
@@ -473,5 +476,5 @@ impl epi::App for App {
         });
     }
 
-    fn name(&self) -> &str { self.title.as_str() }
+    fn name(&self) -> &str { self.title }
 }

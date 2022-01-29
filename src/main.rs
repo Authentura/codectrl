@@ -11,22 +11,19 @@
 mod app;
 mod components;
 mod consts;
-mod session;
 
 extern crate clap;
 
 use app::App;
-use clap::{crate_authors, crate_version, App as ClapApp, Arg};
+use clap::{crate_authors, crate_name, crate_version, App as ClapApp, Arg};
 use codectrl_log_server::Server;
 use std::{collections::HashMap, env, path::Path, thread};
-
-static NAME: &str = "codeCTRL";
 
 #[tokio::main]
 async fn main() {
     let command_line = env::vars().collect::<HashMap<String, String>>();
 
-    let matches = ClapApp::new(NAME)
+    let matches = ClapApp::new(crate_name!())
         .version(crate_version!())
         .author(crate_authors!(", "))
         .arg(
@@ -73,7 +70,7 @@ async fn main() {
         server.run_server().unwrap();
     });
 
-    let mut app = App::new(NAME, receiver, socket_address);
+    let mut app = App::new(receiver, socket_address);
 
     if let Some(project_file) = project_file {
         let file_path = match Path::new(project_file).canonicalize() {

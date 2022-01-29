@@ -5,7 +5,6 @@ use crate::{
         regex_filter,
         theming::{CODECTRL_GREEN, DARK_HEADER_FOREGROUND_COLOUR},
     },
-    session::Session,
 };
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
@@ -54,7 +53,7 @@ fn app_state_filter(
     }
 }
 
-pub fn main_view(app_state: &mut AppState, session: &Session, ctx: &CtxRef) {
+pub fn main_view(app_state: &mut AppState, ctx: &CtxRef) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {
             egui::ScrollArea::vertical()
@@ -113,7 +112,7 @@ pub fn main_view(app_state: &mut AppState, session: &Session, ctx: &CtxRef) {
                                 )
                             }) {
                                 draw_log_item(
-                                    session,
+                                    &app_state.message_alerts,
                                     &mut app_state.clicked_item,
                                     app_state.do_scroll_to_selected_log,
                                     received,
