@@ -1,4 +1,7 @@
-use crate::{app::AboutState, components::DARK_HEADER_FOREGROUND_COLOUR, consts};
+use crate::{
+    components::DARK_HEADER_FOREGROUND_COLOUR, consts, data::window_states::AboutState,
+};
+
 use clap::{crate_authors, crate_description, crate_version};
 use egui::{CtxRef, CursorIcon, RichText, Sense, TextStyle, Ui};
 

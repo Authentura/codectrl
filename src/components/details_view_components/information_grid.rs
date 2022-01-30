@@ -1,7 +1,8 @@
 use crate::{
-    app::AppState,
     components::{message_preview_view, DARK_HEADER_FOREGROUND_COLOUR},
+    data::AppState,
 };
+
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{CtxRef, RichText, TextStyle, Ui};

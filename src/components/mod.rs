@@ -7,6 +7,7 @@ mod main_view;
 mod main_view_components;
 mod message_preview_view;
 mod settings_view;
+mod settings_view_components;
 mod theming;
 
 use common::regex_filter;

@@ -1,4 +1,6 @@
-use crate::{app::AppState, components::details_view_components::draw_information_grid};
+use super::details_view_components::draw_information_grid;
+use crate::data::AppState;
+
 use egui::CtxRef;
 
 pub fn details_view(app_state: &mut AppState, ctx: &CtxRef) {

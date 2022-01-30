@@ -11,6 +11,7 @@
 mod app;
 mod components;
 mod consts;
+mod data;
 
 extern crate clap;
 

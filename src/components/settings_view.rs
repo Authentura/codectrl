@@ -1,4 +1,8 @@
-use crate::components::theming::DARK_HEADER_FOREGROUND_COLOUR;
+use super::{
+    settings_view_components::draw_session_settings,
+    theming::DARK_HEADER_FOREGROUND_COLOUR,
+};
+
 use egui::{CtxRef, Id, RichText};
 use std::collections::BTreeSet;
 

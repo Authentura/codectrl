@@ -1,4 +1,5 @@
-use crate::{app::AboutState, components::DARK_HEADER_FOREGROUND_COLOUR};
+use crate::{components::DARK_HEADER_FOREGROUND_COLOUR, data::window_states::AboutState};
+
 use egui::{RichText, Ui};
 
 pub fn draw_tab_bar(about_state: &mut AboutState, ui: &mut Ui) {

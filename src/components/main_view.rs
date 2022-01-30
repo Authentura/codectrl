@@ -1,11 +1,10 @@
-use crate::{
-    app::{AppState, Filter},
-    components::{
-        main_view_components::draw_log_item,
-        regex_filter,
-        theming::{CODECTRL_GREEN, DARK_HEADER_FOREGROUND_COLOUR},
-    },
+use super::{
+    main_view_components::draw_log_item,
+    regex_filter,
+    theming::{CODECTRL_GREEN, DARK_HEADER_FOREGROUND_COLOUR},
 };
+use crate::data::{AppState, Filter};
+
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{CtxRef, RichText};

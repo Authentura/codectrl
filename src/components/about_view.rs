@@ -1,10 +1,9 @@
-use crate::{
-    app::AppState,
-    components::{
-        about_view_components::{draw_about_body, draw_tab_bar},
-        theming::DARK_HEADER_FOREGROUND_COLOUR,
-    },
+use super::{
+    about_view_components::{draw_about_body, draw_tab_bar},
+    theming::DARK_HEADER_FOREGROUND_COLOUR,
 };
+use crate::data::AppState;
+
 use egui::{CtxRef, Id, RichText};
 
 pub fn about_view(app_state: &mut AppState, ctx: &CtxRef) {

@@ -24,140 +24,34 @@
 // Further changes can be discussed and implemented at later dates, but this is
 // the proposal so far.
 
-use crate::components::{
-    about_view, dark_theme, details_view, fonts, main_view, main_view_empty,
-    settings_view,
+use crate::{
+    components::{
+        about_view, details_view, fonts, main_view, main_view_empty, settings_view,
+    },
+    data::{AppState, Filter, Receiver},
 };
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::{CtxRef, Visuals};
+use egui::CtxRef;
 use epi::{Frame, Storage};
 use rfd::{FileDialog, MessageDialog};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeSet, VecDeque},
     error::Error,
-    fmt::{self, Display},
     fs::File,
     io::{BufReader, Error as IOError, ErrorKind, Write},
     path::Path,
     process,
-    sync::{mpsc::Receiver as Rx, Arc, Mutex, RwLock},
+    sync::{mpsc::Receiver as Rx, Arc, Mutex},
     thread::{Builder as ThreadBuilder, JoinHandle},
 };
-
-pub type Received = Arc<RwLock<VecDeque<(Log<String>, DateTime<Local>)>>>;
-pub type Receiver = Option<Arc<Mutex<Rx<Log<String>>>>>;
-
-#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
-pub enum Filter {
-    Message,
-    Time,
-    FileName,
-    Address,
-    LineNumber,
-}
-
-impl Display for Filter {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Message => write!(f, "Message"),
-            Self::Time => write!(f, "Time"),
-            Self::FileName => write!(f, "File name"),
-            Self::Address => write!(f, "Address"),
-            Self::LineNumber => write!(f, "Line number"),
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
-pub enum AboutState {
-    About,
-    Credits,
-    License,
-}
-
-impl Default for AboutState {
-    fn default() -> Self { Self::About }
-}
-
-impl Display for AboutState {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::About => write!(f, "About"),
-            Self::Credits => write!(f, "Credits"),
-            Self::License => write!(f, "Licenses"),
-        }
-    }
-}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Session {
     pub session_timestamp: String,
     pub received: VecDeque<(Log<String>, DateTime<Local>)>,
     pub message_alerts: BTreeSet<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct AppState {
-    pub search_filter: String,
-    pub filter_by: Filter,
-    #[serde(skip)]
-    pub received: Received,
-    pub do_scroll_to_selected_log: bool,
-    #[serde(skip)]
-    pub is_about_open: bool,
-    #[serde(skip)]
-    pub is_settings_open: bool,
-    pub is_autosave: bool,
-    pub is_case_sensitive: bool,
-    pub is_copying_line_indicator: bool,
-    pub is_copying_line_numbers: bool,
-    pub is_message_preview_open: bool,
-    pub is_newest_first: bool,
-    pub is_using_regex: bool,
-    #[serde(skip)]
-    pub clicked_item: Option<(Log<String>, DateTime<Local>)>,
-    #[serde(skip)]
-    pub preview_height: f32,
-    #[serde(skip)]
-    pub about_state: AboutState,
-    pub current_theme: Visuals,
-    #[serde(skip)]
-    pub copy_language: String,
-    #[serde(skip)]
-    pub alert_string: String,
-    pub message_alerts: BTreeSet<String>,
-    #[serde(skip)]
-    session_timestamp: String,
-}
-
-impl Default for AppState {
-    fn default() -> Self {
-        Self {
-            search_filter: "".into(),
-            filter_by: Filter::Message,
-            received: Arc::new(RwLock::new(VecDeque::new())),
-            is_case_sensitive: false,
-            is_using_regex: false,
-            is_newest_first: true,
-            is_about_open: false,
-            is_message_preview_open: false,
-            clicked_item: None,
-            preview_height: 0.0,
-            about_state: AboutState::About,
-            current_theme: dark_theme(),
-            copy_language: "".into(),
-            is_copying_line_numbers: false,
-            is_copying_line_indicator: false,
-            do_scroll_to_selected_log: false,
-            is_autosave: false,
-            is_settings_open: false,
-            alert_string: "".into(),
-            message_alerts: BTreeSet::new(),
-            session_timestamp: "".into(),
-        }
-    }
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
