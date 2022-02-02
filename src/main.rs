@@ -80,7 +80,7 @@ async fn main() {
         };
 
         if let Err(error) = App::load_from_file(&file_path, &mut app) {
-            panic!("An error occured: {error}")
+            panic!("An error occurred: {error}")
         }
     }
 
