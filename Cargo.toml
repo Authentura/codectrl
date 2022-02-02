@@ -18,7 +18,7 @@ rust-version = "1.58.1"
 chrono = { version = "0.4", features = ["serde"] }
 clap = "2.33"
 codectrl_log_server = { path = "./server" }
-codectrl_logger = { path = "loggers/rust-logger", default-features = false, features = ["types-only"] }
+codectrl_logger = { git = "https://github.com/pwnCTRL/codectrl-rust-logger", default-features = false, features = ["types-only"] }
 eframe = "0.16"
 egui = { version = "0.16", features = ["persistence", "multi_threaded"] }
 egui_glow = "0.16"

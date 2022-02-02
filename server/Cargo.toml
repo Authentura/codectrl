@@ -7,7 +7,7 @@ authors = ["pwnCtrl <contact@pwnctrl.com>", "Samuel Boyden <sam@stboyden.com>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-codectrl_logger = { path = "../loggers/rust-logger", default-features = false, features = ["types-only"] }
+codectrl_logger = { git = "https://github.com/pwnCTRL/codectrl-rust-logger", default-features = false, features = ["types-only"] }
 log = { version = "0.4", features = ["release_max_level_warn", "max_level_info"]}
 simple_logger = { version = "1.15", default-features = false, features = ["colors", "threads"]}
 serde = "1.0"
