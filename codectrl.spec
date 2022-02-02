@@ -4,7 +4,7 @@ Release:        1
 Summary:        A language agnostic logger program.
 License:        MIT
 BuildRequires:  gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel cargo gcc
-Source0:        https://github.com/pwnCTRL/codectrl/archive/main.tar.gz#/%{name}-%{version}-%{release}.tar.gz
+Source0:        https://github.com/pwnCTRL/codectrl/archive/main.tar.gz#/codectrl.tar.gz
 
 %description
 The language agnostic logger program for developers, testers and security personnel alike.
