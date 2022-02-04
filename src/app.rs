@@ -116,6 +116,23 @@ impl App {
                     },
 
                 // open/load bindings
+                Event::Key {
+                    key,
+                    pressed,
+                    modifiers,
+                } if *pressed
+                    && *key == Key::O
+                    && (modifiers.ctrl || modifiers.mac_cmd) =>
+                    self.load_file_dialog(),
+                Event::Key {
+                    key,
+                    pressed,
+                    modifiers,
+                } if *pressed
+                    && *key == Key::S
+                    && (modifiers.ctrl || modifiers.mac_cmd) =>
+                    self.save_file_dialog(),
+
                 _ => (),
             }
         }
