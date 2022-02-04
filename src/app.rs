@@ -32,7 +32,7 @@ use crate::{
 };
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::CtxRef;
+use egui::{CtxRef, Event, InputState, Key};
 use epi::{Frame, Storage};
 use rfd::{FileDialog, MessageDialog};
 use serde::{Deserialize, Serialize};
@@ -73,6 +73,51 @@ impl App {
             data: AppState::default(),
             title: "codeCTRL",
             socket_address,
+        }
+    }
+
+    fn handle_key_inputs(&mut self, input_state: &InputState) {
+        for event in &input_state.events {
+            match event {
+                // zoom bindings
+                Event::Key {
+                    key,
+                    pressed,
+                    modifiers,
+                } if *pressed
+                    && *key == Key::PageUp
+                    && (modifiers.ctrl || modifiers.mac_cmd) =>
+                {
+                    self.data.application_settings.font_sizes.scale(1.0);
+                },
+                Event::Key {
+                    key,
+                    pressed,
+                    modifiers,
+                } if *pressed
+                    && *key == Key::PageDown
+                    && (modifiers.ctrl || modifiers.mac_cmd) =>
+                    self.data.application_settings.font_sizes.scale(-1.0),
+                Event::Key {
+                    key,
+                    pressed,
+                    modifiers,
+                } if *pressed
+                    && *key == Key::Num0
+                    && (modifiers.ctrl || modifiers.mac_cmd) =>
+                {
+                    self.data.application_settings.font_sizes = FontSizes::default();
+                },
+                Event::Zoom(zoom_delta) =>
+                    if *zoom_delta > 1.0 {
+                        self.data.application_settings.font_sizes.scale(1.0);
+                    } else if *zoom_delta < 1.0 {
+                        self.data.application_settings.font_sizes.scale(-1.0);
+                    },
+
+                // open/load bindings
+                _ => (),
+            }
         }
     }
 
@@ -187,6 +232,9 @@ impl App {
 
 impl epi::App for App {
     fn update(&mut self, ctx: &CtxRef, _frame: &Frame) {
+
+        self.handle_key_inputs(ctx.input());
+
         about_view(&mut self.data, ctx);
         settings_view(
             &mut self.data.message_alerts,
@@ -213,7 +261,6 @@ impl epi::App for App {
 
                         ui.separator();
 
-                        ui.checkbox(&mut self.data.is_autosave, "Auto Save");
 
                         if ui.button("Settings").clicked() {
                             self.data.is_settings_open = !self.data.is_settings_open;
