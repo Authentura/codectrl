@@ -28,7 +28,7 @@ use crate::{
     components::{
         about_view, details_view, fonts, main_view, main_view_empty, settings_view,
     },
-    data::{AppState, Filter, Receiver},
+    data::{AppState, Filter, FontSizes, Receiver},
 };
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
@@ -232,11 +232,13 @@ impl App {
 
 impl epi::App for App {
     fn update(&mut self, ctx: &CtxRef, _frame: &Frame) {
+        ctx.set_fonts(fonts(self.data.application_settings.font_sizes));
 
         self.handle_key_inputs(ctx.input());
 
         about_view(&mut self.data, ctx);
         settings_view(
+            &mut self.data.application_settings,
             &mut self.data.message_alerts,
             &mut self.data.is_settings_open,
             &mut self.data.alert_string,
@@ -260,7 +262,6 @@ impl epi::App for App {
                         }
 
                         ui.separator();
-
 
                         if ui.button("Settings").clicked() {
                             self.data.is_settings_open = !self.data.is_settings_open;
@@ -390,7 +391,6 @@ impl epi::App for App {
         let received = Arc::clone(&self.data.received);
 
         ctx.set_visuals(self.data.current_theme.clone());
-        ctx.set_fonts(fonts());
 
         self.update_thread = Some(unsafe {
             ThreadBuilder::new()

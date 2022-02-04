@@ -1,4 +1,4 @@
-use super::{window_states::AboutState, Filter, Received};
+use super::{window_states::AboutState, ApplicationSettings, Filter, Received};
 use crate::components::dark_theme;
 
 use chrono::{DateTime, Local};
@@ -42,6 +42,7 @@ pub struct AppState {
     pub message_alerts: BTreeSet<String>,
     #[serde(skip)]
     pub session_timestamp: String,
+    pub application_settings: ApplicationSettings,
 }
 
 impl Default for AppState {
@@ -68,6 +69,7 @@ impl Default for AppState {
             alert_string: "".into(),
             message_alerts: BTreeSet::new(),
             session_timestamp: "".into(),
+            application_settings: ApplicationSettings::default(),
         }
     }
 }

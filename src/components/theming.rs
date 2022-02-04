@@ -1,4 +1,8 @@
-use crate::consts::{OTF_FONT_MONOSPACE, OTF_FONT_REGULAR};
+use crate::{
+    consts::{OTF_FONT_MONOSPACE, OTF_FONT_REGULAR},
+    data::FontSizes,
+};
+
 use egui::{
     epaint::Shadow,
     style::{Selection, WidgetVisuals, Widgets},
@@ -25,7 +29,7 @@ lazy_static! {
     pub static ref DARK_STROKE: Stroke = Stroke::new(0.5, Color32::BLACK);
 }
 
-pub fn fonts() -> FontDefinitions {
+pub fn fonts(font_sizes: FontSizes) -> FontDefinitions {
     let mut fonts = FontDefinitions::default();
 
     fonts
@@ -51,26 +55,31 @@ pub fn fonts() -> FontDefinitions {
 
     fonts
         .family_and_size
-        .insert(TextStyle::Body, (FontFamily::Proportional, 16.0));
+        .insert(TextStyle::Body, (FontFamily::Proportional, font_sizes.body));
 
-    fonts
-        .family_and_size
-        .insert(TextStyle::Button, (FontFamily::Proportional, 16.0));
+    fonts.family_and_size.insert(
+        TextStyle::Button,
+        (FontFamily::Proportional, font_sizes.button),
+    );
 
-    fonts
-        .family_and_size
-        .insert(TextStyle::Heading, (FontFamily::Proportional, 24.0));
+    fonts.family_and_size.insert(
+        TextStyle::Heading,
+        (FontFamily::Proportional, font_sizes.heading),
+    );
 
-    fonts
-        .family_and_size
-        .insert(TextStyle::Monospace, (FontFamily::Monospace, 16.0));
+    fonts.family_and_size.insert(
+        TextStyle::Monospace,
+        (FontFamily::Monospace, font_sizes.monospace),
+    );
 
-    fonts
-        .family_and_size
-        .insert(TextStyle::Small, (FontFamily::Proportional, 36.0)); // this may be confusing so I'll explain: since we don't use the small textstyle
-                                                                     // anywhere within the gui, we can instead use it as an "extra" style. i.e, we
-                                                                     // can make it extra large for the main_view_empty function to have a extra
-                                                                     // large "codeCTRL" that would otherwise be hard to draw.
+    // this may be confusing so I'll explain: since we don't use the small textstyle
+    // anywhere within the gui, we can instead use it as an "extra" style. i.e, we
+    // can make it extra large for the main_view_empty function to have a extra
+    // large "codeCTRL" that would otherwise be hard to draw.
+    fonts.family_and_size.insert(
+        TextStyle::Small,
+        (FontFamily::Proportional, font_sizes.extra_large),
+    );
 
     fonts
 }

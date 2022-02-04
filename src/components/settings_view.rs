@@ -1,5 +1,7 @@
+use crate::data::ApplicationSettings;
+
 use super::{
-    settings_view_components::draw_session_settings,
+    settings_view_components::{draw_application_settings, draw_session_settings},
     theming::DARK_HEADER_FOREGROUND_COLOUR,
 };
 
@@ -7,6 +9,7 @@ use egui::{CtxRef, Id, RichText};
 use std::collections::BTreeSet;
 
 pub fn settings_view(
+    application_settings: &mut ApplicationSettings,
     message_alerts: &mut BTreeSet<String>,
     is_settings_open: &mut bool,
     alert_string: &mut String,
@@ -25,6 +28,7 @@ pub fn settings_view(
                 .auto_shrink([true, false])
                 .max_width(ui.available_width())
                 .show(ui, |ui| {
+                    draw_application_settings(application_settings, ui);
                     draw_session_settings(message_alerts, alert_string, ui);
                 });
         });
