@@ -293,6 +293,7 @@ dependencies = [
  "serde",
  "serde_cbor",
  "serde_json",
+ "time-format",
  "tokio",
  "toml",
 ]
@@ -1635,6 +1636,11 @@ dependencies = [
  "libc",
  "winapi",
 ]
+
+[[package]]
+name = "time-format"
+version = "1.1.1"
+source = "git+https://github.com/pwnCTRL/rust-time-format#0710bec610f95e38bc8c4222cfa4e22cbaf44845"
 
 [[package]]
 name = "tokio"

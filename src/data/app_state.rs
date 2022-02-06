@@ -43,6 +43,7 @@ pub struct AppState {
     #[serde(skip)]
     pub session_timestamp: String,
     pub application_settings: ApplicationSettings,
+    pub filename_format: String,
 }
 
 impl Default for AppState {
@@ -70,6 +71,7 @@ impl Default for AppState {
             message_alerts: BTreeSet::new(),
             session_timestamp: "".into(),
             application_settings: ApplicationSettings::default(),
+            filename_format: "".into(),
         }
     }
 }

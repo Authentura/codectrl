@@ -139,7 +139,8 @@ impl App {
     }
 
     fn save_file_dialog(&mut self) {
-        self.data.session_timestamp = Local::now().format("%F %X").to_string();
+        self.data.session_timestamp =
+            Local::now().format(&self.data.filename_format).to_string();
 
         let file_path = if let Some(file_path) = FileDialog::new()
             .set_file_name(&format!(
@@ -259,6 +260,7 @@ impl epi::App for App {
             &mut self.data.message_alerts,
             &mut self.data.is_settings_open,
             &mut self.data.alert_string,
+            &mut self.data.filename_format,
             ctx,
         );
 

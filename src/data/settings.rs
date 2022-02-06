@@ -57,7 +57,19 @@ impl Default for FontSizes {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ApplicationSettings {
     pub font_sizes: FontSizes,
+    pub do_autosave: bool,
+    pub filename_format: String,
+}
+
+impl Default for ApplicationSettings {
+    fn default() -> Self {
+        Self {
+            font_sizes: FontSizes::default(),
+            do_autosave: false,
+            filename_format: "session_%F %X".into(),
+        }
+    }
 }
