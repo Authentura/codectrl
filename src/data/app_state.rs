@@ -71,7 +71,7 @@ impl Default for AppState {
             message_alerts: BTreeSet::new(),
             session_timestamp: "".into(),
             application_settings: ApplicationSettings::default(),
-            filename_format: "".into(),
+            filename_format: "session_%F %X".into(),
         }
     }
 }
