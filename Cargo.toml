@@ -9,7 +9,7 @@ rust-version = "1.58.1"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-codectrl_gui = { path = "./codectrl-gui", optional = "true" }
+codectrl_gui = { path = "./codectrl-gui", optional = true }
 
 [features]
 default = ["codectrl_gui"]
