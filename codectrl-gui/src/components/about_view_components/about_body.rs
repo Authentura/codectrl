@@ -76,7 +76,7 @@ pub fn draw_about_body(about_state: &AboutState, ctx: &CtxRef, ui: &mut Ui) {
                         .color(DARK_HEADER_FOREGROUND_COLOUR),
                 );
                 ui.add(
-                    egui::TextEdit::multiline(&mut include_str!("../../../LICENSE"))
+                    egui::TextEdit::multiline(&mut include_str!("../../../../LICENSE"))
                         .desired_width(ui.available_width())
                         .text_style(TextStyle::Monospace),
                 );
@@ -87,7 +87,7 @@ pub fn draw_about_body(about_state: &AboutState, ctx: &CtxRef, ui: &mut Ui) {
                 );
                 ui.add(
                     egui::TextEdit::multiline(&mut include_str!(
-                        "../../../assets/fonts/red-hat/LICENSE"
+                        "../../../../assets/fonts/red-hat/LICENSE"
                     ))
                     .desired_width(ui.available_width())
                     .text_style(TextStyle::Monospace),
@@ -98,7 +98,7 @@ pub fn draw_about_body(about_state: &AboutState, ctx: &CtxRef, ui: &mut Ui) {
                 );
                 ui.add(
                     egui::TextEdit::multiline(&mut include_str!(
-                        "../../../assets/fonts/roboto/LICENSE"
+                        "../../../../assets/fonts/roboto/LICENSE"
                     ))
                     .desired_width(ui.available_width())
                     .text_style(TextStyle::Monospace),

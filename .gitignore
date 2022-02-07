@@ -1,3 +1,5 @@
 /target
 /server/target/
 /loggers/rust/target/
+codectrl-gui/target
+codectrl-log-server/target

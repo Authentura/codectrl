@@ -10,7 +10,7 @@ use toml::value::Map;
 fn main() {
     // Read Cargo.lock and de-toml it
     let mut lock_buf = String::new();
-    fs::File::open("Cargo.lock")
+    fs::File::open("../Cargo.lock")
         .unwrap()
         .read_to_string(&mut lock_buf)
         .unwrap();
