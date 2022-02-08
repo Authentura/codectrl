@@ -279,9 +279,7 @@ dependencies = [
 name = "codectrl"
 version = "0.1.0"
 dependencies = [
- "clap",
  "codectrl_gui",
- "codectrl_log_server",
 ]
 
 [[package]]
