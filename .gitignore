@@ -3,3 +3,5 @@
 /loggers/rust/target/
 codectrl-gui/target
 codectrl-log-server/target
+codectrl-web/codectrl-web-frontend/target
+codectrl-web/codectrl-web-frontend/dist
