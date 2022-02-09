@@ -14,7 +14,6 @@ use std::{
 pub struct AppState {
     pub search_filter: String,
     pub filter_by: Filter,
-    #[serde(skip)]
     pub received: Received,
     pub do_scroll_to_selected_log: bool,
     #[serde(skip)]
@@ -28,7 +27,6 @@ pub struct AppState {
     pub is_message_preview_open: bool,
     pub is_newest_first: bool,
     pub is_using_regex: bool,
-    #[serde(skip)]
     pub clicked_item: Option<(Log<String>, DateTime<Local>)>,
     #[serde(skip)]
     pub preview_height: f32,
@@ -44,6 +42,7 @@ pub struct AppState {
     pub session_timestamp: String,
     pub application_settings: ApplicationSettings,
     pub filename_format: String,
+    pub preserve_session: bool,
 }
 
 impl Default for AppState {
@@ -72,6 +71,7 @@ impl Default for AppState {
             session_timestamp: "".into(),
             application_settings: ApplicationSettings::default(),
             filename_format: "session_%F %X".into(),
+            preserve_session: true,
         }
     }
 }

@@ -260,6 +260,7 @@ impl epi::App for App {
             &mut self.data.is_settings_open,
             &mut self.data.alert_string,
             &mut self.data.filename_format,
+            &mut self.data.preserve_session,
             ctx,
         );
 
@@ -404,7 +405,19 @@ impl epi::App for App {
         }
     }
 
-    fn setup(&mut self, ctx: &CtxRef, frame: &Frame, _storage: Option<&dyn Storage>) {
+    fn setup(&mut self, ctx: &CtxRef, frame: &Frame, storage: Option<&dyn Storage>) {
+        if let Some(storage) = storage {
+            let data: AppState =
+                epi::get_value(storage, epi::APP_KEY).unwrap_or_default();
+
+            if data.preserve_session {
+                self.data = data;
+            } else {
+                self.data = AppState::default();
+                self.data.preserve_session = false;
+            }
+        }
+
         let rx = Arc::clone(self.receiver.as_ref().unwrap());
         let received = Arc::clone(&self.data.received);
 
@@ -433,4 +446,8 @@ impl epi::App for App {
     }
 
     fn name(&self) -> &str { self.title }
+
+    fn save(&mut self, storage: &mut dyn Storage) {
+        epi::set_value(storage, epi::APP_KEY, &self.data);
+    }
 }

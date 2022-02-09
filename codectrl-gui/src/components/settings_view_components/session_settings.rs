@@ -6,6 +6,7 @@ use std::collections::BTreeSet;
 pub fn draw_session_settings(
     message_alerts: &mut BTreeSet<String>,
     alert_string: &mut String,
+    preserve_session: &mut bool,
     ui: &mut Ui,
 ) {
     ui.heading(RichText::new("Session settings").color(DARK_HEADER_FOREGROUND_COLOUR));
@@ -13,9 +14,7 @@ pub fn draw_session_settings(
     ui.add_space(10.0);
 
     ui.indent((), |ui| {
-        ui.label("Alerts:");
-
-        ui.indent("alerts", |ui| {
+        ui.collapsing("Alerts", |ui| {
             if message_alerts.is_empty() {
                 ui.label("None");
             } else {
@@ -31,17 +30,21 @@ pub fn draw_session_settings(
                     }
                 });
             }
+
+            ui.horizontal(|ui| {
+                ui.label("New alert:");
+                ui.text_edit_singleline(alert_string);
+
+                if ui.button("+").clicked() && !alert_string.is_empty() {
+                    message_alerts.insert(alert_string.clone());
+
+                    *alert_string = "".into();
+                }
+            });
         });
 
-        ui.horizontal(|ui| {
-            ui.label("New alert:");
-            ui.text_edit_singleline(alert_string);
-
-            if ui.button("+").clicked() && !alert_string.is_empty() {
-                message_alerts.insert(alert_string.clone());
-
-                *alert_string = "".into();
-            }
+        ui.collapsing("General", |ui| {
+            ui.checkbox(preserve_session, "Preserve session for next start");
         });
     });
 }

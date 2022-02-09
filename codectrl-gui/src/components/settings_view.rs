@@ -14,6 +14,7 @@ pub fn settings_view(
     is_settings_open: &mut bool,
     alert_string: &mut String,
     filename_format: &mut String,
+    preserve_session: &mut bool,
     ctx: &CtxRef,
 ) {
     egui::Window::new(RichText::new("Settings").color(DARK_HEADER_FOREGROUND_COLOUR))
@@ -30,7 +31,12 @@ pub fn settings_view(
                 .max_width(ui.available_width())
                 .show(ui, |ui| {
                     draw_application_settings(application_settings, filename_format, ui);
-                    draw_session_settings(message_alerts, alert_string, ui);
+                    draw_session_settings(
+                        message_alerts,
+                        alert_string,
+                        preserve_session,
+                        ui,
+                    );
                 });
         });
 }
