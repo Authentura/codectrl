@@ -42,7 +42,6 @@ use std::{
     fs::File,
     io::{BufReader, Error as IOError, ErrorKind, Write},
     path::Path,
-    process,
     sync::{mpsc::Receiver as Rx, Arc, Mutex},
     thread::{Builder as ThreadBuilder, JoinHandle},
 };
@@ -249,7 +248,7 @@ impl App {
 }
 
 impl epi::App for App {
-    fn update(&mut self, ctx: &CtxRef, _frame: &Frame) {
+    fn update(&mut self, ctx: &CtxRef, frame: &Frame) {
         ctx.set_fonts(fonts(self.data.application_settings.font_sizes));
 
         self.handle_key_inputs(ctx.input());
@@ -289,7 +288,7 @@ impl epi::App for App {
                         ui.separator();
 
                         if ui.button("Quit").clicked() {
-                            process::exit(0);
+                            frame.quit();
                         }
                     });
 
