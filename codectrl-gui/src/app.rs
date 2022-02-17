@@ -253,16 +253,13 @@ impl epi::App for App {
 
         self.handle_key_inputs(ctx.input());
 
-        about_view(&mut self.data, ctx);
-        settings_view(
-            &mut self.data.application_settings,
-            &mut self.data.message_alerts,
-            &mut self.data.is_settings_open,
-            &mut self.data.alert_string,
-            &mut self.data.filename_format,
-            &mut self.data.preserve_session,
-            ctx,
-        );
+        if self.data.is_about_open {
+            about_view(&mut self.data, ctx);
+        }
+
+        if self.data.is_settings_open {
+            settings_view(&mut self.data, ctx);
+        }
 
         egui::TopBottomPanel::top("top_bar")
             .resizable(false)

@@ -1,20 +1,21 @@
-use crate::data::ApplicationSettings;
-
 use super::{
     settings_view_components::{draw_application_settings, draw_session_settings},
     theming::DARK_HEADER_FOREGROUND_COLOUR,
 };
+use crate::data::AppState;
 
 use egui::{CtxRef, Id, RichText};
-use std::collections::BTreeSet;
 
 pub fn settings_view(
-    application_settings: &mut ApplicationSettings,
-    message_alerts: &mut BTreeSet<String>,
-    is_settings_open: &mut bool,
-    alert_string: &mut String,
-    filename_format: &mut String,
-    preserve_session: &mut bool,
+    AppState {
+        is_settings_open,
+        alert_string,
+        filename_format,
+        preserve_session,
+        message_alerts,
+        application_settings,
+        ..
+    }: &mut AppState,
     ctx: &CtxRef,
 ) {
     egui::Window::new(RichText::new("Settings").color(DARK_HEADER_FOREGROUND_COLOUR))

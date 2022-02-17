@@ -20,7 +20,7 @@ pub fn draw_session_settings(
             } else {
                 egui::Grid::new("alert_grid").show(ui, |ui| {
                     for alert in message_alerts.clone() {
-                        ui.label(&alert);
+                        ui.label(format!("\t\u{2022} {alert}"));
 
                         if ui.button("Delete").clicked() {
                             message_alerts.remove(&alert.clone());
