@@ -8,6 +8,7 @@ use crate::data::{AppState, Filter};
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{CtxRef, RichText};
+use regex::RegexBuilder;
 
 fn app_state_filter(
     is_case_sensitive: bool,
@@ -17,29 +18,60 @@ fn app_state_filter(
     log: &Log<String>,
     time: &DateTime<Local>,
 ) -> bool {
+    let string_filter = |search_filter: &str, search_string: &str| -> bool {
+        if is_case_sensitive {
+            log.message.contains(search_filter)
+        } else if is_using_regex {
+            regex_filter(search_filter, search_string, is_case_sensitive)
+        } else {
+            log.message
+                .to_lowercase()
+                .contains(&search_filter.to_lowercase())
+        }
+    };
+
     match filter_by {
-        Filter::Message =>
-            if is_case_sensitive {
-                log.message.contains(search_filter)
-            } else if is_using_regex {
-                regex_filter(search_filter, &log.message, is_case_sensitive)
-            } else {
-                log.message
-                    .to_lowercase()
-                    .contains(&*search_filter.to_lowercase())
-            },
+        Filter::Message => string_filter(search_filter, &log.message),
         Filter::Time => time.format("%F %X").to_string().contains(&*search_filter),
-        Filter::FileName =>
-            if is_case_sensitive {
-                log.file_name.contains(&*search_filter)
-            } else if is_using_regex {
-                regex_filter(search_filter, &log.file_name, is_case_sensitive)
+        Filter::FileName => string_filter(search_filter, &log.file_name),
+        Filter::Address => {
+            let regex = if let Ok(regex) =  RegexBuilder::new(
+                r#"(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"#,
+            ).build() {
+                regex
             } else {
-                log.message
-                    .to_lowercase()
-                    .contains(&*search_filter.to_lowercase())
-            },
-        Filter::Address => false, // TODO: do custom ip address/host filter
+                return false;
+            };
+
+            let address = log.address.split('.');
+            let search_address = search_filter.split('.');
+            let mut is_matching = true;
+            let mut contains_glob = false;
+
+            for (address_split, search_split) in address.zip(search_address) {
+                if search_split == "*" {
+                    contains_glob = true;
+                    continue;
+                }
+
+                if !is_matching {
+                    break;
+                }
+
+                match (address_split.parse::<u8>(), search_split.parse::<u8>()) {
+                    (Ok(ap), Ok(sp)) => is_matching = ap == sp,
+                    (Err(_), _) | (_, Err(_)) => return false,
+                }
+            }
+
+            if !contains_glob
+                && (!regex.is_match(&log.address) || !regex.is_match(search_filter))
+            {
+                return false;
+            }
+
+            is_matching
+        },
         Filter::LineNumber => {
             let number = search_filter.parse::<u32>().unwrap_or(0);
 
