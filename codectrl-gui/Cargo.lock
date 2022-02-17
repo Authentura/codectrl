@@ -1636,8 +1636,9 @@ dependencies = [
 
 [[package]]
 name = "time-format"
-version = "1.1.1"
-source = "git+https://github.com/pwnCTRL/rust-time-format#0710bec610f95e38bc8c4222cfa4e22cbaf44845"
+version = "1.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42baec394ad2773a90e037d7b6dfc7518d1f121b9dbaeebad42e19568c39f196"
 
 [[package]]
 name = "tokio"
