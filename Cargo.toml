@@ -2,7 +2,7 @@
 name = "codectrl"
 version = "0.1.0"
 edition = "2021"
-authors = ["pwnCtrl <contact@pwnctrl.com>", "Samuel Boyden <s.boyden@pwnctrl.com>"]
+authors = ["Authentura <contact@authentura.com>", "Samuel Boyden <s.boyden@authentura.com>"]
 description = "A source code analytic tool. Using egui version 0.16."
 license = "MIT"
 rust-version = "1.58.1"
@@ -18,8 +18,8 @@ default = ["codectrl_gui"]
 
 [package.metadata.deb]
 name = "codectrl"
-maintainer = "Samuel Boyden <s.boyden@pwnctrl.com>"
-copyright = "2022, pwnCtrl <contact@pwnctrl.com>"
+maintainer = "Samuel Boyden <s.boyden@authentura.com>"
+copyright = "2022, Authentura <contact@authentura.com>"
 license-file = ["LICENSE", "4"]
 assets = [
   ["README.md", "usr/share/doc/codectrl/README", "644"]

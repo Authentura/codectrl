@@ -313,7 +313,7 @@ dependencies = [
 [[package]]
 name = "codectrl_logger"
 version = "0.2.0"
-source = "git+https://github.com/pwnCTRL/codectrl-rust-logger#be7ceda830ec0a3139cddbd89974076d09cb37da"
+source = "git+https://github.com/authentura/codectrl-rust-logger#d4014e57c45bead67f7ae0d980ae7fbd4741934e"
 dependencies = [
  "serde",
  "serde_cbor",

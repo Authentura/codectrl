@@ -160,7 +160,7 @@ pub fn main_view_empty(ctx: &CtxRef, socket_address: &str) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {
             ui.small(RichText::new("codeCTRL").color(CODECTRL_GREEN));
-            ui.heading(RichText::new("by pwnCTRL").italics());
+            ui.heading(RichText::new("by Authentura").italics());
             ui.add_space(ui.available_height() / 3.0);
 
             ui.heading(format!(

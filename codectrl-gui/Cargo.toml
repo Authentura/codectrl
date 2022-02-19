@@ -3,10 +3,10 @@ name = "codectrl_gui"
 version = "0.1.0"
 edition = "2021"
 authors = [
-    "pwnCtrl <contact@pwnctrl.com>",
-    "Samuel Boyden <s.boyden@pwnctrl.com>",
-    "Sebestyen Morris <s.morris@pwnctrl.com>",
-    "Dasith Vidanage <d.vidanage@pwnctrl.com>",
+    "Authentura <contact@authentura.com>",
+    "Samuel Boyden <s.boyden@authentura.com>",
+    "Sebestyen Morris <s.morris@authentura.com>",
+    "Dasith Vidanage <d.vidanage@authentura.com>",
     "Balázs Cene (@bczsalba on Github) <bczsalba@gmail.com>"
 ]
 description = "A source code analytic tool. Using egui version 0.16."
@@ -18,7 +18,7 @@ rust-version = "1.58.1"
 chrono = { version = "0.4", features = ["serde"] }
 clap = "2.33"
 codectrl_log_server = { path = "../codectrl-log-server" }
-codectrl_logger = { git = "https://github.com/pwnCTRL/codectrl-rust-logger", default-features = false, features = ["types-only"] }
+codectrl_logger = { git = "https://github.com/authentura/codectrl-rust-logger", default-features = false, features = ["types-only"] }
 eframe = "0.16"
 egui = { version = "0.16", features = ["persistence", "multi_threaded"] }
 egui_glow = "0.16"

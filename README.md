@@ -42,7 +42,7 @@ You will need to install the "Development Tools" group. You can do this by runni
 
 #### Debian-based
 
-There is confirmed support for Ubuntu 21.10,21.04, and 20.04 and Debian 11 and 10.
+There is confirmed support for Ubuntu 21.10, 21.04, and 20.04 and Debian 11 and 10.
 ##### Dependencies
 
 - A C/C++ compiler. For example `gcc` or `clang`.
