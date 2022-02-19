@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2021"
 authors = ["pwnCtrl <contact@pwnctrl.com>", "Samuel Boyden <s.boyden@pwnctrl.com>"]
 description = "A source code analytic tool. Using egui version 0.16."
+license = "MIT"
 rust-version = "1.58.1"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -13,3 +15,21 @@ codectrl_gui = { path = "./codectrl-gui", optional = true }
 
 [features]
 default = ["codectrl_gui"]
+
+[package.metadata.deb]
+name = "codectrl"
+maintainer = "Samuel Boyden <s.boyden@pwnctrl.com>"
+copyright = "2022, pwnCtrl <contact@pwnctrl.com>"
+license-file = ["LICENSE", "4"]
+assets = [
+  ["README.md", "usr/share/doc/codectrl/README", "644"]
+]
+
+[package.metadata.rpm]
+package = "codectrl"
+
+[package.metadata.rpm.cargo]
+buildflags = ["--release"]
+
+[package.metadata.rpm.targets]
+codectrl = { path = "/usr/bin/codectrl" }
