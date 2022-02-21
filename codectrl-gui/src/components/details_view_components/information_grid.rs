@@ -1,6 +1,7 @@
 use crate::{
     components::{message_preview_view, DARK_HEADER_FOREGROUND_COLOUR},
     data::AppState,
+    components::details_view_components::code_highlighter
 };
 
 use chrono::{DateTime, Local};
@@ -188,11 +189,18 @@ fn code_scroll(
 
             let mut indicated_code = indicated_code.trim_end().to_string();
 
+            let mut layouter = |ui: &egui::Ui, string: &str, wrap_width: f32| {
+                let mut layout_job: egui::text::LayoutJob = code_highlighter(string);
+                layout_job.wrap_width = wrap_width;
+                ui.fonts().layout_job(layout_job)
+            };
+
             ui.add_sized(
                 ui.available_size(),
                 egui::TextEdit::multiline(&mut indicated_code)
                     .desired_width(ui.available_width())
                     .interactive(false)
+                    .layouter(&mut layouter)
                     .code_editor(),
             )
             .interact(egui::Sense::click())
