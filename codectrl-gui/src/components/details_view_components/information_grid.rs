@@ -1,7 +1,9 @@
 use crate::{
-    components::{message_preview_view, DARK_HEADER_FOREGROUND_COLOUR},
+    components::{
+        details_view_components::code_highlighter, message_preview_view,
+        DARK_HEADER_FOREGROUND_COLOUR,
+    },
     data::AppState,
-    components::details_view_components::code_highlighter
 };
 
 use chrono::{DateTime, Local};
@@ -190,10 +192,10 @@ fn code_scroll(
             let mut indicated_code = indicated_code.trim_end().to_string();
 
             let mut layouter = |ui: &egui::Ui, string: &str, wrap_width: f32| {
-                
-                // TODO: Hardcoded Langauge should be accepted from the log 
+                // TODO: Hardcoded Langauge should be accepted from the log
 
-                let mut layout_job: egui::text::LayoutJob = code_highlighter(string, "rust");
+                let mut layout_job: egui::text::LayoutJob =
+                    code_highlighter(string, "rust"); // Change rust to log.language or something
                 layout_job.wrap_width = wrap_width;
                 ui.fonts().layout_job(layout_job)
             };
