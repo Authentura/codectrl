@@ -17,9 +17,10 @@ A logger for any language ***must*** implement the following schema:
 - `message_type : string`: The type of the message that was sent through the log function.
 - `file_name : string`: The file name that the log function was called in.
 - `address : string`: The address of the host that sent the log data.
+- `language : string`: The full name of the language of the logged code.
 
 See below for an example JSON output. Please note **the data must be sent as CBOR, the JSON
-is only provided as a readable alternative**.
+is only provided as a readable alternative**\*.
 
 ```json
 {
@@ -44,7 +45,8 @@ is only provided as a readable alternative**.
   "message": "\"Hello\"",
   "message_type": "&str",
   "file_name": "src/tests.rs",
-  "address": "127.0.0.1"
+  "address": "127.0.0.1",
+  "language": "rust"
 }
 ```
 
@@ -52,7 +54,9 @@ is only provided as a readable alternative**.
 
 - This schema is not stable and should be expected to be modified and/or changed in the 
 future.
-- As said above, data should be sent to codeCTRL in the CBOR format, not JSON. Most, if
+- As said above, data should be sent to codeCTRL in the CBOR format, not JSON\*. Most, if
   not all languages have support via 1<sup>st</sup> or 3<sup>rd</sup> party libraries or
   packages. See [here](https://cbor.io/impls.html) for a full list of implementations, 
   courtesy of the people who made CBOR.
+  
+**\* This maybe changing at some point in the near future, where the server accepts both CBOR and JSON, or just JSON. It is TBD.**
