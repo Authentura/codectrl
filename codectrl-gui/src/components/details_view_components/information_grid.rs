@@ -190,7 +190,10 @@ fn code_scroll(
             let mut indicated_code = indicated_code.trim_end().to_string();
 
             let mut layouter = |ui: &egui::Ui, string: &str, wrap_width: f32| {
-                let mut layout_job: egui::text::LayoutJob = code_highlighter(string);
+                
+                // TODO: Hardcoded Langauge should be accepted from the log 
+
+                let mut layout_job: egui::text::LayoutJob = code_highlighter(string, "rust");
                 layout_job.wrap_width = wrap_width;
                 ui.fonts().layout_job(layout_job)
             };
