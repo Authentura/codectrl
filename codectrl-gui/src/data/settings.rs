@@ -10,6 +10,7 @@ pub struct FontSizes {
 }
 
 impl FontSizes {
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn scale(&mut self, scale: f32) {
         if (*self == Self::smallest() && scale < 0.0)
             || (*self == Self::largest() && scale > 0.0)
@@ -24,6 +25,7 @@ impl FontSizes {
         self.extra_large += scale;
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn smallest() -> Self {
         Self {
             body: 4.0,
@@ -34,6 +36,7 @@ impl FontSizes {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn largest() -> Self {
         Self {
             body: 28.0,

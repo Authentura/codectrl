@@ -1,6 +1,9 @@
-use crate::{components::DARK_HEADER_FOREGROUND_COLOUR, data::ApplicationSettings};
+use crate::{
+    components::DARK_HEADER_FOREGROUND_COLOUR,
+    data::{ApplicationSettings, TimeFormatString},
+};
 
-use egui::{Button, Color32, Label, RichText, Ui};
+use egui::{Button, RichText, Ui};
 
 pub fn draw_application_settings(
     application_settings: &mut ApplicationSettings,
@@ -31,24 +34,19 @@ pub fn draw_application_settings(
             });
 
             if !application_settings.filename_format.is_empty() {
-                ui.add(
-                    match time_format::strftime_utc(
-                        &application_settings.filename_format,
-                        45296, // January 1st 1970 at 12:34:56 PM UTC.
-                    ) {
-                        Ok(label) => Label::new(format!("Preview: {label}.cdctrl")),
-                        Err(_) => Label::new(
-                            RichText::new("Unable to format string").color(Color32::RED),
-                        ),
-                    },
-                );
+                let format = TimeFormatString::new(&application_settings.filename_format);
+
+                ui.label(format!(
+                    "Preview: {format}.cdctrl",
+                    format = format.to_string()
+                ));
             }
 
             ui.horizontal_wrapped(|ui| {
                 ui.label("Please go to the");
                 ui.hyperlink_to(
-                    "strftime reference",
-                    "https://www.cplusplus.com/reference/ctime/strftime/",
+                    "chrono::strftime reference",
+                    "https://docs.rs/chrono/latest/chrono/format/strftime/index.html",
                 );
                 ui.label("for valid symbols.");
             });
