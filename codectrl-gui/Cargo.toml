@@ -3,10 +3,10 @@ name = "codectrl_gui"
 version = "0.1.0"
 edition = "2021"
 authors = [
-    "pwnCtrl <contact@pwnctrl.com>",
-    "Samuel Boyden <s.boyden@pwnctrl.com>",
-    "Sebestyen Morris <s.morris@pwnctrl.com>",
-    "Dasith Vidanage <d.vidanage@pwnctrl.com>",
+    "Authentura <contact@authentura.com>",
+    "Samuel Boyden <s.boyden@authentura.com>",
+    "Sebestyen Morris <s.morris@authentura.com>",
+    "Dasith Vidanage <d.vidanage@authentura.com>",
     "Balázs Cene (@bczsalba on Github) <bczsalba@gmail.com>"
 ]
 description = "A source code analytic tool. Using egui version 0.16."
@@ -15,27 +15,38 @@ rust-version = "1.58.1"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = { version = "0.4", features = ["serde"] }
 clap = "2.33"
-codectrl_log_server = { path = "../codectrl-log-server" }
-codectrl_logger = { git = "https://github.com/pwnCTRL/codectrl-rust-logger", default-features = false, features = ["types-only"] }
+codectrl_logger = { git = "https://github.com/authentura/codectrl-rust-logger", default-features = false, features = ["types-only"] }
 eframe = "0.16"
-egui = { version = "0.16", features = ["persistence", "multi_threaded"] }
-egui_glow = "0.16"
+egui = { version = "0.16", features = ["persistence"] }
 epi = { version = "0.16", features = ["persistence"] }
 lazy_static = "1.4"
 regex = "1.5"
-rfd = "0.6"
 serde = { version = "1.0", features = ["derive"] }
 serde_cbor = "0.11"
-serde_json = "1.0"
-time-format = "1.0"
-tokio = { version = "1.14", default-features = false, features = ["net", "rt-multi-thread", "io-util", "macros"] }
+# serde_json = "1.0"
 tree-sitter-highlight = "0.20.1"
 tree-sitter-cpp = "0.19.0"
 tree-sitter-rust = "0.20.1"
 tree-sitter-python = "0.19.1"
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+chrono = { version = "0.4", features = ["serde", "js-sys", "wasmbind"] }
+console_error_panic_hook = "0.1"
+js-sys = "0.3"
+rfd = { version = "0.6", features = ["file-handle-inner"] }
+tracing-wasm = "0.2"
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+wasm-bindgen-futures = "0.4"
+wasm_thread = "0.1"
+web-sys = { version = "0.3", features = ["File", "FilePropertyBag", "console"]}
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+codectrl_log_server = { path = "../codectrl-log-server" }
+egui_glow = "0.16"
+rfd = "0.6"
+tokio = { version = "1.17", default-features = false, features = ["net", "rt-multi-thread", "io-util", "macros"] }
 
 [build-dependencies]
 chrono = "0.4"

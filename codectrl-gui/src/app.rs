@@ -24,27 +24,43 @@
 // Further changes can be discussed and implemented at later dates, but this is
 // the proposal so far.
 
-use crate::{
-    components::{
-        about_view, details_view, fonts, main_view, main_view_empty, settings_view,
-    },
-    data::{AppState, Filter, FontSizes, Receiver},
+use crate::components::{
+    about_view, details_view, fonts, main_view, main_view_empty, settings_view,
 };
+#[cfg(not(target_arch = "wasm32"))]
+use crate::data::{AppState, Filter, FontSizes, Receiver};
+#[cfg(target_arch = "wasm32")]
+use crate::data::{AppState, Filter, Receiver};
+
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::{CtxRef, Event, InputState, Key};
+use egui::{CtxRef, Vec2};
+#[cfg(not(target_arch = "wasm32"))]
+use egui::{Event, InputState, Key};
 use epi::{Frame, Storage};
+#[cfg(target_arch = "wasm32")]
+use rfd::{AsyncFileDialog as FileDialog, FileHandle, MessageDialog};
+#[cfg(not(target_arch = "wasm32"))]
 use rfd::{FileDialog, MessageDialog};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeSet, VecDeque},
     error::Error,
+    io::{Error as IOError, ErrorKind},
+    sync::{Arc, Mutex},
+};
+#[cfg(not(target_arch = "wasm32"))]
+use std::{
     fs::File,
-    io::{BufReader, Error as IOError, ErrorKind, Write},
+    io::{BufReader, Write},
     path::Path,
-    sync::{mpsc::Receiver as Rx, Arc, Mutex},
+    sync::mpsc::Receiver as Rx,
     thread::{Builder as ThreadBuilder, JoinHandle},
 };
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_futures::spawn_local;
+#[cfg(target_arch = "wasm32")]
+use wasm_thread::JoinHandle;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Session {
@@ -65,6 +81,7 @@ pub struct App {
 }
 
 impl App {
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn new(receiver: Rx<Log<String>>, socket_address: String) -> Self {
         Self {
             receiver: Some(Arc::new(Mutex::new(receiver))),
@@ -75,6 +92,18 @@ impl App {
         }
     }
 
+    #[cfg(target_arch = "wasm32")]
+    pub fn new() -> Self {
+        Self {
+            receiver: None,
+            update_thread: None,
+            data: AppState::default(),
+            title: "codeCTRL",
+            socket_address: "".into(),
+        }
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
     fn handle_key_inputs(&mut self, input_state: &InputState) {
         for event in &input_state.events {
             match event {
@@ -137,6 +166,7 @@ impl App {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn save_file_dialog(&mut self) {
         self.data.session_timestamp =
             Local::now().format(&self.data.filename_format).to_string();
@@ -194,6 +224,7 @@ impl App {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn load_file_dialog(&mut self) {
         let file_path = if let Some(file_path) = FileDialog::new()
             .add_filter("codeCTRL Session", &["cdctrl"])
@@ -215,6 +246,43 @@ impl App {
         .show();
     }
 
+    #[cfg(target_arch = "wasm32")]
+    fn load_file_dialog(&mut self) {
+        let file_path = Arc::new(Mutex::new(FileHandle::wrap(
+            web_sys::File::new_with_str_sequence(
+                &wasm_bindgen::JsValue::from_serde(&vec![""]).unwrap(),
+                "",
+            )
+            .unwrap(),
+        )));
+        let app = Arc::new(Mutex::new(unsafe {
+            std::mem::transmute::<_, &'static mut App>(self)
+        }));
+
+        let file_path_clone = Arc::clone(&file_path);
+        let app_clone = Arc::clone(&app);
+
+        spawn_local(async move {
+            *file_path_clone.as_ref().lock().unwrap() = if let Some(file_path) =
+                FileDialog::new()
+                    .add_filter("codeCTRL Session", &["cdctrl"])
+                    .pick_file()
+                    .await
+            {
+                file_path
+            } else {
+                return;
+            };
+
+            match Self::load_from_file(&file_path, &app_clone).await {
+                Ok(_) => MessageDialog::new().set_title("Successfully loaded file data"),
+                Err(error) => MessageDialog::new().set_title(&format!("{error}")),
+            }
+            .show();
+        });
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn load_from_file(file_path: &Path, app: &mut App) -> Result<(), Box<dyn Error>> {
         let file = File::open(file_path)?;
 
@@ -245,12 +313,47 @@ impl App {
 
         Ok(())
     }
+
+    #[cfg(target_arch = "wasm32")]
+    pub async fn load_from_file(
+        file_path: &Arc<Mutex<FileHandle>>,
+        app: &Arc<Mutex<&mut App>>,
+    ) -> Result<(), Box<dyn Error>> {
+        let data = file_path.as_ref().lock().unwrap().read().await;
+
+        let file_name = file_path.as_ref().lock().unwrap().file_name();
+
+        let session: Session = match serde_cbor::from_slice(&data) {
+            Ok(data) => data,
+            Err(error) =>
+                return Err(Box::new(IOError::new(
+                    ErrorKind::Other,
+                    format!(
+                        "Could not parse log data from file \"{file_name}\": {error}",
+                    ),
+                ))),
+        };
+
+        let AppState {
+            received,
+            session_timestamp,
+            message_alerts,
+            ..
+        } = &mut app.as_ref().lock().unwrap().data;
+
+        *received.write().unwrap() = session.received;
+        *session_timestamp = session.session_timestamp;
+        *message_alerts = session.message_alerts;
+
+        Ok(())
+    }
 }
 
 impl epi::App for App {
-    fn update(&mut self, ctx: &CtxRef, frame: &Frame) {
+    fn update(&mut self, ctx: &CtxRef, _frame: &Frame) {
         ctx.set_fonts(fonts(self.data.application_settings.font_sizes));
 
+        #[cfg(not(target_arch = "wasm32"))]
         self.handle_key_inputs(ctx.input());
 
         if self.data.is_about_open {
@@ -269,10 +372,12 @@ impl epi::App for App {
 
                 ui.horizontal_wrapped(|ui| {
                     ui.menu_button("File", |ui| {
+                        #[cfg(not(target_arch = "wasm32"))]
                         if ui.button("Save project").clicked() {
                             self.save_file_dialog();
                         }
 
+                        // #[cfg(not(target_arch = "wasm32"))]
                         if ui.button("Open project").clicked() {
                             self.load_file_dialog();
                         }
@@ -283,10 +388,12 @@ impl epi::App for App {
                             self.data.is_settings_open = !self.data.is_settings_open;
                         }
 
+                        #[cfg(not(target_arch = "wasm32"))]
                         ui.separator();
 
+                        #[cfg(not(target_arch = "wasm32"))]
                         if ui.button("Quit").clicked() {
-                            frame.quit();
+                            _frame.quit();
                         }
                     });
 
@@ -402,6 +509,7 @@ impl epi::App for App {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn setup(&mut self, ctx: &CtxRef, frame: &Frame, storage: Option<&dyn Storage>) {
         if let Some(storage) = storage {
             let data: AppState =
@@ -440,6 +548,30 @@ impl epi::App for App {
                 })
                 .expect("Could not start codeCTRL update thread")
         });
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    fn setup(&mut self, _ctx: &CtxRef, _frame: &Frame, storage: Option<&dyn Storage>) {
+        if let Some(storage) = storage {
+            let data: AppState =
+                epi::get_value(storage, epi::APP_KEY).unwrap_or_default();
+
+            if data.preserve_session {
+                self.data = data;
+            } else {
+                self.data = AppState::default();
+                self.data.preserve_session = false;
+            }
+        }
+
+        self.update_thread = None;
+    }
+
+    fn max_size_points(&self) -> egui::Vec2 {
+        Vec2 {
+            x: f32::INFINITY,
+            y: f32::INFINITY,
+        }
     }
 
     fn name(&self) -> &str { self.title }

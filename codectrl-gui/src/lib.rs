@@ -1,4 +1,4 @@
-#![feature(async_closure, thread_spawn_unchecked)]
+#![feature(async_closure, thread_spawn_unchecked, scoped_threads)]
 #![warn(clippy::pedantic)]
 #![allow(
     clippy::blocks_in_if_conditions,
@@ -13,13 +13,28 @@ mod components;
 mod consts;
 mod data;
 
+#[cfg(not(target_arch = "wasm32"))]
 extern crate clap;
 
 use app::App;
+#[cfg(not(target_arch = "wasm32"))]
 use clap::{crate_authors, crate_name, crate_version, App as ClapApp, Arg};
+#[cfg(not(target_arch = "wasm32"))]
 use codectrl_log_server::Server;
+#[cfg(target_arch = "wasm32")]
+use eframe::wasm_bindgen::JsValue;
+#[cfg(not(target_arch = "wasm32"))]
 use std::{collections::HashMap, env, path::Path, thread};
 
+#[cfg(target_arch = "wasm32")]
+pub fn run() -> Result<(), JsValue> {
+    console_error_panic_hook::set_once();
+    tracing_wasm::set_as_global_default();
+
+    eframe::start_web("codectrl-root", Box::new(App::new()))
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
 pub async fn run() {
     let command_line = env::vars().collect::<HashMap<String, String>>();

@@ -20,7 +20,7 @@ pub const DARK_BACKGROUND_LIGHTER: Color32 = Color32::from_rgb(69, 69, 69);
 pub const DARK_FOREGROUND_COLOUR: Color32 = Color32::from_rgb(200, 200, 200);
 pub const DARK_HEADER_FOREGROUND_COLOUR: Color32 = Color32::from_rgb(240, 240, 240);
 pub const HOVERED_BACKGROUND: Color32 = Color32::from_rgb(156, 72, 91);
-pub const PWNCTRL_RED: Color32 = Color32::from_rgb(230, 55, 96);
+pub const AUTHENTURA_RED: Color32 = Color32::from_rgb(230, 55, 96);
 
 const EXPANSION: f32 = 2.0;
 
@@ -126,7 +126,7 @@ pub fn dark_theme() -> Visuals {
             },
         },
         selection: Selection {
-            bg_fill: PWNCTRL_RED,
+            bg_fill: AUTHENTURA_RED,
             stroke: *DARK_STROKE,
         },
         faint_bg_color: DARK_BACKGROUND_LIGHT,

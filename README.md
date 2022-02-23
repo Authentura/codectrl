@@ -3,10 +3,11 @@
 ## Requirements
 The MSRV (minimum supported Rust version): 1.58 (on the nightly toolchain).
 
-Below you will find the requirements to build on each platform. The supported platform
-(s) are:
+Below you will find the requirements to build on each platform. The supported platform(s)
+are:
 
 - [Linux](#Linux)
+- [Web](#Web)
 
 Planned support:
 
@@ -42,7 +43,7 @@ You will need to install the "Development Tools" group. You can do this by runni
 
 #### Debian-based
 
-There is confirmed support for Ubuntu 21.10,21.04, and 20.04 and Debian 11 and 10.
+There is confirmed support for Ubuntu 21.10, 21.04, and 20.04 and Debian 11 and 10.
 ##### Dependencies
 
 - A C/C++ compiler. For example `gcc` or `clang`.
@@ -53,3 +54,10 @@ There is confirmed support for Ubuntu 21.10,21.04, and 20.04 and Debian 11 and 1
 - `libgtk-3-dev`
 - `libxcb-shape0-dev`
 - `libxcb-xfixes0-dev`
+
+### Web
+The main GUI is now able to run in the browser using `trunk`. You can install `trunk` with `cargo
+install trunk`. You will need the `wasm32-unknown-unknown` target installed through `rustup`. You
+can install that with `rustup target add wasm32-unknown-unknown`.
+
+Then, you can run a local server with `trunk server --release`.
