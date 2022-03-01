@@ -18,7 +18,7 @@ extern crate clap;
 
 use app::App;
 #[cfg(not(target_arch = "wasm32"))]
-use clap::{crate_authors, crate_name, crate_version, App as ClapApp, Arg};
+use clap::{crate_authors, crate_name, crate_version, Arg, Command};
 #[cfg(not(target_arch = "wasm32"))]
 use codectrl_log_server::Server;
 #[cfg(target_arch = "wasm32")]
@@ -39,13 +39,13 @@ pub fn run() -> Result<(), JsValue> {
 pub async fn run() {
     let command_line = env::vars().collect::<HashMap<String, String>>();
 
-    let matches = ClapApp::new(crate_name!())
+    let matches = Command::new(crate_name!())
         .version(crate_version!())
         .author(crate_authors!(", "))
         .arg(
-            Arg::with_name("port")
+            Arg::new("port")
                 .takes_value(true)
-                .short("p")
+                .short('p')
                 .long("port")
                 .help(
                     "Specifies the port for the server to run on, can also be specified \
@@ -53,10 +53,25 @@ pub async fn run() {
                 ),
         )
         .arg(
-            Arg::with_name("PROJECT")
+            Arg::new("host")
+                .takes_value(true)
+                .short('H')
+                .long("host")
+                .help(
+                    "Specifies the IP address for the server to run on. Can also be \
+                     specified with the HOST environment variable. Defaults to 0.0.0.0.",
+                ),
+        )
+        .arg(
+            Arg::new("PROJECT")
                 .takes_value(true)
                 .index(1)
                 .help("The project file to load (optional)."),
+        )
+        .arg(
+            Arg::new("server_only")
+                .long("server-only")
+                .help("Only runs the back-end server, not the GUI."),
         )
         .get_matches();
 
@@ -70,6 +85,16 @@ pub async fn run() {
         "3001"
     };
 
+    let has_host = matches.is_present("host");
+
+    let host = if has_host {
+        matches.value_of("host").unwrap()
+    } else if command_line.contains_key("HOST") {
+        command_line.get("HOST").unwrap()
+    } else {
+        "0.0.0.0"
+    };
+
     let has_project = matches.is_present("PROJECT");
 
     let project_file = if has_project {
@@ -78,12 +103,17 @@ pub async fn run() {
         None
     };
 
-    let socket_address = format!("127.0.0.1:{}", port);
+    let socket_address = format!("{host}:{port}");
 
-    let (mut server, receiver) = Server::new(port);
+    let (mut server, receiver) = Server::new(host, port);
+
+    if matches.is_present("server_only") {
+        server.run_server_current_runtime().await.unwrap();
+        return;
+    }
 
     thread::spawn(move || {
-        server.run_server().unwrap();
+        server.run_server_new_runtime().unwrap();
     });
 
     let mut app = App::new(receiver, socket_address);
