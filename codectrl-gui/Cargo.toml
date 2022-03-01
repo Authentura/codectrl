@@ -25,10 +25,11 @@ regex = "1.5"
 serde = { version = "1.0", features = ["derive"] }
 serde_cbor = "0.11"
 # serde_json = "1.0"
-tree-sitter-highlight = "0.20.1"
-tree-sitter-cpp = "0.19.0"
-tree-sitter-rust = "0.20.1"
-tree-sitter-python = "0.19.1"
+# tree-sitter-highlight = "0.20.1"
+# tree-sitter-cpp = "0.19.0"
+# tree-sitter-rust = "0.20.1"
+# tree-sitter-python = "0.19.1"
+syntect = { version = "4.2", default-features = false, features = ["default-fancy"]}
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 chrono = { version = "0.4", features = ["serde", "js-sys", "wasmbind"] }
