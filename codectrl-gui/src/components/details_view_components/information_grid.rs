@@ -199,8 +199,7 @@ fn code_scroll(
             let mut layouter = |ui: &egui::Ui, string: &str, wrap_width: f32| {
                 // TODO: Hardcoded Langauge should be accepted from the log
                 let hash: u128 = xxhash(string.as_bytes());
-                let mut layout_job: egui::text::LayoutJob =
-                    egui::text::LayoutJob::default();
+                let mut layout_job: egui::text::LayoutJob;
 
                 if *code_hash == hash {
                     layout_job = egui::text::LayoutJob::from(code_job.clone());
