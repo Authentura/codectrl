@@ -43,6 +43,10 @@ pub struct AppState {
     pub application_settings: ApplicationSettings,
     pub filename_format: String,
     pub preserve_session: bool,
+    #[serde(skip)]
+    pub code_hash: u128,
+    #[serde(skip)]
+    pub code_job: egui::text::LayoutJob,
 }
 
 impl Default for AppState {
@@ -72,6 +76,8 @@ impl Default for AppState {
             application_settings: ApplicationSettings::default(),
             filename_format: "session_%F %X".into(),
             preserve_session: true,
+            code_hash: 0,
+            code_job: egui::text::LayoutJob::default(),
         }
     }
 }

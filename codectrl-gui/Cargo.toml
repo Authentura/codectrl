@@ -30,6 +30,7 @@ serde_cbor = "0.11"
 # tree-sitter-rust = "0.20.1"
 # tree-sitter-python = "0.19.1"
 syntect = { version = "4.2", default-features = false, features = ["default-fancy"]}
+xxhash-rust = { version = "0.8.3", features = ["xxh3"]}
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 chrono = { version = "0.4", features = ["serde", "js-sys", "wasmbind"] }

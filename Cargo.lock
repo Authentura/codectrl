@@ -353,6 +353,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "wasm_thread",
  "web-sys",
+ "xxhash-rust",
 ]
 
 [[package]]
@@ -2464,6 +2465,12 @@ name = "xml-rs"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2d7d3948613f75c98fd9328cfdcc45acc4d360655289d0a7d4ec931392200a3"
+
+[[package]]
+name = "xxhash-rust"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "886f21441c6731b9e06a9fdacbc5e29319c17a4069c2a511d80349874864702d"
 
 [[package]]
 name = "yaml-rust"
