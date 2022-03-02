@@ -6,10 +6,19 @@ use syntect::{
     util::LinesWithEndings,
 };
 
+fn lang_to_short(lang: &str) -> &str {
+    // Add more language here
+    match lang {
+        "rust" => "rs",
+        "python" => "py",
+        _ => "",
+    }
+}
+
 pub fn code_highlighter(code: &str, lang: &str) -> egui::text::LayoutJob {
     let ps = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
-    let syntax = ps.find_syntax_by_extension("py").unwrap();
+    let syntax = ps.find_syntax_by_extension(lang_to_short(lang)).unwrap();
     let mut h = HighlightLines::new(syntax, &ts.themes["base16-mocha.dark"]);
     let mut job = egui::text::LayoutJob::default();
     for line in LinesWithEndings::from(code) {
