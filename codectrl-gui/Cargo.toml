@@ -7,7 +7,8 @@ authors = [
     "Samuel Boyden <s.boyden@authentura.com>",
     "Sebestyen Morris <s.morris@authentura.com>",
     "Dasith Vidanage <d.vidanage@authentura.com>",
-    "Balázs Cene (@bczsalba on Github) <bczsalba@gmail.com>"
+    "Balázs Cene (@bczsalba on Github) <bczsalba@gmail.com>",
+    "Collin Joseph <c.joseph@authentura.com>"
 ]
 description = "A source code analytic tool. Using egui version 0.16."
 rust-version = "1.58.1"
