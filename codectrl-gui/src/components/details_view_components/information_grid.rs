@@ -1,11 +1,15 @@
 use crate::{
-    components::{message_preview_view, DARK_HEADER_FOREGROUND_COLOUR},
+    components::{
+        details_view_components::code_highlighter, message_preview_view,
+        DARK_HEADER_FOREGROUND_COLOUR,
+    },
     data::AppState,
 };
 
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{CtxRef, RichText, TextStyle, Ui};
+use xxhash_rust::xxh3::xxh3_128 as xxhash;
 
 pub fn draw_information_grid(app_state: &mut AppState, ctx: &CtxRef, ui: &mut Ui) {
     app_state.preview_height = ui.available_height() + 2.0;
@@ -48,6 +52,8 @@ pub fn draw_information_grid(app_state: &mut AppState, ctx: &CtxRef, ui: &mut Ui
                     &mut app_state.is_copying_line_indicator,
                     &mut app_state.is_copying_line_numbers,
                     &mut app_state.copy_language,
+                    &mut app_state.code_hash,
+                    &mut app_state.code_job,
                     &log,
                     ctx,
                     ui,
@@ -157,6 +163,8 @@ fn code_scroll(
     is_copying_line_numbers: &mut bool,
     is_copying_line_indicator: &mut bool,
     copy_language: &mut String,
+    code_hash: &mut u128,
+    code_job: &mut egui::text::LayoutJob,
     log: &Log<String>,
     ctx: &CtxRef,
     ui: &mut Ui,
@@ -188,11 +196,31 @@ fn code_scroll(
 
             let mut indicated_code = indicated_code.trim_end().to_string();
 
+            let mut layouter = |ui: &egui::Ui, string: &str, wrap_width: f32| {
+                // TODO: Hardcoded Langauge should be accepted from the log
+                let hash: u128 = xxhash(string.as_bytes());
+                let mut layout_job: egui::text::LayoutJob;
+
+                if *code_hash == hash {
+                    layout_job = egui::text::LayoutJob::from(code_job.clone());
+                } else {
+                    let temp_job = code_highlighter(string, &log);
+
+                    *code_job = temp_job.clone();
+                    layout_job = temp_job;
+                    *code_hash = xxhash(string.as_bytes());
+                }
+
+                layout_job.wrap_width = wrap_width;
+                ui.fonts().layout_job(layout_job)
+            };
+
             ui.add_sized(
                 ui.available_size(),
                 egui::TextEdit::multiline(&mut indicated_code)
                     .desired_width(ui.available_width())
                     .interactive(false)
+                    .layouter(&mut layouter)
                     .code_editor(),
             )
             .interact(egui::Sense::click())
