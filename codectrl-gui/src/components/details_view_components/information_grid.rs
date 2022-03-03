@@ -204,7 +204,8 @@ fn code_scroll(
                 if *code_hash == hash {
                     layout_job = egui::text::LayoutJob::from(code_job.clone());
                 } else {
-                    let temp_job = code_highlighter(string, &log.language); // Change rust to log.language or something
+                    let temp_job = code_highlighter(string, &log);
+
                     *code_job = temp_job.clone();
                     layout_job = temp_job;
                     *code_hash = xxhash(string.as_bytes());
