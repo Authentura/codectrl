@@ -15,7 +15,7 @@ rust-version = "1.58.1"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "2.33"
+clap = { version = "3.1", features = ["cargo"] }
 codectrl_logger = { git = "https://github.com/authentura/codectrl-rust-logger", default-features = false, features = ["types-only"] }
 eframe = "0.16"
 egui = { version = "0.16", features = ["persistence"] }

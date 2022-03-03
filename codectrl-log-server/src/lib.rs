@@ -1,5 +1,5 @@
 use codectrl_logger::Log;
-use log::{error, warn};
+use log::{error, info, warn};
 use simple_logger::SimpleLogger;
 use std::{
     error::Error,
@@ -17,35 +17,39 @@ use tokio::{
 #[derive(Clone)]
 pub struct Server {
     sender: Arc<SyncSender<Log<String>>>,
+    host: String,
     port: String,
+    logs: Vec<Log<String>>,
 }
 
 impl Server {
-    pub fn new(port: &str) -> (Self, Receiver<Log<String>>) {
-        let (sender, receiver) = sync_channel(2);
+    pub fn new(host: &str, port: &str) -> (Self, Receiver<Log<String>>) {
+        let (sender, receiver) = sync_channel(512);
 
         (
             Self {
                 sender: Arc::new(sender),
+                host: host.into(),
                 port: port.into(),
+                logs: vec![],
             },
             receiver,
         )
     }
 
-    pub fn run_server(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn run_server_new_runtime(&mut self) -> Result<(), Box<dyn Error>> {
         let rt = Runtime::new()?;
 
         let mut ret = Ok(());
 
         rt.block_on(async {
-            ret = self._run_server().await;
+            ret = self.run_server_current_runtime().await;
         });
 
         ret
     }
 
-    async fn _run_server(&mut self) -> Result<(), Box<dyn Error>> {
+    pub async fn run_server_current_runtime(&mut self) -> Result<(), Box<dyn Error>> {
         SimpleLogger::new().init()?;
 
         let socket = TcpSocket::new_v4()?;
@@ -56,7 +60,9 @@ impl Server {
                                      // *However*, this will cause some instances to
                                      // receive POST data but some others will not.
 
-        socket.bind(format!("127.0.0.1:{}", self.port).parse().unwrap())?;
+        socket.bind(format!("{}:{}", self.host, self.port).parse().unwrap())?;
+
+        println!("Server has started on {}:{}...", self.host, self.port);
 
         let listener = socket.listen(1024)?;
 
@@ -79,6 +85,8 @@ impl Server {
                     error!(target: "log_server", "Failed to write response to socket: {:?}", e);
                     break;
                 }
+
+                info!("Received log...");
 
                 let mut data: Log<String> = match serde_cbor::from_reader(&buf[..n]) {
                     Ok(data) => data,
@@ -119,10 +127,14 @@ impl Server {
                 data.address = peer_address.to_string().split(':').collect::<Vec<_>>()[0]
                     .to_string();
 
+                self.logs.push(data.clone());
+
                 if let Err(e) = self.sender.send(data) {
                     error!(target: "log_server", "Failed to send data to main channel: {}", e);
                     break;
                 }
+
+                info!("Processed log {}.", self.logs.len());
             }
         }
     }
