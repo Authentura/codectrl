@@ -23,7 +23,7 @@ pub fn code_highlighter(code: &str, log: &Log<String>) -> egui::text::LayoutJob 
     };
 
     let mut highlight =
-        HighlightLines::new(syntax, &theme_set.themes["base16-mocha.dark"]);
+        HighlightLines::new(syntax, &theme_set.themes["Solarized (dark)"]);
     let mut job = egui::text::LayoutJob::default();
 
     for line in LinesWithEndings::from(code) {
