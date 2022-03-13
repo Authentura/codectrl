@@ -7,7 +7,7 @@ use crate::data::{AppState, Filter};
 
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::{CtxRef, RichText};
+use egui::{Context, RichText, TextStyle};
 use regex::RegexBuilder;
 
 fn app_state_filter(
@@ -84,7 +84,7 @@ fn app_state_filter(
     }
 }
 
-pub fn main_view(app_state: &mut AppState, ctx: &CtxRef) {
+pub fn main_view(app_state: &mut AppState, ctx: &Context) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {
             egui::ScrollArea::vertical()
@@ -156,10 +156,14 @@ pub fn main_view(app_state: &mut AppState, ctx: &CtxRef) {
     });
 }
 
-pub fn main_view_empty(ctx: &CtxRef, socket_address: &str) {
+pub fn main_view_empty(ctx: &Context, socket_address: &str) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {
-            ui.small(RichText::new("codeCTRL").color(CODECTRL_GREEN));
+            ui.label(
+                RichText::new("codeCTRL")
+                    .color(CODECTRL_GREEN)
+                    .font(TextStyle::Name("Extra Large".into()).resolve(&ctx.style())),
+            );
             ui.heading(RichText::new("by Authentura").italics());
             ui.add_space(ui.available_height() / 3.0);
 

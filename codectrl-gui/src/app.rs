@@ -25,7 +25,8 @@
 // the proposal so far.
 
 use crate::components::{
-    about_view, details_view, fonts, main_view, main_view_empty, settings_view,
+    about_view, application_style, details_view, fonts, main_view, main_view_empty,
+    settings_view,
 };
 #[cfg(not(target_arch = "wasm32"))]
 use crate::data::{AppState, Filter, FontSizes, Receiver};
@@ -34,7 +35,7 @@ use crate::data::{AppState, Filter, Receiver};
 
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::{CtxRef, Vec2};
+use egui::{Context, Vec2};
 #[cfg(not(target_arch = "wasm32"))]
 use egui::{Event, InputState, Key};
 use epi::{Frame, Storage};
@@ -350,11 +351,12 @@ impl App {
 }
 
 impl epi::App for App {
-    fn update(&mut self, ctx: &CtxRef, _frame: &Frame) {
-        ctx.set_fonts(fonts(self.data.application_settings.font_sizes));
+    fn update(&mut self, ctx: &Context, _frame: &Frame) {
+        ctx.set_fonts(fonts());
+        ctx.set_style(application_style(self.data.application_settings.font_sizes));
 
         #[cfg(not(target_arch = "wasm32"))]
-        self.handle_key_inputs(ctx.input());
+        self.handle_key_inputs(&ctx.input());
 
         if self.data.is_about_open {
             about_view(&mut self.data, ctx);
@@ -510,7 +512,7 @@ impl epi::App for App {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    fn setup(&mut self, ctx: &CtxRef, frame: &Frame, storage: Option<&dyn Storage>) {
+    fn setup(&mut self, ctx: &Context, frame: &Frame, storage: Option<&dyn Storage>) {
         if let Some(storage) = storage {
             let data: AppState =
                 epi::get_value(storage, epi::APP_KEY).unwrap_or_default();
@@ -551,7 +553,7 @@ impl epi::App for App {
     }
 
     #[cfg(target_arch = "wasm32")]
-    fn setup(&mut self, _ctx: &CtxRef, _frame: &Frame, storage: Option<&dyn Storage>) {
+    fn setup(&mut self, _ctx: &Context, _frame: &Frame, storage: Option<&dyn Storage>) {
         if let Some(storage) = storage {
             let data: AppState =
                 epi::get_value(storage, epi::APP_KEY).unwrap_or_default();

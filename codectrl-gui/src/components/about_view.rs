@@ -4,7 +4,7 @@ use super::{
 };
 use crate::data::AppState;
 
-use egui::{CtxRef, Id, RichText};
+use egui::{Context, Id, RichText};
 
 pub fn about_view(
     AppState {
@@ -12,7 +12,7 @@ pub fn about_view(
         is_about_open,
         ..
     }: &mut AppState,
-    ctx: &CtxRef,
+    ctx: &Context,
 ) {
     egui::Window::new(
         RichText::new(about_state.to_string()).color(DARK_HEADER_FOREGROUND_COLOUR),

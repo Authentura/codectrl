@@ -6,13 +6,14 @@ use crate::{
 use egui::{
     epaint::Shadow,
     style::{Selection, WidgetVisuals, Widgets},
-    Color32, FontData, FontDefinitions, FontFamily, Stroke, TextStyle, Visuals,
+    Color32, FontData, FontDefinitions, FontFamily, FontId, Rounding, Stroke, Style,
+    TextStyle, Visuals,
 };
 use lazy_static::lazy_static;
+use std::collections::BTreeMap;
 
 // colours
 pub const CODECTRL_GREEN: Color32 = Color32::from_rgb(66, 184, 156);
-pub const CORNER_RADIUS: f32 = 5.0;
 pub const DARK_BACKGROUND: Color32 = Color32::from_rgb(39, 39, 39);
 pub const DARK_BACKGROUND_DARKER: Color32 = Color32::from_rgb(29, 29, 29);
 pub const DARK_BACKGROUND_LIGHT: Color32 = Color32::from_rgb(49, 49, 49);
@@ -27,14 +28,15 @@ const EXPANSION: f32 = 2.0;
 lazy_static! {
     pub static ref DARK_FOREGROUND: Stroke = Stroke::new(1.4, DARK_FOREGROUND_COLOUR);
     pub static ref DARK_STROKE: Stroke = Stroke::new(0.5, Color32::BLACK);
+    pub static ref CORNER_RADIUS: Rounding = Rounding::same(5.0);
 }
 
-pub fn fonts(font_sizes: FontSizes) -> FontDefinitions {
+pub fn fonts() -> FontDefinitions {
     let mut fonts = FontDefinitions::default();
 
     fonts
         .font_data
-        .insert("regular".into(), FontData::from_static(OTF_FONT_REGULAR));
+        .insert("serif".into(), FontData::from_static(OTF_FONT_REGULAR));
 
     fonts.font_data.insert(
         "monospace".into(),
@@ -42,46 +44,54 @@ pub fn fonts(font_sizes: FontSizes) -> FontDefinitions {
     );
 
     fonts
-        .fonts_for_family
+        .families
         .get_mut(&FontFamily::Proportional)
         .unwrap()
-        .insert(0, "regular".into());
+        .insert(0, "serif".into());
 
     fonts
-        .fonts_for_family
+        .families
         .get_mut(&FontFamily::Monospace)
         .unwrap()
         .insert(0, "monospace".into());
 
     fonts
-        .family_and_size
-        .insert(TextStyle::Body, (FontFamily::Proportional, font_sizes.body));
+}
 
-    fonts.family_and_size.insert(
-        TextStyle::Button,
-        (FontFamily::Proportional, font_sizes.button),
-    );
+pub fn font_styles(font_sizes: FontSizes) -> BTreeMap<TextStyle, FontId> {
+    let mut styles = BTreeMap::new();
 
-    fonts.family_and_size.insert(
-        TextStyle::Heading,
-        (FontFamily::Proportional, font_sizes.heading),
-    );
-
-    fonts.family_and_size.insert(
-        TextStyle::Monospace,
-        (FontFamily::Monospace, font_sizes.monospace),
-    );
-
-    // this may be confusing so I'll explain: since we don't use the small textstyle
-    // anywhere within the gui, we can instead use it as an "extra" style. i.e, we
-    // can make it extra large for the main_view_empty function to have a extra
-    // large "codeCTRL" that would otherwise be hard to draw.
-    fonts.family_and_size.insert(
+    styles.insert(
         TextStyle::Small,
-        (FontFamily::Proportional, font_sizes.extra_large),
+        FontId::new(font_sizes.small, FontFamily::Proportional),
     );
 
-    fonts
+    styles.insert(
+        TextStyle::Body,
+        FontId::new(font_sizes.body, FontFamily::Proportional),
+    );
+
+    styles.insert(
+        TextStyle::Button,
+        FontId::new(font_sizes.button, FontFamily::Proportional),
+    );
+
+    styles.insert(
+        TextStyle::Heading,
+        FontId::new(font_sizes.heading, FontFamily::Proportional),
+    );
+
+    styles.insert(
+        TextStyle::Monospace,
+        FontId::new(font_sizes.monospace, FontFamily::Monospace),
+    );
+
+    styles.insert(
+        TextStyle::Name("Extra Large".into()),
+        FontId::new(font_sizes.extra_large, FontFamily::Proportional),
+    );
+
+    styles
 }
 
 pub fn dark_theme() -> Visuals {
@@ -92,35 +102,35 @@ pub fn dark_theme() -> Visuals {
             noninteractive: WidgetVisuals {
                 bg_fill: DARK_BACKGROUND,
                 bg_stroke: *DARK_STROKE,
-                corner_radius: CORNER_RADIUS,
+                rounding: *CORNER_RADIUS,
                 fg_stroke: *DARK_FOREGROUND,
                 expansion: EXPANSION,
             },
             inactive: WidgetVisuals {
                 bg_fill: DARK_BACKGROUND_LIGHTER,
                 bg_stroke: *DARK_STROKE,
-                corner_radius: CORNER_RADIUS,
+                rounding: *CORNER_RADIUS,
                 fg_stroke: *DARK_FOREGROUND,
                 expansion: EXPANSION,
             },
             hovered: WidgetVisuals {
                 bg_fill: HOVERED_BACKGROUND,
                 bg_stroke: *DARK_STROKE,
-                corner_radius: CORNER_RADIUS,
+                rounding: *CORNER_RADIUS,
                 fg_stroke: *DARK_FOREGROUND,
                 expansion: EXPANSION,
             },
             active: WidgetVisuals {
                 bg_fill: Color32::from_additive_luminance(100),
                 bg_stroke: *DARK_STROKE,
-                corner_radius: CORNER_RADIUS,
+                rounding: *CORNER_RADIUS,
                 fg_stroke: *DARK_FOREGROUND,
                 expansion: EXPANSION,
             },
             open: WidgetVisuals {
                 bg_fill: DARK_BACKGROUND,
                 bg_stroke: *DARK_STROKE,
-                corner_radius: CORNER_RADIUS,
+                rounding: *CORNER_RADIUS,
                 fg_stroke: *DARK_FOREGROUND,
                 expansion: EXPANSION,
             },
@@ -132,12 +142,20 @@ pub fn dark_theme() -> Visuals {
         faint_bg_color: DARK_BACKGROUND_LIGHT,
         extreme_bg_color: DARK_BACKGROUND_DARKER,
         code_bg_color: DARK_BACKGROUND_DARKER,
-        window_corner_radius: 10.0,
+        window_rounding: Rounding::same(10.0),
         window_shadow: Shadow::small_light(),
         popup_shadow: Shadow::small_light(),
         text_cursor_width: 2.0,
         text_cursor_preview: true,
         collapsing_header_frame: true,
         ..Visuals::default()
+    }
+}
+
+pub fn application_style(font_sizes: FontSizes) -> Style {
+    Style {
+        text_styles: font_styles(font_sizes),
+        visuals: dark_theme(),
+        ..Style::default()
     }
 }

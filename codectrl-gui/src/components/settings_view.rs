@@ -4,7 +4,7 @@ use super::{
 };
 use crate::data::AppState;
 
-use egui::{CtxRef, Id, RichText};
+use egui::{Context, Id, RichText};
 
 pub fn settings_view(
     AppState {
@@ -16,7 +16,7 @@ pub fn settings_view(
         application_settings,
         ..
     }: &mut AppState,
-    ctx: &CtxRef,
+    ctx: &Context,
 ) {
     egui::Window::new(RichText::new("Settings").color(DARK_HEADER_FOREGROUND_COLOUR))
         .id(Id::new("settings_view"))

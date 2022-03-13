@@ -1,6 +1,6 @@
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::{Color32, Label, RichText, Sense, Ui};
+use egui::{Align, Color32, Label, RichText, Sense, Ui};
 use std::collections::BTreeSet;
 
 type Received = (Log<String>, DateTime<Local>);
@@ -110,7 +110,7 @@ pub fn draw_log_item(
 
     if let Some(clicked_item) = clicked_item {
         if do_scroll_to_selected_log && *clicked_item == *received {
-            radio_response.scroll_to_me(egui::Align::Center);
+            radio_response.scroll_to_me(Some(Align::Center));
         }
     }
 

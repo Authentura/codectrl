@@ -10,7 +10,7 @@ authors = [
     "Balázs Cene (@bczsalba on Github) <bczsalba@gmail.com>",
     "Collin Joseph <c.joseph@authentura.com>"
 ]
-description = "A source code analytic tool. Using egui version 0.16."
+description = "A source code analytic tool. Using egui version 0.17."
 rust-version = "1.58.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -18,9 +18,9 @@ rust-version = "1.58.1"
 [dependencies]
 clap = { version = "3.1", features = ["cargo"] }
 codectrl_logger = { git = "https://github.com/authentura/codectrl-rust-logger", default-features = false, features = ["types-only"] }
-eframe = "0.16"
-egui = { version = "0.16", features = ["persistence"] }
-epi = { version = "0.16", features = ["persistence"] }
+eframe = "0.17"
+egui = { version = "0.17", features = ["persistence"] }
+epi = { version = "0.17", features = ["persistence"] }
 lazy_static = "1.4"
 regex = "1.5"
 serde = { version = "1.0", features = ["derive"] }
@@ -42,7 +42,7 @@ web-sys = { version = "0.3", features = ["File", "FilePropertyBag", "console"]}
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 chrono = { version = "0.4", features = ["serde"] }
 codectrl_log_server = { path = "../codectrl-log-server" }
-egui_glow = "0.16"
+egui_glow = "0.17"
 rfd = "0.6"
 tokio = { version = "1.17", default-features = false, features = ["net", "rt-multi-thread", "io-util", "macros"] }
 
