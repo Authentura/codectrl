@@ -14,7 +14,7 @@ readme = "README.md"
 codectrl_gui = { path = "./codectrl-gui" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-eframe = "0.16"
+eframe = "0.17"
 
 [package.metadata.deb]
 name = "codectrl"
