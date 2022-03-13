@@ -8,21 +8,26 @@ use crate::{
 
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::{CtxRef, RichText, TextStyle, Ui};
+use egui::{
+    text::LayoutJob, Context, FontSelection, Layout, RichText, Sense, TextStyle, Ui,
+};
 use xxhash_rust::xxh3::xxh3_128 as xxhash;
 
-pub fn draw_information_grid(app_state: &mut AppState, ctx: &CtxRef, ui: &mut Ui) {
+pub fn draw_information_grid(app_state: &mut AppState, ctx: &Context, ui: &mut Ui) {
     app_state.preview_height = ui.available_height() + 2.0;
 
     ui.horizontal(|ui| {
         let heading_width = "Log information".chars().fold(0.0, |sum, c| {
-            sum + ui.fonts().glyph_width(TextStyle::Heading, c)
+            sum + ui.fonts().glyph_width(
+                &FontSelection::Style(TextStyle::Heading).resolve(&ctx.style()),
+                c,
+            )
         });
 
         ui.add_space((ui.available_width() / 2.0) - heading_width * 0.5);
         ui.heading(RichText::new("Log information").color(DARK_HEADER_FOREGROUND_COLOUR));
 
-        ui.with_layout(egui::Layout::right_to_left(), |ui| {
+        ui.with_layout(Layout::right_to_left(), |ui| {
             // u1f5d9 = 🗙
             if ui.button("\u{1f5d9} Close").clicked() {
                 app_state.clicked_item = None;
@@ -68,7 +73,7 @@ fn detail_scroll(
     app_state: &mut AppState,
     log: &Log<String>,
     time: &DateTime<Local>,
-    ctx: &CtxRef,
+    ctx: &Context,
     ui: &mut Ui,
 ) {
     egui::ScrollArea::vertical()
@@ -164,9 +169,9 @@ fn code_scroll(
     is_copying_line_indicator: &mut bool,
     copy_language: &mut String,
     code_hash: &mut u128,
-    code_job: &mut egui::text::LayoutJob,
+    code_job: &mut LayoutJob,
     log: &Log<String>,
-    ctx: &CtxRef,
+    ctx: &Context,
     ui: &mut Ui,
 ) {
     egui::ScrollArea::vertical()
@@ -196,15 +201,15 @@ fn code_scroll(
 
             let mut indicated_code = indicated_code.trim_end().to_string();
 
-            let mut layouter = |ui: &egui::Ui, string: &str, wrap_width: f32| {
+            let mut layouter = |ui: &Ui, string: &str, wrap_width: f32| {
                 // TODO: Hardcoded Langauge should be accepted from the log
                 let hash: u128 = xxhash(string.as_bytes());
-                let mut layout_job: egui::text::LayoutJob;
+                let mut layout_job: LayoutJob;
 
                 if *code_hash == hash {
-                    layout_job = egui::text::LayoutJob::from(code_job.clone());
+                    layout_job = LayoutJob::from(code_job.clone());
                 } else {
-                    let temp_job = code_highlighter(string, &log);
+                    let temp_job = code_highlighter(string, &log, ctx);
 
                     *code_job = temp_job.clone();
                     layout_job = temp_job;
@@ -223,7 +228,7 @@ fn code_scroll(
                     .layouter(&mut layouter)
                     .code_editor(),
             )
-            .interact(egui::Sense::click())
+            .interact(Sense::click())
             .on_hover_ui_at_pointer(|ui| {
                 ui.label("Right-click to open context menu");
             })
