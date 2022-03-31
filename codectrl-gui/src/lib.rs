@@ -1,4 +1,4 @@
-#![feature(async_closure, thread_spawn_unchecked)]
+#![feature(thread_spawn_unchecked)]
 #![warn(clippy::pedantic)]
 #![allow(
     clippy::blocks_in_if_conditions,
