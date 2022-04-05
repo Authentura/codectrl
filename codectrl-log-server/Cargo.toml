@@ -3,6 +3,7 @@ name = "codectrl_log_server"
 version = "0.0.0"
 edition = "2021"
 authors = ["Authentura <contact@authentura.com>", "Samuel Boyden <s.boyden@authentura.com>"]
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

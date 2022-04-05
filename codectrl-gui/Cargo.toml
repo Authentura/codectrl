@@ -12,6 +12,7 @@ authors = [
 ]
 description = "A source code analytic tool. Using egui version 0.16."
 rust-version = "1.58.1"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
