@@ -42,6 +42,9 @@ use egui::{Context, Vec2};
 #[cfg(not(target_arch = "wasm32"))]
 use egui::{Event, InputState, Key};
 use epi::{Frame, Storage};
+use flate2::bufread;
+#[cfg(not(target_arch = "wasm32"))]
+use flate2::{write, Compression};
 #[cfg(target_arch = "wasm32")]
 use rfd::{AsyncFileDialog as FileDialog, FileHandle, MessageDialog};
 #[cfg(not(target_arch = "wasm32"))]
@@ -50,13 +53,13 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeSet, VecDeque},
     error::Error,
-    io::{Error as IOError, ErrorKind},
+    io::{BufReader, Error as IOError, ErrorKind},
     sync::{Arc, Mutex},
 };
 #[cfg(not(target_arch = "wasm32"))]
 use std::{
     fs::File,
-    io::{BufReader, Write},
+    io::Write,
     path::Path,
     sync::mpsc::Receiver as Rx,
     thread::{Builder as ThreadBuilder, JoinHandle},
@@ -65,6 +68,10 @@ use std::{
 use wasm_bindgen_futures::spawn_local;
 #[cfg(target_arch = "wasm32")]
 use wasm_thread::JoinHandle;
+
+type Decoder<T> = bufread::DeflateDecoder<T>;
+#[cfg(not(target_arch = "wasm32"))]
+type Encoder<T> = write::DeflateEncoder<T>;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Session {
@@ -204,6 +211,28 @@ impl App {
 
         ciborium_ser::into_writer(&session, &mut data).expect("Could not serialise logs");
 
+        let mut gzip = Encoder::new(Vec::new(), Compression::default());
+
+        let compression_error_dialog = |error| {
+            MessageDialog::new()
+                .set_title("Could not save file")
+                .set_description(&format!("Could not compress logs: {error}"))
+                .show()
+        };
+
+        if let Err(error) = gzip.write_all(&data) {
+            compression_error_dialog(error);
+            return;
+        }
+
+        let data = match gzip.finish() {
+            Ok(data) => data,
+            Err(error) => {
+                compression_error_dialog(error);
+                return;
+            },
+        };
+
         let mut file = match File::create(&file_path) {
             Ok(file_path) => file_path,
             Err(error) => {
@@ -292,7 +321,8 @@ impl App {
     pub fn load_from_file(file_path: &Path, app: &mut App) -> Result<(), Box<dyn Error>> {
         let file = File::open(file_path)?;
 
-        let reader = BufReader::new(file);
+        let mut reader = BufReader::new(file);
+        let reader = Decoder::new(&mut reader);
 
         let session: Session = match ciborium_de::from_reader(reader) {
             Ok(data) => data,
@@ -327,9 +357,12 @@ impl App {
     ) -> Result<(), Box<dyn Error>> {
         let data = file_path.as_ref().lock().unwrap().read().await;
 
+        let mut reader = BufReader::new(data.as_slice());
+        let reader = Decoder::new(&mut reader);
+
         let file_name = file_path.as_ref().lock().unwrap().file_name();
 
-        let session: Session = match ciborium_de::from_reader(&*data) {
+        let session: Session = match ciborium_de::from_reader(reader) {
             Ok(data) => data,
             Err(error) =>
                 return Err(Box::new(IOError::new(

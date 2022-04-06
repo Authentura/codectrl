@@ -23,6 +23,7 @@ codectrl_logger = { git = "https://github.com/authentura/codectrl-rust-logger", 
 eframe = "0.17"
 egui = { version = "0.17", features = ["persistence"] }
 epi = { version = "0.17", features = ["persistence"] }
+flate2 = "1.0"
 lazy_static = "1.4"
 regex = "1.5"
 serde = { version = "1.0", features = ["derive"] }
