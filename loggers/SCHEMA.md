@@ -21,7 +21,7 @@ A logger for any language ***must*** implement the following schema:
   number, and where each `string` value is the line of code.
 - `message : string`: A custom message to be displayed in codeCTRL. Can 
   technically be anything but it would be better if a more informative message was supplied.
-- `message_type : string`: The type of the message that was sent through the log function.
+- `message_type : string`: The data-type of the message that was sent through the log function.
 - `file_name : string`: The file name that the log function was called in.
 - `address : string`: The address of the host that sent the log data.
 - `language : string`: The full name of the language of the logged code.
