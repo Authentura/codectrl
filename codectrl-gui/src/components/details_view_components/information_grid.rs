@@ -9,19 +9,25 @@ use crate::{
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{
-    text::LayoutJob, Context, FontSelection, Layout, RichText, Sense, TextStyle, Ui,
+    text::LayoutJob, Context, FontSelection, Layout, RichText, Sense, Style, TextStyle,
+    Ui,
 };
+use std::sync::Arc;
 use xxhash_rust::xxh3::xxh3_128 as xxhash;
 
-pub fn draw_information_grid(app_state: &mut AppState, ctx: &Context, ui: &mut Ui) {
+pub fn draw_information_grid(
+    app_state: &mut AppState,
+    ctx: &Context,
+    style: &Arc<Style>,
+    ui: &mut Ui,
+) {
     app_state.preview_height = ui.available_height() + 2.0;
 
     ui.horizontal(|ui| {
         let heading_width = "Log information".chars().fold(0.0, |sum, c| {
-            sum + ui.fonts().glyph_width(
-                &FontSelection::Style(TextStyle::Heading).resolve(&ctx.style()),
-                c,
-            )
+            sum + ui
+                .fonts()
+                .glyph_width(&FontSelection::Style(TextStyle::Heading).resolve(&style), c)
         });
 
         ui.add_space((ui.available_width() / 2.0) - heading_width * 0.5);
