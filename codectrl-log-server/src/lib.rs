@@ -88,7 +88,7 @@ impl Server {
 
                 info!("Received log...");
 
-                let mut data: Log<String> = match serde_cbor::from_reader(&buf[..n]) {
+                let mut data: Log<String> = match ciborium::from_reader(&buf[..n]) {
                     Ok(data) => data,
                     Err(e) => {
                         error!(target: "log_server", "{}", e);

@@ -17,6 +17,7 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ciborium = "0.2"
 clap = { version = "3.1", features = ["cargo"] }
 codectrl_logger = { git = "https://github.com/authentura/codectrl-rust-logger", default-features = false, features = ["types-only"] }
 eframe = "0.17"
@@ -25,7 +26,6 @@ epi = { version = "0.17", features = ["persistence"] }
 lazy_static = "1.4"
 regex = "1.5"
 serde = { version = "1.0", features = ["derive"] }
-serde_cbor = "0.11"
 syntect = { version = "4.2", default-features = false, features = ["default-fancy"]}
 xxhash-rust = { version = "0.8", features = ["xxh3"]}
 

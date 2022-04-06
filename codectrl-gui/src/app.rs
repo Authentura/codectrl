@@ -34,6 +34,9 @@ use crate::data::{AppState, Filter, FontSizes, Receiver};
 use crate::data::{AppState, Filter, Receiver};
 
 use chrono::{DateTime, Local};
+use ciborium::de as ciborium_de;
+#[cfg(not(target_arch = "wasm32"))]
+use ciborium::ser as ciborium_ser;
 use codectrl_logger::Log;
 use egui::{Context, Vec2};
 #[cfg(not(target_arch = "wasm32"))]
@@ -197,7 +200,9 @@ impl App {
             message_alerts,
         };
 
-        let data = serde_cbor::to_vec(&session).expect("Could not serialise logs");
+        let mut data = vec![];
+
+        ciborium_ser::into_writer(&session, &mut data).expect("Could not serialise logs");
 
         let mut file = match File::create(&file_path) {
             Ok(file_path) => file_path,
@@ -289,7 +294,7 @@ impl App {
 
         let reader = BufReader::new(file);
 
-        let session: Session = match serde_cbor::from_reader(reader) {
+        let session: Session = match ciborium_de::from_reader(reader) {
             Ok(data) => data,
             Err(error) =>
                 return Err(Box::new(IOError::new(
@@ -324,7 +329,7 @@ impl App {
 
         let file_name = file_path.as_ref().lock().unwrap().file_name();
 
-        let session: Session = match serde_cbor::from_slice(&data) {
+        let session: Session = match ciborium_de::from_reader(&*data) {
             Ok(data) => data,
             Err(error) =>
                 return Err(Box::new(IOError::new(
