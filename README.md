@@ -1,5 +1,18 @@
 # codeCTRL
 
+## Implementing a logger for a language
+By default, these are the officially supported loggers:
+
+- [Rust](https://github.com/Authentura/codectrl-rust-logger)
+- [C++](https://github.com/Authentura/codectrl-cxx-logger)
+- [Python](https://github.com/Authentura/codectrl-python-logger)
+- [PHP](https://github.com/Authentura/codectrl-php-logger)
+- JavaScript - [Node](https://github.com/Authentura/codectrl-nodejs-logger), Browser (not yet, possibly not possible<sup>?</sup>)
+
+If you require a logger in a language where one does not yet exist, please feel free to create one, ___making sure to be consistent with the offical [schema and API](https://github.com/Authentura/codectrl/blob/main/loggers/SCHEMA.md)___, and submit a PR to add it to the list of unofficial language loggers below:
+
+- None yet (remove me if/when one is added).
+
 ## Requirements
 The MSRV (minimum supported Rust version): 1.62 (on the nightly toolchain).
 
