@@ -1,8 +1,8 @@
-use egui::{CtxRef, Id};
+use egui::{Context, Id};
 
 pub fn message_preview_view(
     is_open: &mut bool,
-    ctx: &CtxRef,
+    ctx: &Context,
     message: &str,
     message_type: &str,
 ) {

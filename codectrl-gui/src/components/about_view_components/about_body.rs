@@ -3,9 +3,9 @@ use crate::{
 };
 
 use clap::{crate_authors, crate_description, crate_version};
-use egui::{CtxRef, CursorIcon, RichText, Sense, TextStyle, Ui};
+use egui::{Context, CursorIcon, RichText, Sense, TextStyle, Ui};
 
-pub fn draw_about_body(about_state: &AboutState, ctx: &CtxRef, ui: &mut Ui) {
+pub fn draw_about_body(about_state: &AboutState, ctx: &Context, ui: &mut Ui) {
     egui::ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| match about_state {
@@ -78,7 +78,7 @@ pub fn draw_about_body(about_state: &AboutState, ctx: &CtxRef, ui: &mut Ui) {
                 ui.add(
                     egui::TextEdit::multiline(&mut include_str!("../../../../LICENSE"))
                         .desired_width(ui.available_width())
-                        .text_style(TextStyle::Monospace),
+                        .font(TextStyle::Monospace),
                 );
 
                 ui.heading(
@@ -90,7 +90,7 @@ pub fn draw_about_body(about_state: &AboutState, ctx: &CtxRef, ui: &mut Ui) {
                         "../../../../assets/fonts/red-hat/LICENSE"
                     ))
                     .desired_width(ui.available_width())
-                    .text_style(TextStyle::Monospace),
+                    .font(TextStyle::Monospace),
                 );
 
                 ui.heading(
@@ -101,7 +101,7 @@ pub fn draw_about_body(about_state: &AboutState, ctx: &CtxRef, ui: &mut Ui) {
                         "../../../../assets/fonts/roboto/LICENSE"
                     ))
                     .desired_width(ui.available_width())
-                    .text_style(TextStyle::Monospace),
+                    .font(TextStyle::Monospace),
                 );
             },
         });
