@@ -3,6 +3,7 @@
 - [Log schema](#schema-for-language-loggers)
 	- [Important notes](#important-notes)
 - [API](#api-for-language-loggers)
+	- [Important notes](#important-notes-1)
 
 # Schema for language loggers
 
@@ -78,6 +79,8 @@ As each of the log functions can take a `message`, `surround`, `host`, and `port
 - `host` must be optional<sup>1</sup>. The default value must be "127.0.0.1" for consistency.
 - `port` must be optional<sup>1</sup>. The default value must be "3001" for consistency.
 
+## Important notes
+- If the target language is a compiled language, please document clearly that the logger will not work properly without debug symbols compiled into the binary. This can be done by hard-coding a warning that a log function was called in a non-debug environment. See [here](https://github.com/Authentura/codectrl-rust-logger/blob/718fc215854de2dc72c7eabba5174797fcd106a0/src/lib.rs#L123-L130) for an example.
 
 ---
 1. if not possible in the language, use an `Option` type like in Rust/Haskell/etc. If that's not possible then make all parameters required and __clearly__ document default values in a place easily found by developers, preferably in doc comments which should appear as pop-up documentation in sensible code-editors and IDEs.
