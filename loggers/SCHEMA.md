@@ -70,6 +70,7 @@ The following are the required functions (using `snake_case` naming convention):
 
 1. `log` - The basic log function. Should take 4 total parameters: `message : T` (required), `surround : uint` (optional), `host : string` (optional), `port : string/int` (optional).
 2. `log_if` - A conditional log function. Essentially a wrapper over `log`. Should take 5 total parameters: `condition : closure/lambda/anonymous function` (required), `message : T` (required), `surround : uint` (optional), `host : string` (optional), `port : string/int` (optional).
+	- `condition` _must_ return a `bool` and _must_ be required. If `condition` evaluates to `true`, then the log must be sent.
 3. `log_if_env` - Another conditional log function, though this only logs if the `CODECTRL_DEBUG` environment variable is set. Should take 4 total parameters: `message : T` (required), `surround : uint` (optional), `host : string` (optional), `port : string/int` (optional).
 
 As each of the log functions can take a `message`, `surround`, `host`, and `port`, here is some requirements for each parameter: 
