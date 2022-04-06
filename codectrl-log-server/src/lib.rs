@@ -1,3 +1,4 @@
+use ciborium::de as ciborium;
 use codectrl_logger::Log;
 use log::{error, info, warn};
 use simple_logger::SimpleLogger;
@@ -90,9 +91,14 @@ impl Server {
 
                 let mut data: Log<String> = match ciborium::from_reader(&buf[..n]) {
                     Ok(data) => data,
-                    Err(e) => {
-                        error!(target: "log_server", "{}", e);
-                        break;
+                    Err(cbor_error) => match serde_json::from_reader(&buf[..n]) {
+                        Ok(data) => data,
+                        Err(json_error) => {
+                            error!(target: "log_server", "CBOR error: {}", cbor_error);
+                            error!(target: "log_server", "JSON error: {}", json_error);
+
+                            break;
+                        },
                     },
                 };
 
