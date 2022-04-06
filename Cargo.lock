@@ -434,7 +434,7 @@ dependencies = [
 
 [[package]]
 name = "codectrl"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "codectrl_gui",
  "eframe",
@@ -442,7 +442,7 @@ dependencies = [
 
 [[package]]
 name = "codectrl_gui"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "chrono",
  "ciborium",

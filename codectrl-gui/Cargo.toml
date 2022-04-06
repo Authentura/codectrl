@@ -1,6 +1,6 @@
 [package]
 name = "codectrl_gui"
-version = "0.1.0"
+version = "0.0.0"
 edition = "2021"
 authors = [
     "Authentura <contact@authentura.com>",

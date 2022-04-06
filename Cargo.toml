@@ -1,6 +1,6 @@
 [package]
 name = "codectrl"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Authentura <contact@authentura.com>", "Samuel Boyden <s.boyden@authentura.com>"]
 description = "A source code analytic tool. Using egui version 0.16."
