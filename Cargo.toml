@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Authentura <contact@authentura.com>", "Samuel Boyden <s.boyden@authentura.com>"]
 description = "A source code analytic tool. Using egui version 0.16."
 license = "MIT"
-rust-version = "1.58.1"
+rust-version = "1.62.0"
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

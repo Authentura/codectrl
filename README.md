@@ -1,7 +1,7 @@
 # codeCTRL
 
 ## Requirements
-The MSRV (minimum supported Rust version): 1.58 (on the nightly toolchain).
+The MSRV (minimum supported Rust version): 1.62 (on the nightly toolchain).
 
 Below you will find the requirements to build on each platform. The supported platform(s)
 are:
@@ -60,4 +60,4 @@ The main GUI is now able to run in the browser using `trunk`. You can install `t
 install trunk`. You will need the `wasm32-unknown-unknown` target installed through `rustup`. You
 can install that with `rustup target add wasm32-unknown-unknown`.
 
-Then, you can run a local server with `trunk server --release`.
+Then, you can run a local server with `trunk serve --release`.
