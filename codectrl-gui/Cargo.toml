@@ -33,7 +33,7 @@ xxhash-rust = { version = "0.8", features = ["xxh3"]}
 chrono = { version = "0.4", features = ["serde", "js-sys", "wasmbind"] }
 console_error_panic_hook = "0.1"
 js-sys = "0.3"
-rfd = { version = "0.6", features = ["file-handle-inner"] }
+rfd = { version = "0.8", features = ["file-handle-inner"] }
 tracing-wasm = "0.2"
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4"
@@ -44,7 +44,7 @@ web-sys = { version = "0.3", features = ["File", "FilePropertyBag", "console"]}
 chrono = { version = "0.4", features = ["serde"] }
 codectrl_log_server = { path = "../codectrl-log-server" }
 egui_glow = "0.17"
-rfd = "0.6"
+rfd = "0.8"
 tokio = { version = "1.17", default-features = false, features = ["net", "rt-multi-thread", "io-util", "macros"] }
 
 [build-dependencies]
