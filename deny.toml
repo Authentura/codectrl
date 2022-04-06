@@ -94,7 +94,7 @@ copyleft = "warn"
 # * osi-only - The license will be approved if is OSI-approved *AND NOT* FSF
 # * fsf-only - The license will be approved if is FSF *AND NOT* OSI-approved
 # * neither - This predicate is ignored and the default lint level is used
-allow-osi-fsf-free = "both"
+allow-osi-fsf-free = "either"
 # Lint level used when no other predicates are matched
 # 1. License isn't in the allow or deny lists
 # 2. License isn't copyleft
@@ -173,7 +173,6 @@ deny = [
     # Wrapper crates can optionally be specified to allow the crate when it
     # is a direct dependency of the otherwise banned crate
     #{ name = "ansi_term", version = "=0.11.0", wrappers = [] },
-    { name = "atomic_refcell", version = "=0.1.8" }
 ]
 # Certain crates/versions that will be skipped when doing duplicate detection.
 skip = [
