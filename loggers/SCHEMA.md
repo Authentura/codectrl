@@ -68,14 +68,14 @@ Language loggers should implement the required functions at the very least to be
 
 The following are the required functions (using `snake_case` naming convention):
 
-1. `log` - The basic log function. Should take 4 total parameters: `message : T` (required), `surround : uint` (optional), `host : string` (optional), `port : string/int` (optional).
-2. `log_if` - A conditional log function. Essentially a wrapper over `log`. Should take 5 total parameters: `condition : closure/lambda/anonymous function` (required), `message : T` (required), `surround : uint` (optional), `host : string` (optional), `port : string/int` (optional).
-	- `condition` _must_ return a `bool` and _must_ be required. If `condition` evaluates to `true`, then the log must be sent.
-3. `log_if_env` - Another conditional log function, though this only logs if the `CODECTRL_DEBUG` environment variable is set. Should take 4 total parameters: `message : T` (required), `surround : uint` (optional), `host : string` (optional), `port : string/int` (optional).
+1. `log` - The basic log function - `fn log e(message : T, surround : uint = 3, host : string = "127.0.0.1", port : string/int = 3001)`.
+2. `log_if` - A conditional log function. Essentially a wrapper over `log` - `fn log_if (condition : function pointer, message : T, surround : uint, host : string = "127.0.0.1", port : string/int = 3001)`.
+	- `condition` _must_ be a function pointer or the equivalent in the language (a lambda in Python for example). _Must_ return a `bool` and _must_ be required. If `condition` evaluates to `true`, then the log must be sent.
+3. `log_if_env` - Another conditional log function, though this only logs if the `CODECTRL_DEBUG` environment variable is set - `fn log_if_env (message : T, surround : uint = 3, host : string = "127.0.0.1", port : string/int = 3001)`.
 
 As each of the log functions can take a `message`, `surround`, `host`, and `port`, here is some requirements for each parameter: 
 
-- `message` _must not_ be an optional parameter and can be any `T` where `T` has an acceptable readable print-out. In the case of Rust, `log` takes any `T` which implements `Debug` and uses that as its readable print-out.
+- `message` _must not_ be an optional parameter and can be any `T` where `T` has an acceptable "to string" implementation. In the case of Rust, the log functions take any `T` which implements `Debug` and uses that for the acceptable "to string" implementation.
 - `surround` must be optional<sup>1</sup>. `surround` must be a non-negative number (hence the `uint` typing). If the language has no concept of unsigned integers, please make sure that the log function explicitly checks that the `surround` argument is not negative and returns an acceptably descriptive error. The default value must be 3 for consistency.
 - `host` must be optional<sup>1</sup>. The default value must be "127.0.0.1" for consistency.
 - `port` must be optional<sup>1</sup>. The default value must be "3001" for consistency.
