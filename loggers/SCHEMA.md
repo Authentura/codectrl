@@ -68,7 +68,7 @@ Language loggers should implement the required functions at the very least to be
 
 The following are the required functions (using `snake_case` naming convention):
 
-1. `log` - The basic log function - `fn log e(message : T, surround : uint = 3, host : string = "127.0.0.1", port : string/int = 3001)`.
+1. `log` - The basic log function - `fn log (message : T, surround : uint = 3, host : string = "127.0.0.1", port : string/int = 3001)`.
 2. `log_if` - A conditional log function. Essentially a wrapper over `log` - `fn log_if (condition : function pointer, message : T, surround : uint, host : string = "127.0.0.1", port : string/int = 3001)`.
 	- `condition` _must_ be a function pointer or the equivalent in the language (a lambda in Python for example). _Must_ return a `bool` and _must_ be required. If `condition` evaluates to `true`, then the log must be sent.
 3. `log_if_env` - Another conditional log function, though this only logs if the `CODECTRL_DEBUG` environment variable is set - `fn log_if_env (message : T, surround : uint = 3, host : string = "127.0.0.1", port : string/int = 3001)`.
