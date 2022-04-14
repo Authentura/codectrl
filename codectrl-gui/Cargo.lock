@@ -179,6 +179,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "authentura-egui-styling"
+version = "0.1.0"
+source = "git+https://github.com/Authentura/authentura-egui-styling#f7b2edc7aa50d356adb405e07126dab70e849fa1"
+dependencies = [
+ "egui",
+ "lazy_static",
+ "serde",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -436,6 +446,7 @@ dependencies = [
 name = "codectrl_gui"
 version = "0.0.0"
 dependencies = [
+ "authentura-egui-styling",
  "chrono",
  "ciborium",
  "clap",

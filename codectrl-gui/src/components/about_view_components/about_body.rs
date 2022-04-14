@@ -1,7 +1,8 @@
-use crate::{
-    components::DARK_HEADER_FOREGROUND_COLOUR, consts, data::window_states::AboutState,
-};
+use crate::{consts, data::window_states::AboutState};
 
+use authentura_egui_styling::{
+    get_mono_license, get_sans_license, DARK_HEADER_FOREGROUND_COLOUR,
+};
 use clap::{crate_authors, crate_description, crate_version};
 use egui::{Context, CursorIcon, RichText, Sense, TextStyle, Ui};
 
@@ -86,22 +87,18 @@ pub fn draw_about_body(about_state: &AboutState, ctx: &Context, ui: &mut Ui) {
                         .color(DARK_HEADER_FOREGROUND_COLOUR),
                 );
                 ui.add(
-                    egui::TextEdit::multiline(&mut include_str!(
-                        "../../../../assets/fonts/red-hat/LICENSE"
-                    ))
-                    .desired_width(ui.available_width())
-                    .font(TextStyle::Monospace),
+                    egui::TextEdit::multiline(&mut get_mono_license())
+                        .desired_width(ui.available_width())
+                        .font(TextStyle::Monospace),
                 );
 
                 ui.heading(
                     RichText::new("Roboto License").color(DARK_HEADER_FOREGROUND_COLOUR),
                 );
                 ui.add(
-                    egui::TextEdit::multiline(&mut include_str!(
-                        "../../../../assets/fonts/roboto/LICENSE"
-                    ))
-                    .desired_width(ui.available_width())
-                    .font(TextStyle::Monospace),
+                    egui::TextEdit::multiline(&mut get_sans_license())
+                        .desired_width(ui.available_width())
+                        .font(TextStyle::Monospace),
                 );
             },
         });

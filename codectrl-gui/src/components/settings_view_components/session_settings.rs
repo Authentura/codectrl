@@ -1,5 +1,4 @@
-use crate::components::theming::DARK_HEADER_FOREGROUND_COLOUR;
-
+use authentura_egui_styling::DARK_HEADER_FOREGROUND_COLOUR;
 use egui::{RichText, Ui};
 use std::collections::BTreeSet;
 

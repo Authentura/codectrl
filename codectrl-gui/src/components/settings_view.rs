@@ -1,9 +1,7 @@
-use super::{
-    settings_view_components::{draw_application_settings, draw_session_settings},
-    theming::DARK_HEADER_FOREGROUND_COLOUR,
-};
+use super::settings_view_components::{draw_application_settings, draw_session_settings};
 use crate::data::AppState;
 
+use authentura_egui_styling::DARK_HEADER_FOREGROUND_COLOUR;
 use egui::{Context, Id, RichText};
 
 pub fn settings_view(

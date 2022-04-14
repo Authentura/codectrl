@@ -1,11 +1,9 @@
 use crate::{
-    components::{
-        details_view_components::code_highlighter, message_preview_view,
-        DARK_HEADER_FOREGROUND_COLOUR,
-    },
+    components::{details_view_components::code_highlighter, message_preview_view},
     data::AppState,
 };
 
+use authentura_egui_styling::DARK_HEADER_FOREGROUND_COLOUR;
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{

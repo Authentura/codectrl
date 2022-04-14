@@ -1,6 +1,6 @@
 use super::{window_states::AboutState, ApplicationSettings, Filter, Received};
-use crate::components::dark_theme;
 
+use authentura_egui_styling::dark_theme;
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::Visuals;

@@ -1,5 +1,6 @@
-use crate::{components::DARK_HEADER_FOREGROUND_COLOUR, data::window_states::AboutState};
+use crate::data::window_states::AboutState;
 
+use authentura_egui_styling::DARK_HEADER_FOREGROUND_COLOUR;
 use egui::{RichText, Ui};
 
 pub fn draw_tab_bar(about_state: &mut AboutState, ui: &mut Ui) {

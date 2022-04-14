@@ -7,5 +7,5 @@ pub mod window_states;
 
 pub use app_state::AppState;
 pub use filter::Filter;
-pub use settings::{ApplicationSettings, FontSizes};
+pub use settings::ApplicationSettings;
 pub use types::{Received, Receiver, TimeFormatString};

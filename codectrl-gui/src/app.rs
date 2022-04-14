@@ -24,15 +24,14 @@
 // Further changes can be discussed and implemented at later dates, but this is
 // the proposal so far.
 
-use crate::components::{
-    about_view, application_style, details_view, fonts, main_view, main_view_empty,
-    settings_view,
+use crate::{
+    components::{about_view, details_view, main_view, main_view_empty, settings_view},
+    data::{AppState, Filter, Receiver},
 };
-#[cfg(not(target_arch = "wasm32"))]
-use crate::data::{AppState, Filter, FontSizes, Receiver};
-#[cfg(target_arch = "wasm32")]
-use crate::data::{AppState, Filter, Receiver};
 
+#[cfg(not(target_arch = "wasm32"))]
+use authentura_egui_styling::FontSizes;
+use authentura_egui_styling::{application_style, fonts};
 use chrono::{DateTime, Local};
 use ciborium::de as ciborium_de;
 #[cfg(not(target_arch = "wasm32"))]

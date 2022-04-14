@@ -1,8 +1,6 @@
-use crate::{
-    components::DARK_HEADER_FOREGROUND_COLOUR,
-    data::{ApplicationSettings, TimeFormatString},
-};
+use crate::data::{ApplicationSettings, TimeFormatString};
 
+use authentura_egui_styling::DARK_HEADER_FOREGROUND_COLOUR;
 use egui::{Button, RichText, Ui};
 
 pub fn draw_application_settings(
