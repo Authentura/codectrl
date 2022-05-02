@@ -4,7 +4,8 @@ use crate::data::{AppState, Filter};
 use authentura_egui_styling::{CODECTRL_GREEN, DARK_HEADER_FOREGROUND_COLOUR};
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
-use egui::{Context, RichText, TextStyle};
+use egui::{Context, Direction, Layout, RichText, TextStyle, Ui};
+use egui_extras::Size;
 use regex::RegexBuilder;
 
 fn app_state_filter(
@@ -88,36 +89,36 @@ pub fn main_view(app_state: &mut AppState, ctx: &Context) {
                 .max_width(ui.available_width())
                 .max_height(ui.available_height() - app_state.preview_height)
                 .auto_shrink([false, false])
+                .enable_scrolling(false)
+                .scroll2([false, false])
                 .show(ui, |ui| {
-                    egui::Grid::new("received_grid")
-                        .striped(true)
-                        .spacing((0.0, 10.0))
-                        .min_col_width(ui.available_width() / 6.0)
-                        .max_col_width(ui.available_width() / 6.0)
-                        .show(ui, |ui| {
-                            ui.heading("");
-                            ui.heading(
-                                RichText::new("Message")
-                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
-                            );
-                            ui.heading(
-                                RichText::new("Host")
-                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
-                            );
-                            ui.heading(
-                                RichText::new("File name")
-                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
-                            );
-                            ui.heading(
-                                RichText::new("Line number")
-                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
-                            );
-                            ui.heading(
-                                RichText::new("Date & time")
-                                    .color(DARK_HEADER_FOREGROUND_COLOUR),
-                            );
-                            ui.end_row();
+                    let heading = |ui: &mut Ui, text| {
+                        ui.heading(
+                            RichText::new(text).color(DARK_HEADER_FOREGROUND_COLOUR),
+                        );
+                    };
 
+                    egui_extras::TableBuilder::new(ui)
+                        .striped(true)
+                        .resizable(true)
+                        .cell_layout(Layout::centered_and_justified(
+                            Direction::LeftToRight,
+                        ))
+                        .column(Size::exact(110.0))
+                        .column(Size::remainder().at_least(200.0).at_most(500.0))
+                        .column(Size::initial(100.0).at_least(100.0).at_most(150.0))
+                        .column(Size::remainder().at_least(200.0).at_most(500.0))
+                        .column(Size::initial(100.0).at_least(100.0).at_most(150.0))
+                        .column(Size::remainder().at_least(50.0))
+                        .header(30.0, |mut header| {
+                            header.col(|ui| heading(ui, ""));
+                            header.col(|ui| heading(ui, "Message"));
+                            header.col(|ui| heading(ui, "Host"));
+                            header.col(|ui| heading(ui, "File name"));
+                            header.col(|ui| heading(ui, "Line number"));
+                            header.col(|ui| heading(ui, "Date & time"));
+                        })
+                        .body(|mut body| {
                             let received_vec = app_state.received.read().unwrap();
                             let mut received_vec: Vec<_> = received_vec.iter().collect();
 
@@ -139,17 +140,20 @@ pub fn main_view(app_state: &mut AppState, ctx: &Context) {
                                     time,
                                 )
                             }) {
-                                draw_log_item(
-                                    &app_state.message_alerts,
-                                    &mut app_state.clicked_item,
-                                    app_state.do_scroll_to_selected_log,
-                                    received,
-                                    ui,
-                                );
+                                body.row(40.0, |mut row| {
+                                    draw_log_item(
+                                        &app_state.message_alerts,
+                                        &mut app_state.clicked_item,
+                                        app_state.do_scroll_to_selected_log,
+                                        received,
+                                        &mut row,
+                                    );
+                                });
                             }
                         });
                 });
         });
+        // });
     });
 }
 

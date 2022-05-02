@@ -37,10 +37,10 @@ use ciborium::de as ciborium_de;
 #[cfg(not(target_arch = "wasm32"))]
 use ciborium::ser as ciborium_ser;
 use codectrl_logger::Log;
+use eframe::{Frame, Storage};
 use egui::{Context, Vec2};
 #[cfg(not(target_arch = "wasm32"))]
 use egui::{Event, InputState, Key};
-use epi::{Frame, Storage};
 use flate2::bufread;
 #[cfg(not(target_arch = "wasm32"))]
 use flate2::{write, Compression};
@@ -92,25 +92,92 @@ pub struct App {
 
 impl App {
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn new(receiver: Rx<Log<String>>, socket_address: String) -> Self {
-        Self {
+    pub fn new(
+        cc: &eframe::CreationContext,
+        receiver: Rx<Log<String>>,
+        socket_address: String,
+    ) -> Self {
+        let mut app = Self {
             receiver: Some(Arc::new(Mutex::new(receiver))),
             update_thread: None,
             data: AppState::default(),
             title: "codeCTRL",
             socket_address,
+        };
+
+        cc.egui_ctx.set_fonts(fonts());
+        cc.egui_ctx
+            .set_style(application_style(app.data.application_settings.font_sizes));
+
+        if let Some(storage) = cc.storage {
+            let data: AppState =
+                eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+
+            if data.preserve_session {
+                app.data = data;
+            } else {
+                app.data = AppState::default();
+                app.data.preserve_session = false;
+            }
         }
+
+        let rx = Arc::clone(app.receiver.as_ref().unwrap());
+        let received = Arc::clone(&app.data.received);
+
+        cc.egui_ctx.set_visuals(app.data.current_theme.clone());
+
+        app.update_thread = Some(unsafe {
+            ThreadBuilder::new()
+                .name("update_thread".into())
+                .spawn_unchecked(move || loop {
+                    let recd = match rx.try_lock() {
+                        Ok(lock) => lock,
+                        Err(error) => {
+                            eprintln!("Could not get lock on mutex: {error}");
+                            continue;
+                        },
+                    }
+                    .recv();
+
+                    if let Ok(recd) = recd {
+                        received.write().unwrap().push_front((recd, Local::now()));
+                    }
+                })
+                .expect("Could not start codeCTRL update thread")
+        });
+
+        app
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub fn new() -> Self {
-        Self {
+    pub fn new(cc: &eframe::CreationContext) -> Self {
+        let mut app = Self {
             receiver: None,
             update_thread: None,
             data: AppState::default(),
             title: "codeCTRL",
             socket_address: "".into(),
+        };
+
+        if let Some(storage) = cc.storage {
+            let data: AppState =
+                eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+
+            if data.preserve_session {
+                app.data = data;
+            } else {
+                app.data = AppState::default();
+                app.data.preserve_session = false;
+            }
         }
+
+        cc.egui_ctx.set_fonts(fonts());
+        cc.egui_ctx
+            .set_style(application_style(app.data.application_settings.font_sizes));
+
+        app.update_thread = None;
+
+        app
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -387,11 +454,8 @@ impl App {
     }
 }
 
-impl epi::App for App {
-    fn update(&mut self, ctx: &Context, _frame: &Frame) {
-        ctx.set_fonts(fonts());
-        ctx.set_style(application_style(self.data.application_settings.font_sizes));
-
+impl eframe::App for App {
+    fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
         #[cfg(not(target_arch = "wasm32"))]
         self.handle_key_inputs(&ctx.input());
 
@@ -546,64 +610,8 @@ impl epi::App for App {
         } else {
             self.data.preview_height = 0.0;
         }
-    }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    fn setup(&mut self, ctx: &Context, frame: &Frame, storage: Option<&dyn Storage>) {
-        if let Some(storage) = storage {
-            let data: AppState =
-                epi::get_value(storage, epi::APP_KEY).unwrap_or_default();
-
-            if data.preserve_session {
-                self.data = data;
-            } else {
-                self.data = AppState::default();
-                self.data.preserve_session = false;
-            }
-        }
-
-        let rx = Arc::clone(self.receiver.as_ref().unwrap());
-        let received = Arc::clone(&self.data.received);
-
-        ctx.set_visuals(self.data.current_theme.clone());
-
-        self.update_thread = Some(unsafe {
-            ThreadBuilder::new()
-                .name("update_thread".into())
-                .spawn_unchecked(move || loop {
-                    let recd = match rx.try_lock() {
-                        Ok(lock) => lock,
-                        Err(error) => {
-                            eprintln!("Could not get lock on mutex: {error}");
-                            continue;
-                        },
-                    }
-                    .recv();
-
-                    if let Ok(recd) = recd {
-                        received.write().unwrap().push_front((recd, Local::now()));
-                        frame.request_repaint();
-                    }
-                })
-                .expect("Could not start codeCTRL update thread")
-        });
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    fn setup(&mut self, _ctx: &Context, _frame: &Frame, storage: Option<&dyn Storage>) {
-        if let Some(storage) = storage {
-            let data: AppState =
-                epi::get_value(storage, epi::APP_KEY).unwrap_or_default();
-
-            if data.preserve_session {
-                self.data = data;
-            } else {
-                self.data = AppState::default();
-                self.data.preserve_session = false;
-            }
-        }
-
-        self.update_thread = None;
+        ctx.request_repaint();
     }
 
     fn max_size_points(&self) -> egui::Vec2 {
@@ -613,9 +621,7 @@ impl epi::App for App {
         }
     }
 
-    fn name(&self) -> &str { self.title }
-
     fn save(&mut self, storage: &mut dyn Storage) {
-        epi::set_value(storage, epi::APP_KEY, &self.data);
+        eframe::set_value(storage, eframe::APP_KEY, &self.data);
     }
 }

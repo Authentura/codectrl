@@ -31,7 +31,7 @@ pub fn run() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
     tracing_wasm::set_as_global_default();
 
-    eframe::start_web("codectrl-root", Box::new(App::new()))
+    eframe::start_web("codectrl-root", Box::new(|cc| Box::new(App::new(cc))))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -116,23 +116,37 @@ pub async fn run() {
         server.run_server_new_runtime().unwrap();
     });
 
-    let mut app = App::new(receiver, socket_address);
+    // let mut app = App::new(receiver, socket_address);
 
-    if let Some(project_file) = project_file {
+    let file_path = if let Some(project_file) = project_file {
         let file_path = match Path::new(project_file).canonicalize() {
             Ok(file_path) => file_path,
             Err(error) => panic!("Could not cannonicalise PROJECT file path: {error}"),
         };
 
-        if let Err(error) = App::load_from_file(&file_path, &mut app) {
-            panic!("An error occurred: {error}")
-        }
-    }
-
-    let options = egui_glow::NativeOptions {
-        drag_and_drop_support: true,
-        ..egui_glow::NativeOptions::default()
+        file_path
+    } else {
+        Path::new("").to_path_buf()
     };
 
-    eframe::run_native(Box::new(app), options);
+    let options = eframe::NativeOptions {
+        drag_and_drop_support: true,
+        ..eframe::NativeOptions::default()
+    };
+
+    eframe::run_native(
+        "codeCtrl",
+        options,
+        Box::new(move |cc| {
+            let mut app = App::new(cc, receiver, socket_address);
+
+            if file_path.exists() {
+                if let Err(error) = App::load_from_file(&file_path, &mut app) {
+                    panic!("An error occurred: {error}");
+                }
+            }
+
+            Box::new(app)
+        }),
+    );
 }

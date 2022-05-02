@@ -11,6 +11,8 @@ use egui::{
 };
 use xxhash_rust::xxh3::xxh3_128 as xxhash;
 
+// TODO: Use a table instead of manually laying out a grid.
+
 pub fn draw_information_grid(app_state: &mut AppState, ctx: &Context, ui: &mut Ui) {
     app_state.preview_height = ui.available_height() + 2.0;
 
@@ -216,7 +218,7 @@ fn code_scroll(
                     *code_hash = xxhash(string.as_bytes());
                 }
 
-                layout_job.wrap_width = wrap_width;
+                layout_job.wrap.max_width = wrap_width;
                 ui.fonts().layout_job(layout_job)
             };
 
@@ -234,7 +236,7 @@ fn code_scroll(
             })
             .context_menu(|ui| {
                 ui.menu_button("Copy", |ui| {
-                    if ui.button("Copy with line number indictator").clicked() {
+                    if ui.button("Copy with line number indicator").clicked() {
                         ctx.output().copied_text = indicated_code.clone();
                     }
 

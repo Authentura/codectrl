@@ -1,6 +1,6 @@
 [package]
 name = "codectrl_log_server"
-version = "0.0.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Authentura <contact@authentura.com>", "Samuel Boyden <s.boyden@authentura.com>"]
 license = "MIT"

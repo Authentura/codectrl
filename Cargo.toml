@@ -1,6 +1,6 @@
 [package]
 name = "codectrl"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Authentura <contact@authentura.com>", "Samuel Boyden <s.boyden@authentura.com>"]
 description = "A source code analytic tool. Using egui version 0.16."
@@ -14,7 +14,7 @@ readme = "README.md"
 codectrl_gui = { path = "./codectrl-gui" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-eframe = "0.17"
+eframe = "0.18"
 
 [package.metadata.deb]
 name = "codectrl"

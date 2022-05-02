@@ -1,6 +1,6 @@
 [package]
 name = "codectrl_gui"
-version = "0.0.0"
+version = "0.3.0"
 edition = "2021"
 authors = [
     "Authentura <contact@authentura.com>",
@@ -10,20 +10,20 @@ authors = [
     "Balázs Cene (@bczsalba on Github) <bczsalba@gmail.com>",
     "Collin Joseph <c.joseph@authentura.com>"
 ]
-description = "A source code analytic tool. Using egui version 0.17."
+description = "A source code analytic tool. Using egui version 0.18."
 rust-version = "1.62.0"
 license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-authentura-egui-styling = { git = "https://github.com/Authentura/authentura-egui-styling" }
+authentura-egui-styling = { git = "https://github.com/Authentura/authentura-egui-styling", rev = "51b23f1" }
 ciborium = "0.2"
 clap = { version = "3.1", features = ["cargo"] }
 codectrl_logger = { git = "https://github.com/authentura/codectrl-rust-logger", default-features = false, features = ["types-only"] }
-eframe = "0.17"
-egui = { version = "0.17", features = ["persistence"] }
-epi = { version = "0.17", features = ["persistence"] }
+eframe = { version = "0.18", features = ["persistence"] }
+egui = { version = "0.18", features = ["persistence"] }
+egui_extras = "0.18"
 flate2 = "1.0"
 lazy_static = "1.4"
 regex = "1.5"
@@ -45,7 +45,7 @@ web-sys = { version = "0.3", features = ["File", "FilePropertyBag", "console"]}
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 chrono = { version = "0.4", features = ["serde"] }
 codectrl_log_server = { path = "../codectrl-log-server" }
-egui_glow = "0.17"
+egui_glow = "0.18"
 rfd = "0.8"
 tokio = { version = "1.17", default-features = false, features = ["net", "rt-multi-thread", "io-util", "macros"] }
 
