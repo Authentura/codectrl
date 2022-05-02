@@ -86,11 +86,9 @@ pub fn main_view(app_state: &mut AppState, ctx: &Context) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {
             egui::ScrollArea::vertical()
-                .max_width(ui.available_width())
                 .max_height(ui.available_height() - app_state.preview_height)
                 .auto_shrink([false, false])
-                .enable_scrolling(false)
-                .scroll2([false, false])
+                .scroll2([true, false])
                 .show(ui, |ui| {
                     let heading = |ui: &mut Ui, text| {
                         ui.heading(
