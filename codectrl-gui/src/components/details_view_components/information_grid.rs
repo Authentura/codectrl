@@ -7,11 +7,10 @@ use authentura_egui_styling::DARK_HEADER_FOREGROUND_COLOUR;
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{
-    text::LayoutJob, Context, Layout, RichText, Sense, TextStyle, Ui, WidgetText,
+    text::LayoutJob, Context, Layout, RichText, Sense, TextStyle, Ui, Vec2, WidgetText,
 };
+use egui_extras::{Size, TableBuilder};
 use xxhash_rust::xxh3::xxh3_128 as xxhash;
-
-// TODO: Use a table instead of manually laying out a grid.
 
 pub fn draw_information_grid(app_state: &mut AppState, ctx: &Context, ui: &mut Ui) {
     app_state.preview_height = ui.available_height() + 2.0;
@@ -38,36 +37,45 @@ pub fn draw_information_grid(app_state: &mut AppState, ctx: &Context, ui: &mut U
     });
 
     ui.separator();
-    egui::Grid::new("log_information_grid_headers")
-        .num_columns(2)
-        .max_col_width(ui.available_width() / 2.0)
-        .min_col_width(ui.available_width() / 2.0)
-        .show(ui, |ui| {
-            ui.heading(RichText::new("Details").color(DARK_HEADER_FOREGROUND_COLOUR));
-            ui.heading(RichText::new("Code").color(DARK_HEADER_FOREGROUND_COLOUR));
-        });
 
-    egui::Grid::new("log_information_grid")
-        .num_columns(2)
-        .max_col_width(ui.available_width() / 2.0)
-        .min_col_width(ui.available_width() / 2.0)
-        .min_row_height(ui.available_height())
-        .show(ui, |ui| {
-            if let Some((log, time)) = app_state.clicked_item.clone() {
-                detail_scroll(app_state, &log, &time, ctx, ui);
-                code_scroll(
-                    &mut app_state.is_copying_line_indicator,
-                    &mut app_state.is_copying_line_numbers,
-                    &mut app_state.copy_language,
-                    &mut app_state.code_hash,
-                    &mut app_state.code_job,
-                    &log,
-                    ctx,
-                    ui,
-                );
-            }
+    let half_width = ui.available_width() / 2.0;
+    let available_height = ui.available_height() - 23.0;
 
-            ui.end_row();
+    let heading = |ui: &mut Ui, text: &str| {
+        ui.heading(RichText::new(text).color(DARK_HEADER_FOREGROUND_COLOUR));
+    };
+
+    TableBuilder::new(ui)
+        .column(
+            Size::initial(half_width)
+                .at_least(600.0)
+                .at_most(half_width + 200.0),
+        )
+        .column(Size::remainder().at_least(400.0))
+        .scroll(true)
+        .resizable(true)
+        .header(20.0, |mut header| {
+            header.col(|ui| heading(ui, "Details"));
+            header.col(|ui| heading(ui, "Code"));
+        })
+        .body(|mut body| {
+            body.row(available_height, |mut row| {
+                if let Some((log, time)) = app_state.clicked_item.clone() {
+                    row.col(|ui| detail_scroll(app_state, &log, &time, ctx, ui));
+                    row.col(|ui| {
+                        code_scroll(
+                            &mut app_state.is_copying_line_indicator,
+                            &mut app_state.is_copying_line_numbers,
+                            &mut app_state.copy_language,
+                            &mut app_state.code_hash,
+                            &mut app_state.code_job,
+                            &log,
+                            ctx,
+                            ui,
+                        )
+                    });
+                }
+            })
         });
 }
 
@@ -80,7 +88,7 @@ fn detail_scroll(
 ) {
     egui::ScrollArea::vertical()
         .id_source("detail_scroll")
-        .auto_shrink([false, false])
+        .auto_shrink([false; 2])
         .show(ui, |ui| {
             ui.vertical(|ui| {
                 ui.horizontal_wrapped(|ui| {
@@ -178,7 +186,7 @@ fn code_scroll(
 ) {
     egui::ScrollArea::vertical()
         .id_source("code_scroll")
-        .auto_shrink([false, false])
+        .auto_shrink([true; 2])
         .max_height(ui.available_height())
         .max_width(ui.available_width() - 10.0)
         .show(ui, |ui| {
@@ -204,7 +212,6 @@ fn code_scroll(
             let mut indicated_code = indicated_code.trim_end().to_string();
 
             let mut layouter = |ui: &Ui, string: &str, wrap_width: f32| {
-                // TODO: Hardcoded Langauge should be accepted from the log
                 let hash: u128 = xxhash(string.as_bytes());
                 let mut layout_job: LayoutJob;
 
@@ -223,7 +230,7 @@ fn code_scroll(
             };
 
             ui.add_sized(
-                ui.available_size(),
+                ui.available_size() - Vec2::new(0.0, 10.0),
                 egui::TextEdit::multiline(&mut indicated_code)
                     .desired_width(ui.available_width())
                     .interactive(false)

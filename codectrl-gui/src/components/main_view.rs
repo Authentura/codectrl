@@ -5,7 +5,7 @@ use authentura_egui_styling::{CODECTRL_GREEN, DARK_HEADER_FOREGROUND_COLOUR};
 use chrono::{DateTime, Local};
 use codectrl_logger::Log;
 use egui::{Context, Direction, Layout, RichText, TextStyle, Ui};
-use egui_extras::Size;
+use egui_extras::{Size, TableBuilder};
 use regex::RegexBuilder;
 
 fn app_state_filter(
@@ -96,7 +96,7 @@ pub fn main_view(app_state: &mut AppState, ctx: &Context) {
                         );
                     };
 
-                    egui_extras::TableBuilder::new(ui)
+                    TableBuilder::new(ui)
                         .striped(true)
                         .resizable(true)
                         .cell_layout(Layout::centered_and_justified(
