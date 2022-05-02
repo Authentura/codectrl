@@ -106,7 +106,7 @@ pub fn main_view(app_state: &mut AppState, ctx: &Context) {
                         .column(Size::remainder().at_least(200.0).at_most(500.0))
                         .column(Size::initial(100.0).at_least(100.0).at_most(150.0))
                         .column(Size::remainder().at_least(200.0).at_most(500.0))
-                        .column(Size::initial(100.0).at_least(100.0).at_most(150.0))
+                        .column(Size::initial(120.0).at_least(120.0).at_most(150.0))
                         .column(Size::remainder().at_least(50.0))
                         .header(30.0, |mut header| {
                             header.col(|ui| heading(ui, ""));
