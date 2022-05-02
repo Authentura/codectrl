@@ -48,7 +48,7 @@ pub fn draw_information_grid(app_state: &mut AppState, ctx: &Context, ui: &mut U
     TableBuilder::new(ui)
         .column(
             Size::initial(half_width)
-                .at_least(600.0)
+                .at_least(100.0)
                 .at_most(half_width + 200.0),
         )
         .column(Size::remainder().at_least(400.0))
@@ -86,17 +86,17 @@ fn detail_scroll(
     ctx: &Context,
     ui: &mut Ui,
 ) {
-    egui::ScrollArea::vertical()
+    egui::ScrollArea::new([true; 2])
         .id_source("detail_scroll")
         .auto_shrink([false; 2])
         .show(ui, |ui| {
             ui.vertical(|ui| {
-                ui.horizontal_wrapped(|ui| {
+                ui.horizontal(|ui| {
                     ui.label("Position:");
                     ui.label(format!("{}:{}", &log.file_name, log.line_number));
                 });
 
-                ui.horizontal_wrapped(|ui| {
+                ui.horizontal(|ui| {
                     ui.label("Message:");
 
                     if log.message.len() <= 200 {
@@ -117,17 +117,17 @@ fn detail_scroll(
                     }
                 });
 
-                ui.horizontal_wrapped(|ui| {
+                ui.horizontal(|ui| {
                     ui.label("Message type:");
                     ui.code(&log.message_type);
                 });
 
-                ui.horizontal_wrapped(|ui| {
+                ui.horizontal(|ui| {
                     ui.label("Received at:");
                     ui.label(time.format("%F %X").to_string());
                 });
 
-                ui.horizontal_wrapped(|ui| {
+                ui.horizontal(|ui| {
                     ui.label("Received from:");
                     ui.label(&log.address);
                 });
