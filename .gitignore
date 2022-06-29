@@ -1,10 +1,9 @@
-/target
+/target/
 /server/target/
 /loggers/rust/target/
-codectrl-gui/target
-codectrl-log-server/target
-codectrl-web/codectrl-web-frontend/target
-codectrl-web/codectrl-web-frontend/dist
-
-dist
-.idea
+/codectrl-gui/target/
+/codectrl-log-server/target/
+/codectrl-server/target/
+/codectrl-protobuf-bindings/target
+/dist/
+/.idea/

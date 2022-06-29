@@ -1,9 +1,3 @@
-[submodule "loggers/rust-logger"]
-	path = loggers/rust-logger
-	url = https://github.com/pwnCTRL/codectrl-rust-logger
-[submodule "loggers/python-logger"]
-	path = loggers/python-logger
-	url = https://github.com/pwnCTRL/codectrl-python-logger
-[submodule "loggers/cxx-logger"]
-	path = loggers/cxx-logger
-	url = https://github.com/pwnCTRL/codectrl-cxx-logger
+[submodule "codectrl-protobuf-bindings/proto"]
+	path = codectrl-protobuf-bindings/proto
+	url = git@github.com:Authentura/codectrl-protobuf-specifications

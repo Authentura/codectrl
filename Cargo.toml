@@ -2,7 +2,10 @@
 name = "codectrl"
 version = "0.4.0"
 edition = "2021"
-authors = ["Authentura <contact@authentura.com>", "Samuel Boyden <s.boyden@authentura.com>"]
+authors = [
+  "Authentura <contact@authentura.com>",
+  "Samuel Boyden <s.boyden@authentura.com>",
+]
 description = "A source code analytic tool. Using egui version 0.16."
 license = "MIT"
 rust-version = "1.62.0"
@@ -21,9 +24,7 @@ name = "codectrl"
 maintainer = "Samuel Boyden <s.boyden@authentura.com>"
 copyright = "2022, Authentura <contact@authentura.com>"
 license-file = ["LICENSE", "4"]
-assets = [
-  ["README.md", "usr/share/doc/codectrl/README", "644"]
-]
+assets = [["README.md", "usr/share/doc/codectrl/README", "644"]]
 
 [package.metadata.rpm]
 package = "codectrl"

@@ -54,7 +54,7 @@ dependencies = [
 
 [[package]]
 name = "codectrl_log_server"
-version = "0.0.0"
+version = "0.3.0"
 dependencies = [
  "ciborium",
  "codectrl_logger",
