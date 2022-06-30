@@ -1,0 +1,204 @@
+{
+    "_type": "export",
+    "__export_format": 4,
+    "__export_date": "2022-06-30T00:51:41.897Z",
+    "__export_source": "insomnia.desktop.app:v2022.3.0",
+    "resources": [
+        {
+            "_id": "greq_4ecd61c2b2a64c0193fee9697d66f1a2",
+            "parentId": "fld_927a87a8e0cf49d6944601e849b4a0d6",
+            "modified": 1656550174706,
+            "created": 1656468326398,
+            "url": "127.0.0.1:3002",
+            "name": "Get log stream",
+            "description": "",
+            "protoFileId": "pf_d73edc4d63a84be0966c5e81ae46cec6",
+            "protoMethodName": "/codectrl.logs_service.LogServer/GetLogs",
+            "metadata": [
+
+            ],
+            "body": {
+                "text": "{}"
+            },
+            "metaSortKey": -1656509247880,
+            "isPrivate": false,
+            "_type": "grpc_request"
+        },
+        {
+            "_id": "fld_927a87a8e0cf49d6944601e849b4a0d6",
+            "parentId": "wrk_17bf9a6d97a44219b2f1e45be87787fa",
+            "modified": 1656550196375,
+            "created": 1656550169361,
+            "name": "Get",
+            "description": "",
+            "environment": {
+
+            },
+            "environmentPropertyOrder": null,
+            "metaSortKey": -1656550169362,
+            "_type": "request_group"
+        },
+        {
+            "_id": "wrk_17bf9a6d97a44219b2f1e45be87787fa",
+            "parentId": null,
+            "modified": 1656466299909,
+            "created": 1656466299909,
+            "name": "codectrl",
+            "description": "",
+            "scope": "collection",
+            "_type": "workspace"
+        },
+        {
+            "_id": "greq_70ca68469e9c47a7813cd21923c178c2",
+            "parentId": "fld_927a87a8e0cf49d6944601e849b4a0d6",
+            "modified": 1656550177975,
+            "created": 1656466473764,
+            "url": "127.0.0.1:3002",
+            "name": "Get latest log",
+            "description": "",
+            "protoFileId": "pf_d73edc4d63a84be0966c5e81ae46cec6",
+            "protoMethodName": "/codectrl.logs_service.LogServer/GetLog",
+            "metadata": [
+
+            ],
+            "body": {
+                "text": "{}"
+            },
+            "metaSortKey": -1656509247830,
+            "isPrivate": false,
+            "_type": "grpc_request"
+        },
+        {
+            "_id": "greq_9244513a864044a1a2b1a3d0e61d1d02",
+            "parentId": "fld_00ea1b5b5edc48f4bd81f3a35b629e5c",
+            "modified": 1656550257116,
+            "created": 1656545592555,
+            "url": "localhost:3002",
+            "name": "Send log stream",
+            "description": "",
+            "protoFileId": "pf_d73edc4d63a84be0966c5e81ae46cec6",
+            "protoMethodName": "/codectrl.logs_service.LogClient/SendLogs",
+            "metadata": [
+
+            ],
+            "body": {
+                "text": "{\n\t\"stack\": [],\n\t\"warnings\": [],\n\t\"codeSnippet\": {},\n\t\"lineNumber\": 0,\n\t\"message\": \"\",\n\t\"messageType\": \"\",\n\t\"fileName\": \"\",\n\t\"address\": \"\",\n\t\"language\": \"\"\n}"
+            },
+            "metaSortKey": -1656466473739,
+            "isPrivate": false,
+            "_type": "grpc_request"
+        },
+        {
+            "_id": "fld_00ea1b5b5edc48f4bd81f3a35b629e5c",
+            "parentId": "wrk_17bf9a6d97a44219b2f1e45be87787fa",
+            "modified": 1656550205441,
+            "created": 1656550202922,
+            "name": "Send",
+            "description": "",
+            "environment": {
+
+            },
+            "environmentPropertyOrder": null,
+            "metaSortKey": -1656508321550.5,
+            "_type": "request_group"
+        },
+        {
+            "_id": "greq_c3407c4e00bf43bba2737cfcf9d5f5bc",
+            "parentId": "fld_00ea1b5b5edc48f4bd81f3a35b629e5c",
+            "modified": 1656550214250,
+            "created": 1656545560858,
+            "url": "localhost:3002",
+            "name": "Send log",
+            "description": "",
+            "protoFileId": "pf_d73edc4d63a84be0966c5e81ae46cec6",
+            "protoMethodName": "/codectrl.logs_service.LogClient/SendLog",
+            "metadata": [
+                {
+                    "id": "pair_0cdc677f279f421a96b29b88c3570063",
+                    "name": "x-host",
+                    "value": "localhost",
+                    "description": ""
+                }
+            ],
+            "body": {
+                "text": "{\n\t\"stack\": [],\n\t\"warnings\": [],\n\t\"codeSnippet\": {},\n\t\"lineNumber\": 0,\n\t\"message\": \"\",\n\t\"messageType\": \"\",\n\t\"fileName\": \"\",\n\t\"address\": \"\",\n\t\"language\": \"\"\n}"
+            },
+            "metaSortKey": -1656466473689,
+            "isPrivate": false,
+            "_type": "grpc_request"
+        },
+        {
+            "_id": "env_b9e641dc18a7de02eec58cd1b159c059f7ec76f4",
+            "parentId": "wrk_17bf9a6d97a44219b2f1e45be87787fa",
+            "modified": 1656550139199,
+            "created": 1656466299915,
+            "name": "Base Environment",
+            "data": {
+
+            },
+            "dataPropertyOrder": {
+
+            },
+            "color": null,
+            "isPrivate": false,
+            "metaSortKey": 1656466299915,
+            "_type": "environment"
+        },
+        {
+            "_id": "jar_b9e641dc18a7de02eec58cd1b159c059f7ec76f4",
+            "parentId": "wrk_17bf9a6d97a44219b2f1e45be87787fa",
+            "modified": 1656466299916,
+            "created": 1656466299916,
+            "name": "Default Jar",
+            "cookies": [
+
+            ],
+            "_type": "cookie_jar"
+        },
+        {
+            "_id": "spc_4ff0537bb2a643368bf7a24310529503",
+            "parentId": "wrk_17bf9a6d97a44219b2f1e45be87787fa",
+            "modified": 1656466299911,
+            "created": 1656466299911,
+            "fileName": "codectrl",
+            "contents": "",
+            "contentType": "yaml",
+            "_type": "api_spec"
+        },
+        {
+            "_id": "pd_b23799cb49374b7ba104914caf6b3349",
+            "parentId": "wrk_17bf9a6d97a44219b2f1e45be87787fa",
+            "modified": 1656534249502,
+            "created": 1656534249502,
+            "name": "codectrl-protobuf",
+            "_type": "proto_directory"
+        },
+        {
+            "_id": "pf_b13ed3174e4f497d8415751a208a740e",
+            "parentId": "pd_b23799cb49374b7ba104914caf6b3349",
+            "modified": 1656534249485,
+            "created": 1656534249485,
+            "name": "backtrace_data.proto",
+            "protoText": "syntax = \"proto3\";\n\npackage codectrl.data.backtrace_data;\n\nmessage BacktraceData {\n  string name = 1;\n  string filePath = 2;\n  uint32 lineNumber = 3;\n  uint32 columnNumber = 4;\n  string code = 5;\n}\n",
+            "_type": "proto_file"
+        },
+        {
+            "_id": "pf_d73edc4d63a84be0966c5e81ae46cec6",
+            "parentId": "pd_b23799cb49374b7ba104914caf6b3349",
+            "modified": 1656534249493,
+            "created": 1656534249493,
+            "name": "cc_service.proto",
+            "protoText": "\nsyntax = \"proto3\";\n\npackage codectrl.logs_service;\n\nimport \"log.proto\";\n\nmessage Empty {}\n\nenum Received {\n  CONFIRMED = 0;\n  ERROR = 1;\n}\n\nmessage ReceivedResult {\n  string message = 1;\n  Received status = 2;\n}\n\nservice LogServer {\n  // Implemented and used by the GUI\n  rpc GetLog(Empty) returns (data.log.Log) {}\n  rpc GetLogs(Empty) returns (stream data.log.Log) {}\n}\n\nservice LogClient {\n  // Implemented and used by each language logger\n  rpc SendLog(data.log.Log) returns (ReceivedResult) {}\n  rpc SendLogs(stream data.log.Log) returns (ReceivedResult) {}\n}\n\n",
+            "_type": "proto_file"
+        },
+        {
+            "_id": "pf_68c170f8215646b2beb6bc4e8b90ba43",
+            "parentId": "pd_b23799cb49374b7ba104914caf6b3349",
+            "modified": 1656534249501,
+            "created": 1656534249501,
+            "name": "log.proto",
+            "protoText": "syntax = \"proto3\";\n\npackage codectrl.data.log;\n\nimport \"backtrace_data.proto\";\n\nmessage Log {\n  repeated backtrace_data.BacktraceData stack = 1;\n  uint32 lineNumber = 2;\n  map<string, string> codeSnippet = 3;\n  string message = 4;\n  string messageType = 5;\n  string fileName = 6;\n  string address = 7;\n  string language = 8;\n  repeated string warnings = 9;\n}\n",
+            "_type": "proto_file"
+        }
+    ]
+}
