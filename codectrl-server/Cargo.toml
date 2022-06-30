@@ -11,7 +11,6 @@ codectrl-protobuf-bindings = { path = "../codectrl-protobuf-bindings" }
 futures = "0.3.21"
 futures-core = "0.3"
 futures-util = "0.3"
-once_cell = "1.12"
 prost = "0.10"
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "sync", "time"] }
 tokio-stream = "0.1"

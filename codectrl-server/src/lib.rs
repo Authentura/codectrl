@@ -8,19 +8,17 @@ use codectrl_protobuf_bindings::{
     },
 };
 use futures::StreamExt;
-use once_cell::sync::Lazy;
-use std::{collections::VecDeque, net::SocketAddr};
+use std::{collections::VecDeque, net::SocketAddr, sync::Arc};
 use tokio::sync::{mpsc, RwLock};
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{
     metadata::MetadataMap, transport::Server, Code, Request, Response, Status, Streaming,
 };
 
-// TODO: convert to Arc<_> in `run_server`
-static LOGS: Lazy<RwLock<VecDeque<Log>>> = Lazy::new(|| RwLock::new(VecDeque::new()));
-
-#[derive(Debug, Copy, Clone)]
-pub struct Service;
+#[derive(Debug, Clone)]
+pub struct Service {
+    logs: Arc<RwLock<VecDeque<Log>>>,
+}
 
 impl Service {
     #[allow(clippy::missing_panics_doc)]
@@ -73,7 +71,7 @@ impl Service {
 #[tonic::async_trait]
 impl LogServerTrait for Service {
     async fn get_log(&self, _: Request<Empty>) -> Result<Response<Log>, Status> {
-        if let Some(log) = LOGS.write().await.pop_front() {
+        if let Some(log) = self.logs.write().await.pop_front() {
             return Ok(Response::new(log));
         }
 
@@ -88,8 +86,10 @@ impl LogServerTrait for Service {
     ) -> Result<Response<Self::GetLogsStream>, Status> {
         let (tx, rx) = mpsc::channel(1024);
 
+        let logs = Arc::clone(&self.logs);
+
         tokio::spawn(async move {
-            while let Some(log) = LOGS.write().await.pop_front() {
+            while let Some(log) = logs.write().await.pop_front() {
                 if let Err(e) = tx.send(Ok(log.clone())).await {
                     if cfg!(debug_assertions) {
                         eprintln!("[ERROR] Occurred when writing to channel: {e:?}");
@@ -114,7 +114,7 @@ impl LogClientTrait for Service {
 
         Self::verify_log(&mut log, remote_addr, &metadata);
 
-        LOGS.write().await.push_back(log);
+        self.logs.write().await.push_back(log);
 
         Ok(Response::new(ReceivedResult {
             message: "Log added!".into(),
@@ -130,7 +130,7 @@ impl LogClientTrait for Service {
         let metadata = request.metadata().clone();
         let mut stream = request.into_inner();
 
-        let mut lock = LOGS.write().await;
+        let mut lock = self.logs.write().await;
 
         let mut amount = 0;
         while let Some(log) = stream.next().await {
@@ -177,8 +177,13 @@ pub async fn run_server(
     };
     let port = if port.is_some() { port.unwrap() } else { 3002 };
 
-    let logs_service = Service;
-    let server_service = LogServerService::new(logs_service);
+    let logs = Arc::new(RwLock::new(VecDeque::new()));
+
+    let logs_service = Service {
+        logs: Arc::clone(&logs),
+    };
+
+    let server_service = LogServerService::new(logs_service.clone());
     let client_service = LogClientService::new(logs_service);
 
     let gprc_addr = format!("{host}:{port}").parse()?;

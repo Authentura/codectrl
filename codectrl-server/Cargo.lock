@@ -147,7 +147,6 @@ dependencies = [
  "futures",
  "futures-core",
  "futures-util",
- "once_cell",
  "prost",
  "tokio",
  "tokio-stream",
