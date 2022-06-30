@@ -17,6 +17,10 @@ pub mod logs_service {
     tonic::include_proto!("codectrl.logs_service");
 
     pub use log_server_server::{
-        LogServer as LogServerTrait, LogServerServer as LogService,
+        LogServer as LogServerTrait, LogServerServer as LogServerService,
+    };
+
+    pub use log_client_server::{
+        LogClient as LogClientTrait, LogClientServer as LogClientService,
     };
 }
