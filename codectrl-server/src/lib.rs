@@ -191,8 +191,8 @@ pub async fn run_server(
     println!("Starting gPRC server on {gprc_addr}...");
 
     Server::builder()
-        .add_service(server_service)
-        .add_service(client_service)
+        .add_service(tonic_web::enable(server_service))
+        .add_service(tonic_web::enable(client_service))
         .serve(gprc_addr)
         .await?;
 

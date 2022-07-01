@@ -37,6 +37,7 @@ use ciborium::de as ciborium_de;
 #[cfg(not(target_arch = "wasm32"))]
 use ciborium::ser as ciborium_ser;
 use codectrl_logger::Log;
+use codectrl_protobuf_bindings::logs_service::log_server_client::LogServerClient as Client;
 use eframe::{Frame, Storage};
 use egui::{Context, Vec2};
 #[cfg(not(target_arch = "wasm32"))]
@@ -80,7 +81,7 @@ pub struct Session {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
-pub struct App {
+pub struct App<T: 'static> {
     #[serde(skip)]
     pub receiver: Receiver,
     #[serde(skip)]
@@ -88,14 +89,17 @@ pub struct App {
     data: AppState,
     title: &'static str,
     socket_address: String,
+    #[serde(skip)]
+    grpc_client: Option<Client<T>>,
 }
 
-impl App {
+impl<T> App<T> {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new(
         cc: &eframe::CreationContext,
         receiver: Rx<Log<String>>,
         socket_address: String,
+        grpc_client: Client<T>,
     ) -> Self {
         let mut app = Self {
             receiver: Some(Arc::new(Mutex::new(receiver))),
@@ -103,6 +107,7 @@ impl App {
             data: AppState::default(),
             title: "codeCTRL",
             socket_address,
+            grpc_client: Some(grpc_client),
         };
 
         cc.egui_ctx.set_fonts(fonts());
@@ -150,13 +155,14 @@ impl App {
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub fn new(cc: &eframe::CreationContext) -> Self {
+    pub fn new(cc: &eframe::CreationContext, grpc_client: Client<T>) -> Self {
         let mut app = Self {
             receiver: None,
             update_thread: None,
             data: AppState::default(),
             title: "codeCTRL",
             socket_address: "".into(),
+            grpc_client: Some(grpc_client),
         };
 
         if let Some(storage) = cc.storage {
@@ -357,7 +363,7 @@ impl App {
             .unwrap(),
         )));
         let app = Arc::new(Mutex::new(unsafe {
-            std::mem::transmute::<_, &'static mut App>(self)
+            std::mem::transmute::<_, &'static mut Self>(self)
         }));
 
         let file_path_clone = Arc::clone(&file_path);
@@ -384,7 +390,10 @@ impl App {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn load_from_file(file_path: &Path, app: &mut App) -> Result<(), Box<dyn Error>> {
+    pub fn load_from_file(
+        file_path: &Path,
+        app: &mut Self,
+    ) -> Result<(), Box<dyn Error>> {
         let file = File::open(file_path)?;
 
         let mut reader = BufReader::new(file);
@@ -419,7 +428,7 @@ impl App {
     #[cfg(target_arch = "wasm32")]
     pub async fn load_from_file(
         file_path: &Arc<Mutex<FileHandle>>,
-        app: &Arc<Mutex<&mut App>>,
+        app: &Arc<Mutex<&mut Self>>,
     ) -> Result<(), Box<dyn Error>> {
         let data = file_path.as_ref().lock().unwrap().read().await;
 
@@ -454,7 +463,7 @@ impl App {
     }
 }
 
-impl eframe::App for App {
+impl<T> eframe::App for App<T> {
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
         #[cfg(not(target_arch = "wasm32"))]
         self.handle_key_inputs(&ctx.input());

@@ -21,17 +21,32 @@ use app::App;
 use clap::{crate_authors, crate_name, crate_version, Arg, Command};
 #[cfg(not(target_arch = "wasm32"))]
 use codectrl_log_server::Server;
+#[cfg(not(target_arch = "wasm32"))]
+use codectrl_server::run_server;
 #[cfg(target_arch = "wasm32")]
 use eframe::wasm_bindgen::JsValue;
 #[cfg(not(target_arch = "wasm32"))]
 use std::{collections::HashMap, env, path::Path, thread};
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::runtime::Runtime;
+
+use codectrl_protobuf_bindings::logs_service::log_server_client::LogServerClient;
+
+#[cfg(target_arch = "wasm32")]
+use tonic_web_wasm_client::Client;
 
 #[cfg(target_arch = "wasm32")]
 pub fn run() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
     tracing_wasm::set_as_global_default();
 
-    eframe::start_web("codectrl-root", Box::new(|cc| Box::new(App::new(cc))))
+    let grpc_client =
+        LogServerClient::new(Client::new("http://127.0.0.1:3002".to_string()));
+
+    eframe::start_web(
+        "codectrl-root",
+        Box::new(move |cc| Box::new(App::new(cc, grpc_client))),
+    )
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -116,7 +131,26 @@ pub async fn run() {
         server.run_server_new_runtime().unwrap();
     });
 
+    thread::spawn(|| {
+        let rt = Runtime::new().unwrap();
+
+        rt.spawn_blocking(|| async { run_server(None, None, None).await.unwrap() })
+    });
+
     // let mut app = App::new(receiver, socket_address);
+
+    println!("Waiting for gRPC server to become available...");
+    let grpc_client = loop {
+        let res = LogServerClient::connect("http://127.0.0.1:3002").await;
+
+        if let Ok(res) = res {
+            break res;
+        }
+    };
+
+    // let grpc_client = LogServerClient::connect("http://127.0.0.1:3002")
+    //     .await
+    //     .expect("Could not connect to gRPC endpoint");
 
     let file_path = if let Some(project_file) = project_file {
         let file_path = match Path::new(project_file).canonicalize() {
@@ -138,7 +172,7 @@ pub async fn run() {
         "codeCtrl",
         options,
         Box::new(move |cc| {
-            let mut app = App::new(cc, receiver, socket_address);
+            let mut app = App::new(cc, receiver, socket_address, grpc_client);
 
             if file_path.exists() {
                 if let Err(error) = App::load_from_file(&file_path, &mut app) {

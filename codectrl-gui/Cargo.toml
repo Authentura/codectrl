@@ -1,6 +1,6 @@
 [package]
 name = "codectrl_gui"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 authors = [
     "Authentura <contact@authentura.com>",
@@ -20,6 +20,7 @@ license = "MIT"
 authentura-egui-styling = { git = "https://github.com/Authentura/authentura-egui-styling", rev = "51b23f1" }
 ciborium = "0.2"
 clap = { version = "3.1", features = ["cargo"] }
+codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.5.0" }
 codectrl_logger = { git = "https://github.com/authentura/codectrl-rust-logger", default-features = false, features = ["types-only"] }
 eframe = { version = "0.18", features = ["persistence"] }
 egui = { version = "0.18", features = ["persistence"] }
@@ -36,6 +37,7 @@ chrono = { version = "0.4", features = ["serde", "js-sys", "wasmbind"] }
 console_error_panic_hook = "0.1"
 js-sys = "0.3"
 rfd = { version = "0.8", features = ["file-handle-inner"] }
+tonic-web-wasm-client = "0.1"
 tracing-wasm = "0.2"
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4"
@@ -45,6 +47,7 @@ web-sys = { version = "0.3", features = ["File", "FilePropertyBag", "console"]}
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 chrono = { version = "0.4", features = ["serde"] }
 codectrl_log_server = { path = "../codectrl-log-server" }
+codectrl-server = { path = "../codectrl-server" }
 egui_glow = "0.18"
 rfd = "0.8"
 tokio = { version = "1.17", default-features = false, features = ["net", "rt-multi-thread", "io-util", "macros"] }
