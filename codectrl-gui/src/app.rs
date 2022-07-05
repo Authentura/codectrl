@@ -38,7 +38,9 @@ use ciborium::de as ciborium_de;
 use ciborium::ser as ciborium_ser;
 use codectrl_protobuf_bindings::{
     data::Log,
-    logs_service::{log_server_client::LogServerClient as Client, Connection},
+    logs_service::{
+        log_server_client::LogServerClient as Client, Connection, Empty, ServerDetails,
+    },
 };
 use eframe::{Frame, Storage};
 use egui::{Context, Vec2};
@@ -47,6 +49,8 @@ use egui::{Event, InputState, Key};
 use flate2::bufread;
 #[cfg(not(target_arch = "wasm32"))]
 use flate2::{write, Compression};
+#[cfg(not(target_arch = "wasm32"))]
+use poll_promise::Promise;
 #[cfg(target_arch = "wasm32")]
 use rfd::{AsyncFileDialog as FileDialog, FileHandle, MessageDialog};
 #[cfg(not(target_arch = "wasm32"))]
@@ -57,6 +61,7 @@ use std::{
     error::Error,
     io::{BufReader, Error as IOError, ErrorKind},
     sync::Arc,
+    time::{Duration, Instant},
 };
 #[cfg(not(target_arch = "wasm32"))]
 use std::{fs::File, io::Write, path::Path};
@@ -64,6 +69,7 @@ use std::{fs::File, io::Write, path::Path};
 use tokio::runtime::Handle;
 #[cfg(not(target_arch = "wasm32"))]
 use tonic::transport::Channel;
+use tonic::{Response, Status};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_futures::spawn_local;
 #[cfg(target_arch = "wasm32")]
@@ -80,47 +86,54 @@ pub struct Session {
     pub message_alerts: BTreeSet<String>,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Default, Deserialize, Serialize)]
 pub struct App {
-    data: AppState,
+    state: AppState,
     title: &'static str,
+    #[serde(skip)]
+    grpc_client: Option<Client<Channel>>,
     grpc_client_connection: Connection,
+    #[serde(skip)]
+    promise: Option<Promise<Result<Response<ServerDetails>, Status>>>,
 }
 
 impl App {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new(
         cc: &eframe::CreationContext,
-        mut grpc_client: Client<Channel>,
+        grpc_client: Client<Channel>,
         grpc_client_connection: Connection,
         runtime: &Handle,
     ) -> Self {
         let mut app = Self {
-            data: AppState::default(),
+            state: AppState::default(),
             title: "codeCTRL",
+            grpc_client: Some(grpc_client),
             grpc_client_connection,
+            promise: None,
         };
 
         cc.egui_ctx.set_fonts(fonts());
         cc.egui_ctx
-            .set_style(application_style(app.data.application_settings.font_sizes));
+            .set_style(application_style(app.state.application_settings.font_sizes));
 
         if let Some(storage) = cc.storage {
             let data: AppState =
                 eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
 
             if data.preserve_session {
-                app.data = data;
+                app.state = data;
             } else {
-                app.data = AppState::default();
-                app.data.preserve_session = false;
+                app.state = AppState::default();
+                app.state.preserve_session = false;
             }
         }
 
-        let received = Arc::clone(&app.data.received);
+        let received = Arc::clone(&app.state.received);
 
-        cc.egui_ctx.set_visuals(app.data.current_theme.clone());
+        cc.egui_ctx.set_visuals(app.state.current_theme.clone());
 
+        let mut grpc_client = app.grpc_client.clone().unwrap();
         let grpc_client_connection = app.grpc_client_connection.clone();
 
         runtime.spawn(async move {
@@ -140,22 +153,6 @@ impl App {
             }
         });
 
-        // let recd = match rx.try_lock() {
-        //     Ok(lock) => lock,
-        //     Err(error) => {
-        //         eprintln!("Could not get lock on mutex:
-        // {error}");         continue;
-        //     },
-        // }
-        // .recv();
-        //
-        // if let Ok(recd) = recd {
-        //     received.write().unwrap().push_front((recd,
-        // Local::now())); }
-        // })
-        // .expect("Could not start codeCTRL update thread")
-        // });
-
         app
     }
 
@@ -166,7 +163,6 @@ impl App {
             update_thread: None,
             data: AppState::default(),
             title: "codeCTRL",
-            socket_address: "".into(),
             grpc_client: Some(grpc_client),
         };
 
@@ -204,7 +200,7 @@ impl App {
                     && *key == Key::PageUp
                     && (modifiers.ctrl || modifiers.mac_cmd) =>
                 {
-                    self.data.application_settings.font_sizes.scale(1.0);
+                    self.state.application_settings.font_sizes.scale(1.0);
                 },
                 Event::Key {
                     key,
@@ -213,7 +209,7 @@ impl App {
                 } if *pressed
                     && *key == Key::PageDown
                     && (modifiers.ctrl || modifiers.mac_cmd) =>
-                    self.data.application_settings.font_sizes.scale(-1.0),
+                    self.state.application_settings.font_sizes.scale(-1.0),
                 Event::Key {
                     key,
                     pressed,
@@ -222,13 +218,13 @@ impl App {
                     && *key == Key::Num0
                     && (modifiers.ctrl || modifiers.mac_cmd) =>
                 {
-                    self.data.application_settings.font_sizes = FontSizes::default();
+                    self.state.application_settings.font_sizes = FontSizes::default();
                 },
                 Event::Zoom(zoom_delta) =>
                     if *zoom_delta > 1.0 {
-                        self.data.application_settings.font_sizes.scale(1.0);
+                        self.state.application_settings.font_sizes.scale(1.0);
                     } else if *zoom_delta < 1.0 {
-                        self.data.application_settings.font_sizes.scale(-1.0);
+                        self.state.application_settings.font_sizes.scale(-1.0);
                     },
 
                 // open/load bindings
@@ -256,13 +252,13 @@ impl App {
 
     #[cfg(not(target_arch = "wasm32"))]
     fn save_file_dialog(&mut self) {
-        self.data.session_timestamp =
-            Local::now().format(&self.data.filename_format).to_string();
+        self.state.session_timestamp =
+            Local::now().format(&self.state.filename_format).to_string();
 
         let file_path = if let Some(file_path) = FileDialog::new()
             .set_file_name(&format!(
                 "{file_name}.cdctrl",
-                file_name = self.data.session_timestamp
+                file_name = self.state.session_timestamp
             ))
             .add_filter("codeCTRL Session", &["cdctrl"])
             .save_file()
@@ -276,11 +272,11 @@ impl App {
             session_timestamp,
             message_alerts,
             ..
-        } = self.data.clone();
+        } = self.state.clone();
 
         let session = Session {
             session_timestamp,
-            received: self.data.received.read().unwrap().clone(),
+            received: self.state.received.read().unwrap().clone(),
             message_alerts,
         };
 
@@ -421,7 +417,7 @@ impl App {
             session_timestamp,
             message_alerts,
             ..
-        } = &mut app.data;
+        } = &mut app.state;
 
         *received.write().unwrap() = session.received;
         *session_timestamp = session.session_timestamp;
@@ -473,12 +469,42 @@ impl eframe::App for App {
         #[cfg(not(target_arch = "wasm32"))]
         self.handle_key_inputs(&ctx.input());
 
-        if self.data.is_about_open {
-            about_view(&mut self.data, ctx);
+        if self.state.refresh_server_details {
+            let mut grpc_client = self.grpc_client.clone().unwrap();
+
+            let promise = self.promise.get_or_insert_with(|| {
+                Promise::spawn_async(async move {
+                    grpc_client.get_server_details(Empty {}).await
+                })
+            });
+
+            if let Some(Ok(details)) = promise.ready() {
+                let details = details.get_ref().clone();
+                self.state.server_details = Some(details);
+                self.state.refresh_server_details = false;
+            }
+        } else {
+            let now = Instant::now();
+
+            if now.duration_since(self.state.time_details_last_checked)
+                > Duration::from_secs(5)
+            {
+                let mut grpc_client = self.grpc_client.clone().unwrap();
+
+                self.state.refresh_server_details = true;
+                self.promise = Some(Promise::spawn_async(async move {
+                    grpc_client.get_server_details(Empty {}).await
+                }));
+                self.state.time_details_last_checked = Instant::now();
+            }
         }
 
-        if self.data.is_settings_open {
-            settings_view(&mut self.data, ctx);
+        if self.state.is_about_open {
+            about_view(&mut self.state, ctx);
+        }
+
+        if self.state.is_settings_open {
+            settings_view(&mut self.state, ctx);
         }
 
         egui::TopBottomPanel::top("top_bar")
@@ -502,7 +528,7 @@ impl eframe::App for App {
                         ui.separator();
 
                         if ui.button("Settings").clicked() {
-                            self.data.is_settings_open = !self.data.is_settings_open;
+                            self.state.is_settings_open = !self.state.is_settings_open;
                         }
 
                         #[cfg(not(target_arch = "wasm32"))]
@@ -516,65 +542,65 @@ impl eframe::App for App {
 
                     ui.menu_button("Help", |ui| {
                         if ui.button("About").clicked() {
-                            self.data.is_about_open = !self.data.is_about_open;
+                            self.state.is_about_open = !self.state.is_about_open;
                         }
                     });
 
                     ui.separator();
 
                     ui.label("Filter: ");
-                    ui.text_edit_singleline(&mut self.data.search_filter);
+                    ui.text_edit_singleline(&mut self.state.search_filter);
 
                     // u1f5d9 = 🗙
                     if ui.button("\u{1f5d9}").clicked() {
-                        self.data.search_filter = "".into();
+                        self.state.search_filter = "".into();
                     }
 
                     ui.label("Filter by:");
                     egui::ComboBox::from_label("")
-                        .selected_text(format!("{}", self.data.filter_by))
+                        .selected_text(format!("{}", self.state.filter_by))
                         .show_ui(ui, |ui| {
                             ui.selectable_value(
-                                &mut self.data.filter_by,
+                                &mut self.state.filter_by,
                                 Filter::Message,
                                 format!("{}", Filter::Message),
                             );
 
                             ui.selectable_value(
-                                &mut self.data.filter_by,
+                                &mut self.state.filter_by,
                                 Filter::Time,
                                 format!("{}", Filter::Time),
                             );
 
                             ui.selectable_value(
-                                &mut self.data.filter_by,
+                                &mut self.state.filter_by,
                                 Filter::FileName,
                                 format!("{}", Filter::FileName),
                             );
 
                             ui.selectable_value(
-                                &mut self.data.filter_by,
+                                &mut self.state.filter_by,
                                 Filter::Address,
                                 format!("{}", Filter::Address),
                             );
 
                             ui.selectable_value(
-                                &mut self.data.filter_by,
+                                &mut self.state.filter_by,
                                 Filter::LineNumber,
                                 format!("{}", Filter::LineNumber),
                             );
                         });
 
-                    ui.checkbox(&mut self.data.is_case_sensitive, "Case sensitive");
-                    ui.checkbox(&mut self.data.is_using_regex, "Regex");
+                    ui.checkbox(&mut self.state.is_case_sensitive, "Case sensitive");
+                    ui.checkbox(&mut self.state.is_using_regex, "Regex");
                     ui.checkbox(
-                        &mut self.data.do_scroll_to_selected_log,
+                        &mut self.state.do_scroll_to_selected_log,
                         "Scroll to selected log",
                     );
 
                     if ui
                         .button(
-                            if self.data.is_newest_first {
+                            if self.state.is_newest_first {
                                 "\u{2b07} Newest first" // u2b07 = ⬇
                             } else {
                                 "\u{2b06} Newest last" // u2b06 = ⬆
@@ -582,27 +608,32 @@ impl eframe::App for App {
                         )
                         .clicked()
                     {
-                        self.data.is_newest_first = !self.data.is_newest_first;
+                        self.state.is_newest_first = !self.state.is_newest_first;
                     }
 
                     // u1f5d1 = ��
                     if ui.button("\u{1f5d1} Clear logs").clicked() {
-                        if let Ok(mut received) = self.data.received.write() {
+                        if let Ok(mut received) = self.state.received.write() {
                             received.clear();
-                            self.data.clicked_item = None;
+                            self.state.clicked_item = None;
                         }
                     }
 
                     ui.separator();
 
-                    ui.label(format!("Listening on: {}", self.socket_address));
+                    if self.state.server_details.is_some() {
+                        let ServerDetails { host, port, .. } =
+                            self.state.server_details.as_ref().unwrap();
+
+                        ui.label(format!("Listening on: {host}:{port}"));
+                    }
                 });
 
                 ui.add_space(2.0);
             });
 
         let is_empty = {
-            let received = Arc::clone(&self.data.received);
+            let received = Arc::clone(&self.state.received);
 
             let x = if let Ok(received) = received.read() {
                 received.is_empty()
@@ -614,15 +645,19 @@ impl eframe::App for App {
         };
 
         if is_empty {
-            main_view_empty(ctx, &self.socket_address);
+            match self.state.server_details.as_ref() {
+                Some(ServerDetails { host, port, .. }) =>
+                    main_view_empty(ctx, &format!("{host}:{port}")),
+                None => main_view_empty(ctx, "Fetching server details..."),
+            }
         } else {
-            main_view(&mut self.data, ctx);
+            main_view(&mut self.state, ctx);
         }
 
-        if self.data.clicked_item.is_some() {
-            details_view(&mut self.data, ctx);
+        if self.state.clicked_item.is_some() {
+            details_view(&mut self.state, ctx);
         } else {
-            self.data.preview_height = 0.0;
+            self.state.preview_height = 0.0;
         }
 
         ctx.request_repaint();
@@ -636,6 +671,6 @@ impl eframe::App for App {
     }
 
     fn save(&mut self, storage: &mut dyn Storage) {
-        eframe::set_value(storage, eframe::APP_KEY, &self.data);
+        eframe::set_value(storage, eframe::APP_KEY, &self.state);
     }
 }

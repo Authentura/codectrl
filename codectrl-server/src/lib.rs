@@ -44,7 +44,7 @@ impl ConnectionState {
 pub struct Service {
     logs: Arc<RwLock<VecDeque<Log>>>,
     connections: Arc<RwLock<DashMap<String, ConnectionState>>>,
-    host: &'static str,
+    host: String,
     port: u32,
     uptime: Instant,
 }
@@ -126,11 +126,7 @@ impl LogServerTrait for Service {
         &self,
         _: Request<Empty>,
     ) -> Result<Response<ServerDetails>, Status> {
-        let host = std::env::vars()
-            .filter(|(k, _)| *k == "HOST")
-            .map(|(_, v)| v)
-            .next()
-            .unwrap_or_else(|| self.host.to_string());
+        let host = std::env::var("HOST").unwrap_or_else(|_| self.host.clone());
 
         let res = Response::new(ServerDetails {
             host,
@@ -311,7 +307,7 @@ impl LogClientTrait for Service {
 #[allow(clippy::missing_panics_doc)]
 pub async fn run_server(
     run_legacy_server: Option<bool>,
-    host: Option<&'static str>,
+    host: Option<String>,
     port: Option<u32>,
 ) -> anyhow::Result<()> {
     // TODO: Add the legacy server thread and manage it through the gPRC server.
@@ -323,14 +319,14 @@ pub async fn run_server(
     let host = if host.is_some() {
         host.unwrap()
     } else {
-        "127.0.0.1"
+        String::from("127.0.0.1")
     };
     let port = if port.is_some() { port.unwrap() } else { 3002 };
 
     let logs = Arc::new(RwLock::new(VecDeque::new()));
 
     let logs_service = Service {
-        host,
+        host: host.clone(),
         port,
         uptime: Instant::now(),
         logs: Arc::clone(&logs),

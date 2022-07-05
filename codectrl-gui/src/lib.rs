@@ -99,18 +99,10 @@ pub async fn run() {
     } else if command_line.contains_key("PORT") {
         command_line.get("PORT").unwrap()
     } else {
-        "3001"
-    };
-
-    let has_host = matches.is_present("host");
-
-    let host = if has_host {
-        matches.value_of("host").unwrap()
-    } else if command_line.contains_key("HOST") {
-        command_line.get("HOST").unwrap()
-    } else {
-        "0.0.0.0"
-    };
+        "3002"
+    }
+    .parse::<u32>()
+    .expect("Port was not a valid value: needs to be an integer value.");
 
     let has_project = matches.is_present("PROJECT");
 
@@ -120,10 +112,21 @@ pub async fn run() {
         None
     };
 
+    let has_host = matches.is_present("host");
+
+    let host = if has_host {
+        matches.value_of("host").unwrap().to_owned()
+    } else if command_line.contains_key("HOST") {
+        command_line.get("HOST").unwrap().clone()
+    } else {
+        "127.0.0.1".to_owned()
+    };
+
     let handle = Handle::current();
 
-    handle.spawn(async {
-        if let Err(error) = run_server(None, None, None).await {
+    let host_clone = host.clone();
+    handle.spawn(async move {
+        if let Err(error) = run_server(None, Some(host_clone), Some(port)).await {
             if MessageDialog::new()
                 .set_title("Could not start CodeCtrl server")
                 .set_level(rfd::MessageLevel::Error)
@@ -136,16 +139,15 @@ pub async fn run() {
         }
     });
 
-    // let mut app = App::new(receiver, socket_address);
-
     println!("Waiting for gRPC server to become available...");
     let mut grpc_client = loop {
-        let res = LogServerClient::connect("http://127.0.0.1:3002").await;
+        let res = LogServerClient::connect(format!("http://{host}:{port}")).await;
 
         if let Ok(res) = res {
             break res;
         }
     };
+    println!("Found gRPC server!");
 
     let registered_client =
         if let Ok(client) = grpc_client.register_client(Empty {}).await {
@@ -153,10 +155,6 @@ pub async fn run() {
         } else {
             panic!("Could not register client!");
         };
-
-    // let grpc_client = LogServerClient::connect("http://127.0.0.1:3002")
-    //     .await
-    //     .expect("Could not connect to gRPC endpoint");
 
     let file_path = if let Some(project_file) = project_file {
         let file_path = match Path::new(project_file).canonicalize() {
@@ -178,13 +176,7 @@ pub async fn run() {
         "codeCtrl",
         options,
         Box::new(move |cc| {
-            let mut app = App::new(
-                cc,
-                // receiver,
-                grpc_client,
-                registered_client,
-                &handle,
-            );
+            let mut app = App::new(cc, grpc_client, registered_client, &handle);
 
             if file_path.exists() {
                 if let Err(error) = App::load_from_file(&file_path, &mut app) {

@@ -50,6 +50,7 @@ chrono = { version = "0.4", features = ["serde"] }
 codectrl-server = { path = "../codectrl-server" }
 codectrl_log_server = { path = "../codectrl-log-server" }
 egui_glow = "0.18"
+poll-promise = { version = "0.1", features = ["tokio"] }
 rfd = "0.8"
 tokio = { version = "1.17", default-features = false, features = ["net", "rt-multi-thread", "io-util", "macros"] }
 tonic = "0.7"

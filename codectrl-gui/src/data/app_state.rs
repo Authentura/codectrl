@@ -2,16 +2,26 @@ use super::{window_states::AboutState, ApplicationSettings, Filter, Received};
 
 use authentura_egui_styling::dark_theme;
 use chrono::{DateTime, Local};
-use codectrl_protobuf_bindings::data::Log;
+use codectrl_protobuf_bindings::{data::Log, logs_service::ServerDetails};
 use egui::Visuals;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeSet, VecDeque},
     sync::{Arc, RwLock},
+    time::Instant,
 };
+
+pub fn time_details_last_checked_default() -> Instant { Instant::now() }
+pub fn refresh_server_details_default() -> bool { true }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AppState {
+    #[serde(skip)]
+    pub server_details: Option<ServerDetails>,
+    #[serde(skip, default = "time_details_last_checked_default")]
+    pub time_details_last_checked: Instant,
+    #[serde(skip, default = "refresh_server_details_default")]
+    pub refresh_server_details: bool,
     pub search_filter: String,
     pub filter_by: Filter,
     pub received: Received,
@@ -52,6 +62,9 @@ pub struct AppState {
 impl Default for AppState {
     fn default() -> Self {
         Self {
+            server_details: None,
+            time_details_last_checked: time_details_last_checked_default(),
+            refresh_server_details: refresh_server_details_default(),
             search_filter: "".into(),
             filter_by: Filter::Message,
             received: Arc::new(RwLock::new(VecDeque::new())),
