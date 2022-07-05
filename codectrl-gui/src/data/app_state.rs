@@ -2,7 +2,7 @@ use super::{window_states::AboutState, ApplicationSettings, Filter, Received};
 
 use authentura_egui_styling::dark_theme;
 use chrono::{DateTime, Local};
-use codectrl_logger::Log;
+use codectrl_protobuf_bindings::data::Log;
 use egui::Visuals;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -27,7 +27,7 @@ pub struct AppState {
     pub is_message_preview_open: bool,
     pub is_newest_first: bool,
     pub is_using_regex: bool,
-    pub clicked_item: Option<(Log<String>, DateTime<Local>)>,
+    pub clicked_item: Option<(Log, DateTime<Local>)>,
     #[serde(skip)]
     pub preview_height: f32,
     #[serde(skip)]

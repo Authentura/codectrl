@@ -26,7 +26,7 @@
 
 use crate::{
     components::{about_view, details_view, main_view, main_view_empty, settings_view},
-    data::{AppState, Filter, Receiver},
+    data::{AppState, Filter},
 };
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -36,8 +36,10 @@ use chrono::{DateTime, Local};
 use ciborium::de as ciborium_de;
 #[cfg(not(target_arch = "wasm32"))]
 use ciborium::ser as ciborium_ser;
-use codectrl_logger::Log;
-use codectrl_protobuf_bindings::logs_service::log_server_client::LogServerClient as Client;
+use codectrl_protobuf_bindings::{
+    data::Log,
+    logs_service::{log_server_client::LogServerClient as Client, Connection},
+};
 use eframe::{Frame, Storage};
 use egui::{Context, Vec2};
 #[cfg(not(target_arch = "wasm32"))]
@@ -54,16 +56,14 @@ use std::{
     collections::{BTreeSet, VecDeque},
     error::Error,
     io::{BufReader, Error as IOError, ErrorKind},
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 #[cfg(not(target_arch = "wasm32"))]
-use std::{
-    fs::File,
-    io::Write,
-    path::Path,
-    sync::mpsc::Receiver as Rx,
-    thread::{Builder as ThreadBuilder, JoinHandle},
-};
+use std::{fs::File, io::Write, path::Path};
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::runtime::Handle;
+#[cfg(not(target_arch = "wasm32"))]
+use tonic::transport::Channel;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_futures::spawn_local;
 #[cfg(target_arch = "wasm32")]
@@ -76,38 +76,29 @@ type Encoder<T> = write::DeflateEncoder<T>;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Session {
     pub session_timestamp: String,
-    pub received: VecDeque<(Log<String>, DateTime<Local>)>,
+    pub received: VecDeque<(Log, DateTime<Local>)>,
     pub message_alerts: BTreeSet<String>,
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
-pub struct App<T: 'static> {
-    #[serde(skip)]
-    pub receiver: Receiver,
-    #[serde(skip)]
-    update_thread: Option<JoinHandle<()>>,
+pub struct App {
     data: AppState,
     title: &'static str,
-    socket_address: String,
-    #[serde(skip)]
-    grpc_client: Option<Client<T>>,
+    grpc_client_connection: Connection,
 }
 
-impl<T> App<T> {
+impl App {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new(
         cc: &eframe::CreationContext,
-        receiver: Rx<Log<String>>,
-        socket_address: String,
-        grpc_client: Client<T>,
+        mut grpc_client: Client<Channel>,
+        grpc_client_connection: Connection,
+        runtime: &Handle,
     ) -> Self {
         let mut app = Self {
-            receiver: Some(Arc::new(Mutex::new(receiver))),
-            update_thread: None,
             data: AppState::default(),
             title: "codeCTRL",
-            socket_address,
-            grpc_client: Some(grpc_client),
+            grpc_client_connection,
         };
 
         cc.egui_ctx.set_fonts(fonts());
@@ -126,30 +117,44 @@ impl<T> App<T> {
             }
         }
 
-        let rx = Arc::clone(app.receiver.as_ref().unwrap());
         let received = Arc::clone(&app.data.received);
 
         cc.egui_ctx.set_visuals(app.data.current_theme.clone());
 
-        app.update_thread = Some(unsafe {
-            ThreadBuilder::new()
-                .name("update_thread".into())
-                .spawn_unchecked(move || loop {
-                    let recd = match rx.try_lock() {
-                        Ok(lock) => lock,
-                        Err(error) => {
-                            eprintln!("Could not get lock on mutex: {error}");
-                            continue;
-                        },
-                    }
-                    .recv();
+        let grpc_client_connection = app.grpc_client_connection.clone();
 
-                    if let Ok(recd) = recd {
-                        received.write().unwrap().push_front((recd, Local::now()));
+        runtime.spawn(async move {
+            loop {
+                if let Ok(res) =
+                    grpc_client.get_logs(grpc_client_connection.clone()).await
+                {
+                    let mut response = res.into_inner();
+
+                    while let Ok(Some(message)) = response.message().await {
+                        received
+                            .write()
+                            .unwrap()
+                            .push_front((message.clone(), Local::now()));
                     }
-                })
-                .expect("Could not start codeCTRL update thread")
+                }
+            }
         });
+
+        // let recd = match rx.try_lock() {
+        //     Ok(lock) => lock,
+        //     Err(error) => {
+        //         eprintln!("Could not get lock on mutex:
+        // {error}");         continue;
+        //     },
+        // }
+        // .recv();
+        //
+        // if let Ok(recd) = recd {
+        //     received.write().unwrap().push_front((recd,
+        // Local::now())); }
+        // })
+        // .expect("Could not start codeCTRL update thread")
+        // });
 
         app
     }
@@ -463,7 +468,7 @@ impl<T> App<T> {
     }
 }
 
-impl<T> eframe::App for App<T> {
+impl eframe::App for App {
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
         #[cfg(not(target_arch = "wasm32"))]
         self.handle_key_inputs(&ctx.input());

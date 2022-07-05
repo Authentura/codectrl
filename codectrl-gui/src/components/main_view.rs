@@ -3,7 +3,7 @@ use crate::data::{AppState, Filter};
 
 use authentura_egui_styling::{CODECTRL_GREEN, DARK_HEADER_FOREGROUND_COLOUR};
 use chrono::{DateTime, Local};
-use codectrl_logger::Log;
+use codectrl_protobuf_bindings::data::Log;
 use egui::{Context, Direction, Layout, RichText, TextStyle, Ui};
 use egui_extras::{Size, TableBuilder};
 use regex::RegexBuilder;
@@ -13,7 +13,7 @@ fn app_state_filter(
     is_using_regex: bool,
     search_filter: &str,
     filter_by: &Filter,
-    log: &Log<String>,
+    log: &Log,
     time: &DateTime<Local>,
 ) -> bool {
     let string_filter = |search_filter: &str, search_string: &str| -> bool {

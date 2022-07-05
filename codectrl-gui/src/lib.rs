@@ -5,6 +5,7 @@
     clippy::module_name_repetitions,
     clippy::struct_excessive_bools,
     clippy::too_many_lines,
+    clippy::missing_panics_doc,
     incomplete_features
 )]
 
@@ -19,18 +20,19 @@ extern crate clap;
 use app::App;
 #[cfg(not(target_arch = "wasm32"))]
 use clap::{crate_authors, crate_name, crate_version, Arg, Command};
+use codectrl_protobuf_bindings::logs_service::log_server_client::LogServerClient;
 #[cfg(not(target_arch = "wasm32"))]
-use codectrl_log_server::Server;
+use codectrl_protobuf_bindings::logs_service::Empty;
 #[cfg(not(target_arch = "wasm32"))]
 use codectrl_server::run_server;
 #[cfg(target_arch = "wasm32")]
 use eframe::wasm_bindgen::JsValue;
 #[cfg(not(target_arch = "wasm32"))]
-use std::{collections::HashMap, env, path::Path, thread};
+use rfd::MessageDialog;
 #[cfg(not(target_arch = "wasm32"))]
-use tokio::runtime::Runtime;
-
-use codectrl_protobuf_bindings::logs_service::log_server_client::LogServerClient;
+use std::{collections::HashMap, env, path::Path};
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::runtime::Handle;
 
 #[cfg(target_arch = "wasm32")]
 use tonic_web_wasm_client::Client;
@@ -118,35 +120,39 @@ pub async fn run() {
         None
     };
 
-    let socket_address = format!("{host}:{port}");
+    let handle = Handle::current();
 
-    let (mut server, receiver) = Server::new(host, port);
-
-    if matches.is_present("server_only") {
-        server.run_server_current_runtime().await.unwrap();
-        return;
-    }
-
-    thread::spawn(move || {
-        server.run_server_new_runtime().unwrap();
-    });
-
-    thread::spawn(|| {
-        let rt = Runtime::new().unwrap();
-
-        rt.spawn_blocking(|| async { run_server(None, None, None).await.unwrap() })
+    handle.spawn(async {
+        if let Err(error) = run_server(None, None, None).await {
+            if MessageDialog::new()
+                .set_title("Could not start CodeCtrl server")
+                .set_level(rfd::MessageLevel::Error)
+                .set_description(&format!("{error:#?}"))
+                .set_buttons(rfd::MessageButtons::Ok)
+                .show()
+            {
+                std::process::exit(1);
+            }
+        }
     });
 
     // let mut app = App::new(receiver, socket_address);
 
     println!("Waiting for gRPC server to become available...");
-    let grpc_client = loop {
+    let mut grpc_client = loop {
         let res = LogServerClient::connect("http://127.0.0.1:3002").await;
 
         if let Ok(res) = res {
             break res;
         }
     };
+
+    let registered_client =
+        if let Ok(client) = grpc_client.register_client(Empty {}).await {
+            client.into_inner()
+        } else {
+            panic!("Could not register client!");
+        };
 
     // let grpc_client = LogServerClient::connect("http://127.0.0.1:3002")
     //     .await
@@ -172,7 +178,13 @@ pub async fn run() {
         "codeCtrl",
         options,
         Box::new(move |cc| {
-            let mut app = App::new(cc, receiver, socket_address, grpc_client);
+            let mut app = App::new(
+                cc,
+                // receiver,
+                grpc_client,
+                registered_client,
+                &handle,
+            );
 
             if file_path.exists() {
                 if let Err(error) = App::load_from_file(&file_path, &mut app) {

@@ -5,7 +5,7 @@ use crate::{
 
 use authentura_egui_styling::DARK_HEADER_FOREGROUND_COLOUR;
 use chrono::{DateTime, Local};
-use codectrl_logger::Log;
+use codectrl_protobuf_bindings::data::Log;
 use egui::{
     text::LayoutJob, Context, Layout, RichText, Sense, TextStyle, Ui, Vec2, WidgetText,
 };
@@ -64,24 +64,26 @@ pub fn draw_information_grid(app_state: &mut AppState, ctx: &Context, ui: &mut U
                     row.col(|ui| detail_scroll(app_state, &log, &time, ctx, ui));
                     row.col(|ui| {
                         code_scroll(
-                            &mut app_state.is_copying_line_indicator,
-                            &mut app_state.is_copying_line_numbers,
-                            &mut app_state.copy_language,
-                            &mut app_state.code_hash,
-                            &mut app_state.code_job,
+                            (
+                                &mut app_state.is_copying_line_indicator,
+                                &mut app_state.is_copying_line_numbers,
+                                &mut app_state.copy_language,
+                                &mut app_state.code_hash,
+                                &mut app_state.code_job,
+                            ),
                             &log,
                             ctx,
                             ui,
-                        )
+                        );
                     });
                 }
-            })
+            });
         });
 }
 
 fn detail_scroll(
     app_state: &mut AppState,
-    log: &Log<String>,
+    log: &Log,
     time: &DateTime<Local>,
     ctx: &Context,
     ui: &mut Ui,
@@ -175,12 +177,14 @@ fn detail_scroll(
 }
 
 fn code_scroll(
-    is_copying_line_numbers: &mut bool,
-    is_copying_line_indicator: &mut bool,
-    copy_language: &mut String,
-    code_hash: &mut u128,
-    code_job: &mut LayoutJob,
-    log: &Log<String>,
+    (
+        is_copying_line_numbers,
+        is_copying_line_indicator,
+        copy_language,
+        code_hash,
+        code_job,
+    ): (&mut bool, &mut bool, &mut String, &mut u128, &mut LayoutJob),
+    log: &Log,
     ctx: &Context,
     ui: &mut Ui,
 ) {
@@ -190,7 +194,7 @@ fn code_scroll(
         .max_height(ui.available_height())
         .max_width(ui.available_width() - 10.0)
         .show(ui, |ui| {
-            let (indicated_code, code, numbered_code) = log.code_snippet.0.iter().fold(
+            let (indicated_code, code, numbered_code) = log.code_snippet.iter().fold(
                 (String::new(), String::new(), String::new()),
                 |code, (line_number, line)| {
                     if *line_number == log.line_number {

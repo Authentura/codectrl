@@ -20,7 +20,7 @@ license = "MIT"
 authentura-egui-styling = { git = "https://github.com/Authentura/authentura-egui-styling", rev = "51b23f1" }
 ciborium = "0.2"
 clap = { version = "3.1", features = ["cargo"] }
-codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.5.0" }
+codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.7.3" }
 codectrl_logger = { git = "https://github.com/authentura/codectrl-rust-logger", default-features = false, features = ["types-only"] }
 eframe = { version = "0.18", features = ["persistence"] }
 egui = { version = "0.18", features = ["persistence"] }
@@ -45,12 +45,14 @@ wasm_thread = "0.1"
 web-sys = { version = "0.3", features = ["File", "FilePropertyBag", "console"]}
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
-codectrl_log_server = { path = "../codectrl-log-server" }
 codectrl-server = { path = "../codectrl-server" }
+codectrl_log_server = { path = "../codectrl-log-server" }
 egui_glow = "0.18"
 rfd = "0.8"
 tokio = { version = "1.17", default-features = false, features = ["net", "rt-multi-thread", "io-util", "macros"] }
+tonic = "0.7"
 
 [build-dependencies]
 chrono = "0.4"

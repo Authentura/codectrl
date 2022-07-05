@@ -2,16 +2,15 @@ use chrono::{
     format::{format_item, StrftimeItems},
     DateTime, Local, NaiveDateTime,
 };
-use codectrl_logger::Log;
+use codectrl_protobuf_bindings::data::Log;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
     fmt,
-    sync::{mpsc::Receiver as Rx, Arc, Mutex, RwLock},
+    sync::{Arc, RwLock},
 };
 
-pub type Received = Arc<RwLock<VecDeque<(Log<String>, DateTime<Local>)>>>;
-pub type Receiver = Option<Arc<Mutex<Rx<Log<String>>>>>;
+pub type Received = Arc<RwLock<VecDeque<(Log, DateTime<Local>)>>>;
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct TimeFormatString(String);
