@@ -220,9 +220,9 @@ fn code_scroll(
                 let mut layout_job: LayoutJob;
 
                 if *code_hash == hash {
-                    layout_job = LayoutJob::from(code_job.clone());
+                    layout_job = code_job.clone();
                 } else {
-                    let temp_job = code_highlighter(string, &log, ctx);
+                    let temp_job = code_highlighter(string, log, ctx);
 
                     *code_job = temp_job.clone();
                     layout_job = temp_job;

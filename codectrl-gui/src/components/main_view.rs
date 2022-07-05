@@ -30,7 +30,7 @@ fn app_state_filter(
 
     match filter_by {
         Filter::Message => string_filter(search_filter, &log.message),
-        Filter::Time => time.format("%F %X").to_string().contains(&*search_filter),
+        Filter::Time => time.format("%F %X").to_string().contains(search_filter),
         Filter::FileName => string_filter(search_filter, &log.file_name),
         Filter::Address => {
             let regex = if let Ok(regex) =  RegexBuilder::new(

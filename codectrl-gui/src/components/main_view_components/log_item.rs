@@ -128,7 +128,7 @@ pub fn draw_log_item(
     if !log.warnings.is_empty() {
         response |= response
             .clone()
-            .on_hover_ui_at_pointer(|ui| draw_warnings(ui, log))
+            .on_hover_ui_at_pointer(|ui| draw_warnings(ui, log));
     }
 
     if !exact_alert.is_empty() || !contains_alerts.is_empty() {

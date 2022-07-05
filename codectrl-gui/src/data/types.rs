@@ -25,13 +25,15 @@ impl fmt::Display for TimeFormatString {
         let datetime = NaiveDateTime::from_timestamp(45296, 0);
 
         for item in strftime_items {
-            if let Err(_) = format_item(
+            if format_item(
                 f,
                 Some(&datetime.date()),
                 Some(&datetime.time()),
                 None,
                 &item,
-            ) {
+            )
+            .is_err()
+            {
                 let _ = f.write_str("?");
             }
         }
