@@ -1,23 +1,52 @@
 #![warn(clippy::pedantic)]
+#![feature(let_chains)]
 
 use codectrl_protobuf_bindings::{
     data::Log,
     logs_service::{
-        Empty, LogClientService, LogClientTrait, LogServerService, LogServerTrait,
-        Received, ReceivedResult,
+        Connection, Empty, LogClientService, LogClientTrait, LogServerService,
+        LogServerTrait, RequestResult, RequestStatus, ServerDetails,
     },
 };
+use dashmap::{DashMap, DashSet};
 use futures::StreamExt;
-use std::{collections::VecDeque, net::SocketAddr, sync::Arc};
+use std::{collections::VecDeque, net::SocketAddr, sync::Arc, time::Instant};
 use tokio::sync::{mpsc, RwLock};
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{
     metadata::MetadataMap, transport::Server, Code, Request, Response, Status, Streaming,
 };
+use uuid::Uuid;
+
+#[derive(Debug, Clone)]
+pub struct ConnectionState {
+    last_update: Instant,
+    sent_log_ids: DashSet<String>,
+}
+
+impl Default for ConnectionState {
+    fn default() -> Self {
+        Self {
+            last_update: Instant::now(),
+            sent_log_ids: DashSet::new(),
+        }
+    }
+}
+
+impl ConnectionState {
+    pub fn add_log(&mut self, log: &Log) {
+        self.sent_log_ids.insert(log.uuid.clone());
+        self.last_update = Instant::now();
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Service {
     logs: Arc<RwLock<VecDeque<Log>>>,
+    connections: Arc<RwLock<DashMap<String, ConnectionState>>>,
+    host: &'static str,
+    port: u32,
+    uptime: Instant,
 }
 
 impl Service {
@@ -27,6 +56,8 @@ impl Service {
         remote_addr: Option<SocketAddr>,
         metadata: &MetadataMap,
     ) {
+        log.uuid = Uuid::new_v4().hyphenated().to_string();
+
         if log.message.len() > 1000 {
             log.warnings.push("Message exceeds 1000 characters".into());
         }
@@ -52,7 +83,7 @@ impl Service {
         match metadata.get("x-host") {
             Some(host) if matches!(remote_addr, Some(_)) =>
                 if let Ok(host) = host.to_str() {
-                    log.address = host.to_string();
+                    log.address = format!("{host}:{}", remote_addr.unwrap().port());
                 } else {
                     log.address = remote_addr.unwrap().to_string();
                 },
@@ -70,8 +101,91 @@ impl Service {
 
 #[tonic::async_trait]
 impl LogServerTrait for Service {
-    async fn get_log(&self, _: Request<Empty>) -> Result<Response<Log>, Status> {
-        if let Some(log) = self.logs.write().await.pop_front() {
+    async fn register_client(
+        &self,
+        _: Request<Empty>,
+    ) -> Result<Response<Connection>, Status> {
+        let connection = Connection::new();
+
+        self.connections
+            .write()
+            .await
+            .insert(connection.uuid.clone(), ConnectionState::default());
+
+        Ok(Response::new(connection))
+    }
+
+    async fn register_existing_client(
+        &self,
+        _connection: Request<Connection>,
+    ) -> Result<Response<RequestResult>, Status> {
+        todo!()
+    }
+
+    async fn get_server_details(
+        &self,
+        _: Request<Empty>,
+    ) -> Result<Response<ServerDetails>, Status> {
+        let host = std::env::vars()
+            .filter(|(k, _)| *k == "HOST")
+            .map(|(_, v)| v)
+            .next()
+            .unwrap_or_else(|| self.host.to_string());
+
+        let res = Response::new(ServerDetails {
+            host,
+            port: self.port,
+            uptime: self.uptime.elapsed().as_secs(),
+        });
+
+        Ok(res)
+    }
+
+    async fn get_log(
+        &self,
+        connection: Request<Connection>,
+    ) -> Result<Response<Log>, Status> {
+        let connection = connection.into_inner();
+
+        if Uuid::try_parse(&connection.uuid).is_err() {
+            return Err(Status::unauthenticated("No valid Connection was supplied."));
+        }
+
+        if !self.connections.read().await.contains_key(&connection.uuid) {
+            return Err(Status::unauthenticated(
+                "Invalid connection, please register.",
+            ));
+        }
+
+        let mut ignore = DashSet::new();
+
+        if self.connections.read().await.contains_key(&connection.uuid) {
+            ignore = self
+                .connections
+                .read()
+                .await
+                .get(&connection.uuid)
+                .unwrap()
+                .clone()
+                .sent_log_ids;
+        }
+
+        let logs = self.logs.read().await.clone();
+        let mut logs = logs
+            .iter()
+            .cloned()
+            .filter(|log| !ignore.contains(&log.uuid))
+            .collect::<VecDeque<_>>();
+
+        if let Some(log) = logs.pop_front()
+            && !ignore.contains(&log.uuid)
+        {
+            let key = self.connections.write().await;
+            let key = key.get_mut(&connection.uuid);
+
+            if let Some(mut key) = key {
+                key.add_log(&log);
+            }
             return Ok(Response::new(log));
         }
 
@@ -82,18 +196,54 @@ impl LogServerTrait for Service {
 
     async fn get_logs(
         &self,
-        _: Request<Empty>,
+        connection: Request<Connection>,
     ) -> Result<Response<Self::GetLogsStream>, Status> {
         let (tx, rx) = mpsc::channel(1024);
+        let connection = connection.into_inner();
 
-        let logs = Arc::clone(&self.logs);
+        if Uuid::try_parse(&connection.uuid).is_err() {
+            return Err(Status::unauthenticated("No valid Connection was supplied."));
+        }
+
+        if !self.connections.read().await.contains_key(&connection.uuid) {
+            return Err(Status::unauthenticated(
+                "Invalid connection, please register.",
+            ));
+        }
+
+        let connections = Arc::clone(&self.connections);
+
+        let mut ignore = DashSet::new();
+
+        if connections.read().await.contains_key(&connection.uuid) {
+            ignore = connections
+                .read()
+                .await
+                .get(&connection.uuid)
+                .unwrap()
+                .clone()
+                .sent_log_ids;
+        }
+
+        let logs = self.logs.read().await.clone();
+        let mut logs = logs
+            .iter()
+            .cloned()
+            .filter(|log| !ignore.contains(&log.uuid))
+            .collect::<VecDeque<_>>();
 
         tokio::spawn(async move {
-            while let Some(log) = logs.write().await.pop_front() {
+            let key = connections.write().await;
+            let mut key = key.get_mut(&connection.uuid);
+
+            while let Some(log) = logs.pop_front()
+                && !ignore.contains(&log.uuid)
+            {
+
                 if let Err(e) = tx.send(Ok(log.clone())).await {
-                    if cfg!(debug_assertions) {
-                        eprintln!("[ERROR] Occurred when writing to channel: {e:?}");
-                    }
+                    eprintln!("[ERROR] Occurred when writing to channel: {e:?}");
+                } else if let Some(key) = key.as_mut() {
+                    key.add_log(&log);
                 }
             }
         });
@@ -107,7 +257,7 @@ impl LogClientTrait for Service {
     async fn send_log(
         &self,
         request: Request<Log>,
-    ) -> Result<Response<ReceivedResult>, Status> {
+    ) -> Result<Response<RequestResult>, Status> {
         let remote_addr = request.remote_addr();
         let metadata = request.metadata().clone();
         let mut log = request.into_inner();
@@ -116,16 +266,16 @@ impl LogClientTrait for Service {
 
         self.logs.write().await.push_back(log);
 
-        Ok(Response::new(ReceivedResult {
+        Ok(Response::new(RequestResult {
             message: "Log added!".into(),
-            status: Received::Confirmed.into(),
+            status: RequestStatus::Confirmed.into(),
         }))
     }
 
     async fn send_logs(
         &self,
         request: Request<Streaming<Log>>,
-    ) -> Result<Response<ReceivedResult>, Status> {
+    ) -> Result<Response<RequestResult>, Status> {
         let remote_addr = request.remote_addr();
         let metadata = request.metadata().clone();
         let mut stream = request.into_inner();
@@ -142,9 +292,9 @@ impl LogClientTrait for Service {
             amount += 1;
         }
 
-        Ok(Response::new(ReceivedResult {
+        Ok(Response::new(RequestResult {
             message: format!("{amount} logs added!"),
-            status: Received::Confirmed.into(),
+            status: RequestStatus::Confirmed.into(),
         }))
     }
 }
@@ -161,11 +311,11 @@ impl LogClientTrait for Service {
 #[allow(clippy::missing_panics_doc)]
 pub async fn run_server(
     run_legacy_server: Option<bool>,
-    host: Option<&str>,
+    host: Option<&'static str>,
     port: Option<u32>,
 ) -> anyhow::Result<()> {
     // TODO: Add the legacy server thread and manage it through the gPRC server.
-    let _run_legacy_server = if run_legacy_server.is_some() {
+    let run_legacy_server = if run_legacy_server.is_some() {
         run_legacy_server.unwrap()
     } else {
         false
@@ -180,8 +330,14 @@ pub async fn run_server(
     let logs = Arc::new(RwLock::new(VecDeque::new()));
 
     let logs_service = Service {
+        host,
+        port,
+        uptime: Instant::now(),
         logs: Arc::clone(&logs),
+        connections: Arc::new(RwLock::new(DashMap::new())),
     };
+
+    if run_legacy_server {}
 
     let server_service = LogServerService::new(logs_service.clone());
     let client_service = LogClientService::new(logs_service);
