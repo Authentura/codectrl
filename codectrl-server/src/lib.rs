@@ -4,8 +4,8 @@
 use codectrl_protobuf_bindings::{
     data::Log,
     logs_service::{
-        Connection, Empty, LogClientService, LogClientTrait, LogServerService,
-        LogServerTrait, RequestResult, RequestStatus, ServerDetails,
+        Connection, LogClientService, LogClientTrait, LogServerService, LogServerTrait,
+        RequestResult, RequestStatus, ServerDetails,
     },
 };
 use dashmap::{DashMap, DashSet};
@@ -103,7 +103,7 @@ impl Service {
 impl LogServerTrait for Service {
     async fn register_client(
         &self,
-        _: Request<Empty>,
+        _: Request<()>,
     ) -> Result<Response<Connection>, Status> {
         let connection = Connection::new();
 
@@ -124,7 +124,7 @@ impl LogServerTrait for Service {
 
     async fn get_server_details(
         &self,
-        _: Request<Empty>,
+        _: Request<()>,
     ) -> Result<Response<ServerDetails>, Status> {
         let host = std::env::var("HOST").unwrap_or_else(|_| self.host.clone());
 
@@ -343,6 +343,7 @@ pub async fn run_server(
     println!("Starting gPRC server on {gprc_addr}...");
 
     Server::builder()
+        .accept_http1(true)
         .add_service(tonic_web::enable(server_service))
         .add_service(tonic_web::enable(client_service))
         .serve(gprc_addr)

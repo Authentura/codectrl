@@ -22,11 +22,11 @@ use app::App;
 use clap::{crate_authors, crate_name, crate_version, Arg, Command};
 use codectrl_protobuf_bindings::logs_service::log_server_client::LogServerClient;
 #[cfg(not(target_arch = "wasm32"))]
-use codectrl_protobuf_bindings::logs_service::Empty;
-#[cfg(not(target_arch = "wasm32"))]
 use codectrl_server::run_server;
 #[cfg(target_arch = "wasm32")]
 use eframe::wasm_bindgen::JsValue;
+#[cfg(target_arch = "wasm32")]
+use grpc_web_client::Client;
 #[cfg(not(target_arch = "wasm32"))]
 use rfd::MessageDialog;
 #[cfg(not(target_arch = "wasm32"))]
@@ -35,15 +35,11 @@ use std::{collections::HashMap, env, path::Path};
 use tokio::runtime::Handle;
 
 #[cfg(target_arch = "wasm32")]
-use tonic_web_wasm_client::Client;
-
-#[cfg(target_arch = "wasm32")]
-pub fn run() -> Result<(), JsValue> {
+pub fn run(host: &str, port: &str) -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
     tracing_wasm::set_as_global_default();
 
-    let grpc_client =
-        LogServerClient::new(Client::new("http://127.0.0.1:3002".to_string()));
+    let grpc_client = LogServerClient::new(Client::new(format!("http://{host}:{port}")));
 
     eframe::start_web(
         "codectrl-root",
@@ -149,12 +145,11 @@ pub async fn run() {
     };
     println!("Found gRPC server!");
 
-    let registered_client =
-        if let Ok(client) = grpc_client.register_client(Empty {}).await {
-            client.into_inner()
-        } else {
-            panic!("Could not register client!");
-        };
+    let registered_client = if let Ok(client) = grpc_client.register_client(()).await {
+        client.into_inner()
+    } else {
+        panic!("Could not register client!");
+    };
 
     let file_path = if let Some(project_file) = project_file {
         let file_path = match Path::new(project_file).canonicalize() {

@@ -19,6 +19,9 @@ codectrl_gui = { path = "./codectrl-gui" }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 eframe = "0.18"
 
+[profile.release]
+opt-level = "z"
+
 [package.metadata.deb]
 name = "codectrl"
 maintainer = "Samuel Boyden <s.boyden@authentura.com>"

@@ -2,13 +2,19 @@ use super::{window_states::AboutState, ApplicationSettings, Filter, Received};
 
 use authentura_egui_styling::dark_theme;
 use chrono::{DateTime, Local};
-use codectrl_protobuf_bindings::{data::Log, logs_service::ServerDetails};
+use codectrl_protobuf_bindings::{
+    data::Log,
+    logs_service::{Connection, ServerDetails},
+};
 use egui::Visuals;
+#[cfg(target_arch = "wasm32")]
+use instant::Instant;
 use serde::{Deserialize, Serialize};
+#[cfg(not(target_arch = "wasm32"))]
+use std::time::Instant;
 use std::{
     collections::{BTreeSet, VecDeque},
     sync::{Arc, RwLock},
-    time::Instant,
 };
 
 pub fn time_details_last_checked_default() -> Instant { Instant::now() }
@@ -18,6 +24,8 @@ pub fn refresh_server_details_default() -> bool { true }
 pub struct AppState {
     #[serde(skip)]
     pub server_details: Option<ServerDetails>,
+    #[serde(skip)]
+    pub grpc_client_connection: Option<Connection>,
     #[serde(skip, default = "time_details_last_checked_default")]
     pub time_details_last_checked: Instant,
     #[serde(skip, default = "refresh_server_details_default")]
@@ -63,6 +71,7 @@ impl Default for AppState {
     fn default() -> Self {
         Self {
             server_details: None,
+            grpc_client_connection: None,
             time_details_last_checked: time_details_last_checked_default(),
             refresh_server_details: refresh_server_details_default(),
             search_filter: "".into(),

@@ -24,10 +24,14 @@
 // Further changes can be discussed and implemented at later dates, but this is
 // the proposal so far.
 
+#[cfg(target_arch = "wasm32")]
+use crate::data::Received;
 use crate::{
     components::{about_view, details_view, main_view, main_view_empty, settings_view},
     data::{AppState, Filter},
 };
+#[cfg(target_arch = "wasm32")]
+use tracing::info;
 
 #[cfg(not(target_arch = "wasm32"))]
 use authentura_egui_styling::FontSizes;
@@ -39,7 +43,7 @@ use ciborium::ser as ciborium_ser;
 use codectrl_protobuf_bindings::{
     data::Log,
     logs_service::{
-        log_server_client::LogServerClient as Client, Connection, Empty, ServerDetails,
+        log_server_client::LogServerClient as Client, Connection, ServerDetails,
     },
 };
 use eframe::{Frame, Storage};
@@ -49,6 +53,10 @@ use egui::{Event, InputState, Key};
 use flate2::bufread;
 #[cfg(not(target_arch = "wasm32"))]
 use flate2::{write, Compression};
+#[cfg(target_arch = "wasm32")]
+use futures_channel::oneshot::{channel, Receiver};
+#[cfg(target_arch = "wasm32")]
+use grpc_web_client::Client as WasmClient;
 #[cfg(not(target_arch = "wasm32"))]
 use poll_promise::Promise;
 #[cfg(target_arch = "wasm32")]
@@ -56,12 +64,15 @@ use rfd::{AsyncFileDialog as FileDialog, FileHandle, MessageDialog};
 #[cfg(not(target_arch = "wasm32"))]
 use rfd::{FileDialog, MessageDialog};
 use serde::{Deserialize, Serialize};
+#[cfg(target_arch = "wasm32")]
+use std::sync::Mutex;
+#[cfg(not(target_arch = "wasm32"))]
+use std::time::{Duration, Instant};
 use std::{
     collections::{BTreeSet, VecDeque},
     error::Error,
     io::{BufReader, Error as IOError, ErrorKind},
     sync::Arc,
-    time::{Duration, Instant},
 };
 #[cfg(not(target_arch = "wasm32"))]
 use std::{fs::File, io::Write, path::Path};
@@ -69,11 +80,12 @@ use std::{fs::File, io::Write, path::Path};
 use tokio::runtime::Handle;
 #[cfg(not(target_arch = "wasm32"))]
 use tonic::transport::Channel;
+#[cfg(not(target_arch = "wasm32"))]
 use tonic::{Response, Status};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_futures::spawn_local;
 #[cfg(target_arch = "wasm32")]
-use wasm_thread::JoinHandle;
+use wasm_rs_async_executor::single_threaded as executor;
 
 type Decoder<T> = bufread::DeflateDecoder<T>;
 #[cfg(not(target_arch = "wasm32"))]
@@ -86,30 +98,98 @@ pub struct Session {
     pub message_alerts: BTreeSet<String>,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+type GrpcClient = Client<Channel>;
+#[cfg(target_arch = "wasm32")]
+type GrpcClient = Client<WasmClient>;
+
+#[cfg(target_arch = "wasm32")]
+fn yield_loop() {
+    let task = executor::spawn(async move {
+        loop {
+            executor::yield_animation_frame().await;
+        }
+    });
+
+    executor::run(Some(task.task()));
+}
+
+#[cfg(target_arch = "wasm32")]
+fn register_client(mut grpc_client: GrpcClient) -> Receiver<Connection> {
+    let (tx, rx) = channel();
+
+    let task = executor::spawn(async move {
+        spawn_local(async move {
+            info!("Registering client...");
+            let res = grpc_client.register_client(()).await;
+            if let Ok(connection) = res {
+                let connection = connection.into_inner();
+
+                if tx.send(connection).is_err() {}
+            }
+        });
+    });
+
+    executor::run(Some(task.task()));
+
+    rx
+}
+
+#[cfg(target_arch = "wasm32")]
+fn get_server_logs(
+    mut grpc_client: GrpcClient,
+    grpc_client_connection: Connection,
+    received: Received,
+) {
+    let task = executor::spawn(async move {
+        info!("Starting logs loop...");
+        loop {
+            if let Ok(res) = grpc_client.get_logs(grpc_client_connection.clone()).await {
+                let mut response = res.into_inner();
+
+                while let Ok(Some(message)) = response.message().await {
+                    received
+                        .write()
+                        .unwrap()
+                        .push_front((message.clone(), Local::now()));
+                    executor::yield_animation_frame().await;
+                }
+            }
+        }
+    });
+
+    executor::run(Some(task.task()));
+}
+
 #[derive(Default, Deserialize, Serialize)]
 pub struct App {
     state: AppState,
     title: &'static str,
     #[serde(skip)]
-    grpc_client: Option<Client<Channel>>,
-    grpc_client_connection: Connection,
+    grpc_client: Option<GrpcClient>,
+    #[cfg(not(target_arch = "wasm32"))]
     #[serde(skip)]
     promise: Option<Promise<Result<Response<ServerDetails>, Status>>>,
+    #[cfg(target_arch = "wasm32")]
+    #[serde(skip)]
+    client_connection_channel: Option<Receiver<Connection>>,
+    #[cfg(target_arch = "wasm32")]
+    #[serde(skip)]
+    started_logs_loop: bool,
 }
 
 impl App {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new(
         cc: &eframe::CreationContext,
-        grpc_client: Client<Channel>,
-        grpc_client_connection: Connection,
+        grpc_client: GrpcClient,
+        grpc_client_connection: Option<Connection>,
         runtime: &Handle,
     ) -> Self {
         let mut app = Self {
             state: AppState::default(),
             title: "codeCTRL",
             grpc_client: Some(grpc_client),
-            grpc_client_connection,
             promise: None,
         };
 
@@ -134,7 +214,7 @@ impl App {
         cc.egui_ctx.set_visuals(app.state.current_theme.clone());
 
         let mut grpc_client = app.grpc_client.clone().unwrap();
-        let grpc_client_connection = app.grpc_client_connection.clone();
+        let grpc_client_connection = app.state.grpc_client_connection.clone();
 
         runtime.spawn(async move {
             loop {
@@ -157,32 +237,34 @@ impl App {
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub fn new(cc: &eframe::CreationContext, grpc_client: Client<T>) -> Self {
+    pub fn new(cc: &eframe::CreationContext, grpc_client: GrpcClient) -> Self {
         let mut app = Self {
-            receiver: None,
-            update_thread: None,
-            data: AppState::default(),
+            state: AppState::default(),
             title: "codeCTRL",
-            grpc_client: Some(grpc_client),
+            grpc_client: Some(grpc_client.clone()),
+            client_connection_channel: None,
+            started_logs_loop: false,
         };
 
         if let Some(storage) = cc.storage {
-            let data: AppState =
+            let state: AppState =
                 eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
 
-            if data.preserve_session {
-                app.data = data;
+            if state.preserve_session {
+                app.state = state;
             } else {
-                app.data = AppState::default();
-                app.data.preserve_session = false;
+                app.state = AppState::default();
+                app.state.preserve_session = false;
             }
         }
 
+        yield_loop();
+
+        app.client_connection_channel = Some(register_client(grpc_client));
+
         cc.egui_ctx.set_fonts(fonts());
         cc.egui_ctx
-            .set_style(application_style(app.data.application_settings.font_sizes));
-
-        app.update_thread = None;
+            .set_style(application_style(app.state.application_settings.font_sizes));
 
         app
     }
@@ -454,7 +536,7 @@ impl App {
             session_timestamp,
             message_alerts,
             ..
-        } = &mut app.as_ref().lock().unwrap().data;
+        } = &mut app.as_ref().lock().unwrap().state;
 
         *received.write().unwrap() = session.received;
         *session_timestamp = session.session_timestamp;
@@ -469,13 +551,37 @@ impl eframe::App for App {
         #[cfg(not(target_arch = "wasm32"))]
         self.handle_key_inputs(&ctx.input());
 
+        #[cfg(target_arch = "wasm32")]
+        if let Some(grpc_client_connection) = &self.state.grpc_client_connection {
+            if !self.started_logs_loop {
+                let grpc_client = self.grpc_client.as_ref().unwrap().clone();
+                let grpc_client_connection = grpc_client_connection.clone();
+
+                self.started_logs_loop = true;
+
+                get_server_logs(
+                    grpc_client,
+                    grpc_client_connection,
+                    Arc::clone(&self.state.received),
+                );
+            }
+        } else {
+            if let Some(client_channel) = self.client_connection_channel.as_mut() {
+                if let Ok(Some(connection)) = client_channel.try_recv() {
+                    self.state.grpc_client_connection = Some(connection);
+                    client_channel.close();
+                }
+            }
+        }
+
+        #[cfg(not(target_arch = "wasm32"))]
         if self.state.refresh_server_details {
             let mut grpc_client = self.grpc_client.clone().unwrap();
 
             let promise = self.promise.get_or_insert_with(|| {
-                Promise::spawn_async(async move {
-                    grpc_client.get_server_details(Empty {}).await
-                })
+                Promise::spawn_async(
+                    async move { grpc_client.get_server_details(()).await },
+                )
             });
 
             if let Some(Ok(details)) = promise.ready() {
@@ -493,7 +599,7 @@ impl eframe::App for App {
 
                 self.state.refresh_server_details = true;
                 self.promise = Some(Promise::spawn_async(async move {
-                    grpc_client.get_server_details(Empty {}).await
+                    grpc_client.get_server_details(()).await
                 }));
                 self.state.time_details_last_checked = Instant::now();
             }
