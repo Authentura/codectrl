@@ -35,7 +35,7 @@ use std::{collections::HashMap, env, path::Path};
 use tokio::runtime::Handle;
 
 #[cfg(target_arch = "wasm32")]
-pub fn run(host: &str, port: &str) -> Result<(), JsValue> {
+pub fn run(host: &'static str, port: &'static str) -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
     tracing_wasm::set_as_global_default();
 
@@ -43,7 +43,7 @@ pub fn run(host: &str, port: &str) -> Result<(), JsValue> {
 
     eframe::start_web(
         "codectrl-root",
-        Box::new(move |cc| Box::new(App::new(cc, grpc_client))),
+        Box::new(move |cc| Box::new(App::new(cc, grpc_client, host, port))),
     )
 }
 

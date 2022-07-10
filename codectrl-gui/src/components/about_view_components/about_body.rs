@@ -3,15 +3,18 @@ use crate::{consts, data::window_states::AboutState};
 use authentura_egui_styling::{
     get_mono_license, get_sans_license, DARK_HEADER_FOREGROUND_COLOUR,
 };
+#[cfg(not(target_arch = "wasm32"))]
 use chrono::Duration;
 use clap::{crate_authors, crate_description, crate_version};
 use codectrl_protobuf_bindings::logs_service::ServerDetails;
 use egui::{Context, CursorIcon, RichText, Sense, TextStyle, Ui};
+#[cfg(not(target_arch = "wasm32"))]
 use std::time::Duration as StdDuration;
 
+#[allow(clippy::used_underscore_binding)]
 pub fn draw_about_body(
     about_state: &AboutState,
-    server_details: &Option<ServerDetails>,
+    _server_details: &Option<ServerDetails>,
     ctx: &Context,
     ui: &mut Ui,
 ) {
@@ -30,8 +33,9 @@ pub fn draw_about_body(
                 ui.heading(format!("Branch: {}", consts::GIT_BRANCH));
                 ui.heading("");
                 ui.heading(crate_description!());
-                ui.heading("");
-                if let Some(details) = server_details {
+                #[cfg(not(target_arch = "wasm32"))]
+                if let Some(details) = _server_details {
+                    ui.heading("");
                     ui.heading(format!(
                         "Server uptime: {} minute(s)",
                         Duration::from_std(StdDuration::from_secs(details.uptime))

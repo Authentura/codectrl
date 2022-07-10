@@ -176,6 +176,12 @@ pub struct App {
     #[cfg(target_arch = "wasm32")]
     #[serde(skip)]
     started_logs_loop: bool,
+    #[cfg(target_arch = "wasm32")]
+    #[serde(skip)]
+    server_host: &'static str,
+    #[cfg(target_arch = "wasm32")]
+    #[serde(skip)]
+    server_port: &'static str,
 }
 
 impl App {
@@ -183,7 +189,7 @@ impl App {
     pub fn new(
         cc: &eframe::CreationContext,
         grpc_client: GrpcClient,
-        grpc_client_connection: Option<Connection>,
+        grpc_client_connection: Connection,
         runtime: &Handle,
     ) -> Self {
         let mut app = Self {
@@ -214,7 +220,12 @@ impl App {
         cc.egui_ctx.set_visuals(app.state.current_theme.clone());
 
         let mut grpc_client = app.grpc_client.clone().unwrap();
-        let grpc_client_connection = app.state.grpc_client_connection.clone();
+        let grpc_client_connection =
+            if let Some(client) = app.state.grpc_client_connection.as_ref() {
+                client.clone()
+            } else {
+                grpc_client_connection
+            };
 
         runtime.spawn(async move {
             loop {
@@ -237,13 +248,20 @@ impl App {
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub fn new(cc: &eframe::CreationContext, grpc_client: GrpcClient) -> Self {
+    pub fn new(
+        cc: &eframe::CreationContext,
+        grpc_client: GrpcClient,
+        server_host: &'static str,
+        server_port: &'static str,
+    ) -> Self {
         let mut app = Self {
             state: AppState::default(),
             title: "codeCTRL",
             grpc_client: Some(grpc_client.clone()),
             client_connection_channel: None,
             started_logs_loop: false,
+            server_host,
+            server_port,
         };
 
         if let Some(storage) = cc.storage {
@@ -547,6 +565,7 @@ impl App {
 }
 
 impl eframe::App for App {
+    #[allow(clippy::used_underscore_binding)]
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
         #[cfg(not(target_arch = "wasm32"))]
         self.handle_key_inputs(&ctx.input());
@@ -751,11 +770,15 @@ impl eframe::App for App {
         };
 
         if is_empty {
+            #[cfg(not(target_arch = "wasm32"))]
             match self.state.server_details.as_ref() {
                 Some(ServerDetails { host, port, .. }) =>
                     main_view_empty(ctx, &format!("{host}:{port}")),
                 None => main_view_empty(ctx, "Fetching server details..."),
             }
+
+            #[cfg(target_arch = "wasm32")]
+            main_view_empty(ctx, &format!("{}:{}", self.server_host, self.server_port));
         } else {
             main_view(&mut self.state, ctx);
         }
