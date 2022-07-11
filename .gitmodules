@@ -1,3 +1,0 @@
-[submodule "codectrl-protobuf-bindings/proto"]
-	path = codectrl-protobuf-bindings/proto
-	url = git@github.com:Authentura/codectrl-protobuf-specifications
