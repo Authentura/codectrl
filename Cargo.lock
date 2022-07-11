@@ -471,20 +471,11 @@ dependencies = [
 
 [[package]]
 name = "codectrl-protobuf-bindings"
-version = "0.7.2"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.2#178e0bf3b91e9ed18cd0878dae575adf6067979f"
+version = "0.7.6"
+source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.6#2681a0a60d49bae7177d18672169549fb5a85d20"
 dependencies = [
- "native 0.0.0 (git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.2)",
- "web 0.0.0 (git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.2)",
-]
-
-[[package]]
-name = "codectrl-protobuf-bindings"
-version = "0.7.5"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.5#84215b23bdc6fd013afbda9e575a41927523b862"
-dependencies = [
- "native 0.0.0 (git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.5)",
- "web 0.0.0 (git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.5)",
+ "native",
+ "web",
 ]
 
 [[package]]
@@ -492,7 +483,7 @@ name = "codectrl-server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "codectrl-protobuf-bindings 0.7.5",
+ "codectrl-protobuf-bindings",
  "dashmap",
  "futures",
  "futures-core",
@@ -514,7 +505,7 @@ dependencies = [
  "chrono",
  "ciborium",
  "clap",
- "codectrl-protobuf-bindings 0.7.5",
+ "codectrl-protobuf-bindings",
  "codectrl-server",
  "codectrl_log_server",
  "codectrl_logger",
@@ -550,7 +541,7 @@ name = "codectrl_log_server"
 version = "0.3.0"
 dependencies = [
  "ciborium",
- "codectrl-protobuf-bindings 0.7.2",
+ "codectrl-protobuf-bindings",
  "log",
  "serde",
  "serde_json",
@@ -1651,20 +1642,7 @@ checksum = "e5ce46fe64a9d73be07dcbe690a38ce1b293be448fd8ce1e6c1b8062c9f72c6a"
 [[package]]
 name = "native"
 version = "0.0.0"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.2#178e0bf3b91e9ed18cd0878dae575adf6067979f"
-dependencies = [
- "prost",
- "prost-build",
- "serde",
- "tonic",
- "tonic-build",
- "uuid",
-]
-
-[[package]]
-name = "native"
-version = "0.0.0"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.5#84215b23bdc6fd013afbda9e575a41927523b862"
+source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.6#2681a0a60d49bae7177d18672169549fb5a85d20"
 dependencies = [
  "prost",
  "prost-build",
@@ -3212,19 +3190,7 @@ dependencies = [
 [[package]]
 name = "web"
 version = "0.0.0"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.2#178e0bf3b91e9ed18cd0878dae575adf6067979f"
-dependencies = [
- "prost",
- "prost-build",
- "serde",
- "tonic",
- "tonic-build",
-]
-
-[[package]]
-name = "web"
-version = "0.0.0"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.5#84215b23bdc6fd013afbda9e575a41927523b862"
+source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.6#2681a0a60d49bae7177d18672169549fb5a85d20"
 dependencies = [
  "prost",
  "prost-build",
