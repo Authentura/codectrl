@@ -21,7 +21,6 @@ authentura-egui-styling = { git = "https://github.com/Authentura/authentura-egui
 ciborium = "0.2"
 clap = { version = "3.1", features = ["cargo"] }
 codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.7.6" }
-codectrl_logger = { git = "https://github.com/authentura/codectrl-rust-logger", default-features = false, features = ["types-only"] }
 eframe = { version = "0.18", features = ["persistence"] }
 egui = { version = "0.18", features = ["persistence"] }
 egui_extras = "0.18"

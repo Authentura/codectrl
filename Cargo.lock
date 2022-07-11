@@ -508,7 +508,6 @@ dependencies = [
  "codectrl-protobuf-bindings",
  "codectrl-server",
  "codectrl_log_server",
- "codectrl_logger",
  "console_error_panic_hook",
  "eframe",
  "egui",
@@ -547,15 +546,6 @@ dependencies = [
  "serde_json",
  "simple_logger",
  "tokio",
-]
-
-[[package]]
-name = "codectrl_logger"
-version = "0.3.0"
-source = "git+https://github.com/authentura/codectrl-rust-logger#7fb21a0d65424a3768e8da160c7adedbd03d49f2"
-dependencies = [
- "ciborium",
- "serde",
 ]
 
 [[package]]
