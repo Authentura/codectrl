@@ -11,5 +11,6 @@ jobs:
           components: clippy
           override: true
       - uses: actions-rs/clippy-check@v1
-        with: ${{ secrets.GITHUB_TOKEN }}
-        args: --all-targets --all-features
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-targets --all-features
