@@ -1,18 +1,17 @@
-on: push
 name: Clippy Check
+on: [push, pull_request]
+
 jobs:
   clippy_check:
+    name: cargo clippy
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: nightly
-          components: clippy
-          override: true
+          - target: wasm32-unknown-unknown
+          - components: clippy
       - name: Bootstrap Ubuntu
         run: ./bootstrap-action.sh
-      - uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --release --all-targets --all-features
+      - name: Run clippy check
+        run: cargo clippy --release --all-features --all-targets
