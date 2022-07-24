@@ -1,5 +1,4 @@
 #![warn(clippy::pedantic)]
-#![feature(let_chains)]
 
 use codectrl_protobuf_bindings::{
     data::Log,
@@ -338,15 +337,15 @@ pub async fn run_server(
     let server_service = LogServerService::new(logs_service.clone());
     let client_service = LogClientService::new(logs_service);
 
-    let gprc_addr = format!("{host}:{port}").parse()?;
+    let grpc_addr = format!("{host}:{port}").parse()?;
 
-    println!("Starting gPRC server on {gprc_addr}...");
+    println!("Starting gPRC server on {grpc_addr}...");
 
     Server::builder()
         .accept_http1(true)
         .add_service(tonic_web::enable(server_service))
         .add_service(tonic_web::enable(client_service))
-        .serve(gprc_addr)
+        .serve(grpc_addr)
         .await?;
 
     Ok(())
