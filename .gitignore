@@ -7,3 +7,5 @@
 /codectrl-protobuf-bindings/target
 /dist/
 /.idea/
+
+codectrl-server/migration/target

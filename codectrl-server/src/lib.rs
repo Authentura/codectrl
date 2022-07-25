@@ -1,5 +1,9 @@
 #![warn(clippy::pedantic)]
 
+use std::{
+    collections::VecDeque, fs, net::SocketAddr, path::Path, sync::Arc, time::Instant,
+};
+
 use codectrl_protobuf_bindings::{
     data::Log,
     logs_service::{
@@ -8,14 +12,21 @@ use codectrl_protobuf_bindings::{
     },
 };
 use dashmap::{DashMap, DashSet};
+use directories::ProjectDirs;
+use entity::connection::{ActiveModel, Entity};
 use futures::StreamExt;
-use std::{collections::VecDeque, net::SocketAddr, sync::Arc, time::Instant};
+use sea_orm::{
+    ActiveModelTrait, ActiveValue::NotSet, Database, DatabaseConnection, EntityTrait, Set,
+};
+use std::fs::File;
 use tokio::sync::{mpsc, RwLock};
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{
     metadata::MetadataMap, transport::Server, Code, Request, Response, Status, Streaming,
 };
 use uuid::Uuid;
+
+mod entity;
 
 #[derive(Debug, Clone)]
 pub struct ConnectionState {
@@ -46,6 +57,7 @@ pub struct Service {
     host: String,
     port: u32,
     uptime: Instant,
+    db_connection: DatabaseConnection,
 }
 
 impl Service {
@@ -111,13 +123,57 @@ impl LogServerTrait for Service {
             .await
             .insert(connection.uuid.clone(), ConnectionState::default());
 
+        let model = ActiveModel {
+            uuid: Set(connection.uuid.clone()),
+            sent_logs: NotSet,
+        };
+
+        if let Err(error) = model.insert(&self.db_connection).await {
+            return Err(Status::aborted(error.to_string()));
+        };
+
         Ok(Response::new(connection))
     }
 
     async fn register_existing_client(
         &self,
-        _connection: Request<Connection>,
+        connection: Request<Connection>,
     ) -> Result<Response<RequestResult>, Status> {
+        let connection = connection.into_inner();
+
+        let connections = match Entity::find_by_id(connection.uuid)
+            .all(&self.db_connection)
+            .await
+        {
+            Ok(connections) => connections,
+            Err(error) => return Err(Status::aborted(error.to_string())),
+        };
+
+        if connections.is_empty() {
+            return Err(Status::not_found(
+                "Given connection UUID was not found in database",
+            ));
+        }
+
+        let connection = connections[0].clone();
+
+        if let Some(sent_log_ids) = &connection.sent_logs {
+            let sent_log_ids: DashSet<String> = match serde_json::from_str(sent_log_ids) {
+                Ok(ids) => ids,
+                Err(error) => return Err(Status::internal(error.to_string())),
+            };
+
+            self.connections.write().await.insert(
+                connection.uuid.clone(),
+                ConnectionState {
+                    last_update: Instant::now(),
+                    sent_log_ids,
+                },
+            );
+        }
+
+        dbg!(&connection);
+
         todo!()
     }
 
@@ -172,16 +228,17 @@ impl LogServerTrait for Service {
             .filter(|log| !ignore.contains(&log.uuid))
             .collect::<VecDeque<_>>();
 
-        if let Some(log) = logs.pop_front()
-            && !ignore.contains(&log.uuid)
-        {
-            let key = self.connections.write().await;
-            let key = key.get_mut(&connection.uuid);
+        if let Some(log) = logs.pop_front() {
+            if !ignore.contains(&log.uuid) {
+                let key = self.connections.write().await;
+                let key = key.get_mut(&connection.uuid);
 
-            if let Some(mut key) = key {
-                key.add_log(&log);
+                if let Some(mut key) = key {
+                    key.add_log(&log);
+                }
+
+                return Ok(Response::new(log));
             }
-            return Ok(Response::new(log));
         }
 
         Err(Status::new(Code::ResourceExhausted, "No more logs"))
@@ -231,14 +288,13 @@ impl LogServerTrait for Service {
             let key = connections.write().await;
             let mut key = key.get_mut(&connection.uuid);
 
-            while let Some(log) = logs.pop_front()
-                && !ignore.contains(&log.uuid)
-            {
-
-                if let Err(e) = tx.send(Ok(log.clone())).await {
-                    eprintln!("[ERROR] Occurred when writing to channel: {e:?}");
-                } else if let Some(key) = key.as_mut() {
-                    key.add_log(&log);
+            while let Some(log) = logs.pop_front() {
+                if !ignore.contains(&log.uuid) {
+                    if let Err(e) = tx.send(Ok(log.clone())).await {
+                        eprintln!("[ERROR] Occurred when writing to channel: {e:?}");
+                    } else if let Some(key) = key.as_mut() {
+                        key.add_log(&log);
+                    }
                 }
             }
         });
@@ -309,6 +365,28 @@ pub async fn run_server(
     host: Option<String>,
     port: Option<u32>,
 ) -> anyhow::Result<()> {
+    let data_dir = if let Some(data_directory) =
+        ProjectDirs::from("com", "Authentura", "codectrl-server")
+    {
+        data_directory.data_dir().to_owned()
+    } else {
+        Path::new(".codectrl-server").to_owned()
+    };
+
+    if !data_dir.exists() {
+        fs::create_dir(&data_dir)?;
+        dbg!(&data_dir);
+    }
+
+    let data_dir = data_dir.to_string_lossy().to_string();
+    let db_file = format!("{data_dir}/db.sqlite");
+
+    if !Path::new(&db_file).exists() {
+        File::create(&db_file)?;
+    }
+
+    let db_connection = Database::connect(format!("sqlite:{data_dir}/db.sqlite")).await?;
+
     // TODO: Add the legacy server thread and manage it through the gPRC server.
     let run_legacy_server = if run_legacy_server.is_some() {
         run_legacy_server.unwrap()
@@ -330,6 +408,7 @@ pub async fn run_server(
         uptime: Instant::now(),
         logs: Arc::clone(&logs),
         connections: Arc::new(RwLock::new(DashMap::new())),
+        db_connection,
     };
 
     if run_legacy_server {}

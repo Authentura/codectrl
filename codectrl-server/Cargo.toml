@@ -8,12 +8,25 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0"
 codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.7.6" }
-dashmap = "5.3.4"
+dashmap = { version = "5.3.4", features = ["serde"] }
+directories = "4.0"
 futures = "0.3.21"
 futures-core = "0.3"
 futures-util = "0.3"
 prost = "0.10"
-tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "sync", "time"] }
+sea-orm = { version = "0.9", features = [
+    "macros",
+    "runtime-tokio-rustls",
+    "sqlx-sqlite",
+] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = [
+    "rt-multi-thread",
+    "macros",
+    "sync",
+    "time",
+] }
 tokio-stream = "0.1"
 tonic = "0.7"
 tonic-web = "0.3.0"
