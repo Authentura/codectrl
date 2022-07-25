@@ -4,10 +4,12 @@ use crate::data::AppState;
 use authentura_egui_styling::DARK_HEADER_FOREGROUND_COLOUR;
 use egui::{Context, Id, RichText};
 
+#[allow(clippy::used_underscore_binding)]
 pub fn about_view(
     AppState {
         about_state,
         is_about_open,
+        server_details: _server_details,
         ..
     }: &mut AppState,
     ctx: &Context,
@@ -29,7 +31,7 @@ pub fn about_view(
         ui.vertical_centered(|ui| {
             ui.separator();
 
-            draw_about_body(about_state, ctx, ui);
+            draw_about_body(about_state, _server_details, ctx, ui);
         });
     });
 }

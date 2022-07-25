@@ -3,10 +3,21 @@ use crate::{consts, data::window_states::AboutState};
 use authentura_egui_styling::{
     get_mono_license, get_sans_license, DARK_HEADER_FOREGROUND_COLOUR,
 };
+#[cfg(not(target_arch = "wasm32"))]
+use chrono::Duration;
 use clap::{crate_authors, crate_description, crate_version};
+use codectrl_protobuf_bindings::logs_service::ServerDetails;
 use egui::{Context, CursorIcon, RichText, Sense, TextStyle, Ui};
+#[cfg(not(target_arch = "wasm32"))]
+use std::time::Duration as StdDuration;
 
-pub fn draw_about_body(about_state: &AboutState, ctx: &Context, ui: &mut Ui) {
+#[allow(clippy::used_underscore_binding)]
+pub fn draw_about_body(
+    about_state: &AboutState,
+    _server_details: &Option<ServerDetails>,
+    ctx: &Context,
+    ui: &mut Ui,
+) {
     egui::ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| match about_state {
@@ -22,6 +33,18 @@ pub fn draw_about_body(about_state: &AboutState, ctx: &Context, ui: &mut Ui) {
                 ui.heading(format!("Branch: {}", consts::GIT_BRANCH));
                 ui.heading("");
                 ui.heading(crate_description!());
+                #[cfg(not(target_arch = "wasm32"))]
+                if let Some(details) = _server_details {
+                    ui.heading("");
+                    ui.heading(format!(
+                        "Server uptime: {} minute(s)",
+                        Duration::from_std(StdDuration::from_secs(details.uptime))
+                            .unwrap()
+                            .num_minutes(),
+                    ));
+                } else {
+                    ui.heading("Server uptime: Fetching...");
+                }
             },
             AboutState::Credits => {
                 ui.vertical(|ui| {

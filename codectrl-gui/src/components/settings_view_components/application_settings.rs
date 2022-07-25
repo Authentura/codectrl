@@ -34,10 +34,7 @@ pub fn draw_application_settings(
             if !application_settings.filename_format.is_empty() {
                 let format = TimeFormatString::new(&application_settings.filename_format);
 
-                ui.label(format!(
-                    "Preview: {format}.cdctrl",
-                    format = format.to_string()
-                ));
+                ui.label(format!("Preview: {format}.cdctrl"));
             }
 
             ui.horizontal_wrapped(|ui| {

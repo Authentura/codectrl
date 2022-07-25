@@ -1,31 +1,25 @@
 use ciborium::de as ciborium;
-use codectrl_logger::Log;
+use codectrl_protobuf_bindings::data::Log;
 use log::{error, info, warn};
 use simple_logger::SimpleLogger;
-use std::{
-    error::Error,
-    sync::{
-        mpsc::{sync_channel, Receiver, SyncSender},
-        Arc,
-    },
-};
+use std::{error::Error, sync::Arc};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpSocket,
-    runtime::Runtime,
+    sync::mpsc::{channel, Receiver, Sender},
 };
 
 #[derive(Clone)]
 pub struct Server {
-    sender: Arc<SyncSender<Log<String>>>,
+    sender: Arc<Sender<Log>>,
     host: String,
     port: String,
-    logs: Vec<Log<String>>,
+    logs: Vec<Log>,
 }
 
 impl Server {
-    pub fn new(host: &str, port: &str) -> (Self, Receiver<Log<String>>) {
-        let (sender, receiver) = sync_channel(512);
+    pub fn new(host: &str, port: &str) -> (Self, Receiver<Log>) {
+        let (sender, receiver) = channel(512);
 
         (
             Self {
@@ -38,19 +32,7 @@ impl Server {
         )
     }
 
-    pub fn run_server_new_runtime(&mut self) -> Result<(), Box<dyn Error>> {
-        let rt = Runtime::new()?;
-
-        let mut ret = Ok(());
-
-        rt.block_on(async {
-            ret = self.run_server_current_runtime().await;
-        });
-
-        ret
-    }
-
-    pub async fn run_server_current_runtime(&mut self) -> Result<(), Box<dyn Error>> {
+    pub async fn run_server(&mut self) -> Result<(), Box<dyn Error>> {
         SimpleLogger::new().init()?;
 
         let socket = TcpSocket::new_v4()?;
@@ -63,7 +45,10 @@ impl Server {
 
         socket.bind(format!("{}:{}", self.host, self.port).parse().unwrap())?;
 
-        println!("Server has started on {}:{}...", self.host, self.port);
+        println!(
+            "Legacy socket server has started on {}:{}...",
+            self.host, self.port
+        );
 
         let listener = socket.listen(1024)?;
 
@@ -89,7 +74,7 @@ impl Server {
 
                 info!("Received log...");
 
-                let mut data: Log<String> = match ciborium::from_reader(&buf[..n]) {
+                let mut data: Log = match ciborium::from_reader(&buf[..n]) {
                     Ok(data) => data,
                     Err(cbor_error) => match serde_json::from_reader(&buf[..n]) {
                         Ok(data) => data,
@@ -135,7 +120,7 @@ impl Server {
 
                 self.logs.push(data.clone());
 
-                if let Err(e) = self.sender.send(data) {
+                if let Err(e) = self.sender.send(data).await {
                     error!(target: "log_server", "Failed to send data to main channel: {}", e);
                     break;
                 }

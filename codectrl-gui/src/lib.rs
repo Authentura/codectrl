@@ -5,6 +5,7 @@
     clippy::module_name_repetitions,
     clippy::struct_excessive_bools,
     clippy::too_many_lines,
+    clippy::missing_panics_doc,
     incomplete_features
 )]
 
@@ -19,19 +20,31 @@ extern crate clap;
 use app::App;
 #[cfg(not(target_arch = "wasm32"))]
 use clap::{crate_authors, crate_name, crate_version, Arg, Command};
+use codectrl_protobuf_bindings::logs_service::log_server_client::LogServerClient;
 #[cfg(not(target_arch = "wasm32"))]
-use codectrl_log_server::Server;
+use codectrl_server::run_server;
 #[cfg(target_arch = "wasm32")]
 use eframe::wasm_bindgen::JsValue;
+#[cfg(target_arch = "wasm32")]
+use grpc_web_client::Client;
 #[cfg(not(target_arch = "wasm32"))]
-use std::{collections::HashMap, env, path::Path, thread};
+use rfd::MessageDialog;
+#[cfg(not(target_arch = "wasm32"))]
+use std::{collections::HashMap, env, path::Path};
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::runtime::Handle;
 
 #[cfg(target_arch = "wasm32")]
-pub fn run() -> Result<(), JsValue> {
+pub fn run(host: &'static str, port: &'static str) -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
     tracing_wasm::set_as_global_default();
 
-    eframe::start_web("codectrl-root", Box::new(|cc| Box::new(App::new(cc))))
+    let grpc_client = LogServerClient::new(Client::new(format!("http://{host}:{port}")));
+
+    eframe::start_web(
+        "codectrl-root",
+        Box::new(move |cc| Box::new(App::new(cc, grpc_client, host, port))),
+    )
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -82,18 +95,10 @@ pub async fn run() {
     } else if command_line.contains_key("PORT") {
         command_line.get("PORT").unwrap()
     } else {
-        "3001"
-    };
-
-    let has_host = matches.is_present("host");
-
-    let host = if has_host {
-        matches.value_of("host").unwrap()
-    } else if command_line.contains_key("HOST") {
-        command_line.get("HOST").unwrap()
-    } else {
-        "0.0.0.0"
-    };
+        "3002"
+    }
+    .parse::<u32>()
+    .expect("Port was not a valid value: needs to be an integer value.");
 
     let has_project = matches.is_present("PROJECT");
 
@@ -103,20 +108,48 @@ pub async fn run() {
         None
     };
 
-    let socket_address = format!("{host}:{port}");
+    let has_host = matches.is_present("host");
 
-    let (mut server, receiver) = Server::new(host, port);
+    let host = if has_host {
+        matches.value_of("host").unwrap().to_owned()
+    } else if command_line.contains_key("HOST") {
+        command_line.get("HOST").unwrap().clone()
+    } else {
+        "127.0.0.1".to_owned()
+    };
 
-    if matches.is_present("server_only") {
-        server.run_server_current_runtime().await.unwrap();
-        return;
-    }
+    let handle = Handle::current();
 
-    thread::spawn(move || {
-        server.run_server_new_runtime().unwrap();
+    let host_clone = host.clone();
+    handle.spawn(async move {
+        if let Err(error) = run_server(None, Some(host_clone), Some(port)).await {
+            if MessageDialog::new()
+                .set_title("Could not start CodeCtrl server")
+                .set_level(rfd::MessageLevel::Error)
+                .set_description(&format!("{error:#?}"))
+                .set_buttons(rfd::MessageButtons::Ok)
+                .show()
+            {
+                std::process::exit(1);
+            }
+        }
     });
 
-    // let mut app = App::new(receiver, socket_address);
+    println!("Waiting for gRPC server to become available...");
+    let mut grpc_client = loop {
+        let res = LogServerClient::connect(format!("http://{host}:{port}")).await;
+
+        if let Ok(res) = res {
+            break res;
+        }
+    };
+    println!("Found gRPC server!");
+
+    let registered_client = if let Ok(client) = grpc_client.register_client(()).await {
+        client.into_inner()
+    } else {
+        panic!("Could not register client!");
+    };
 
     let file_path = if let Some(project_file) = project_file {
         let file_path = match Path::new(project_file).canonicalize() {
@@ -138,7 +171,7 @@ pub async fn run() {
         "codeCtrl",
         options,
         Box::new(move |cc| {
-            let mut app = App::new(cc, receiver, socket_address);
+            let mut app = App::new(cc, grpc_client, registered_client, &handle);
 
             if file_path.exists() {
                 if let Err(error) = App::load_from_file(&file_path, &mut app) {

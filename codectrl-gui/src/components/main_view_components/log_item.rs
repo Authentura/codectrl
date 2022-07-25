@@ -1,14 +1,14 @@
 use chrono::{DateTime, Local};
-use codectrl_logger::Log;
+use codectrl_protobuf_bindings::data::Log;
 use egui::{Align, Color32, Label, RichText, Sense, Ui};
 use egui_extras::TableRow;
 use std::collections::BTreeSet;
 
-type Received = (Log<String>, DateTime<Local>);
+type Received = (Log, DateTime<Local>);
 
 fn draw_hover(ui: &mut Ui) { ui.label("Click to view log"); }
 
-fn draw_warnings(ui: &mut Ui, log: &Log<String>) {
+fn draw_warnings(ui: &mut Ui, log: &Log) {
     ui.heading("Logger generated the following warning(s)");
     ui.label("");
 
@@ -128,7 +128,7 @@ pub fn draw_log_item(
     if !log.warnings.is_empty() {
         response |= response
             .clone()
-            .on_hover_ui_at_pointer(|ui| draw_warnings(ui, log))
+            .on_hover_ui_at_pointer(|ui| draw_warnings(ui, log));
     }
 
     if !exact_alert.is_empty() || !contains_alerts.is_empty() {

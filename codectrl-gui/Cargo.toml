@@ -1,6 +1,6 @@
 [package]
 name = "codectrl_gui"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 authors = [
     "Authentura <contact@authentura.com>",
@@ -20,7 +20,7 @@ license = "MIT"
 authentura-egui-styling = { git = "https://github.com/Authentura/authentura-egui-styling", rev = "51b23f1" }
 ciborium = "0.2"
 clap = { version = "3.1", features = ["cargo"] }
-codectrl_logger = { git = "https://github.com/authentura/codectrl-rust-logger", default-features = false, features = ["types-only"] }
+codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.7.6" }
 eframe = { version = "0.18", features = ["persistence"] }
 egui = { version = "0.18", features = ["persistence"] }
 egui_extras = "0.18"
@@ -34,20 +34,28 @@ xxhash-rust = { version = "0.8", features = ["xxh3"]}
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 chrono = { version = "0.4", features = ["serde", "js-sys", "wasmbind"] }
 console_error_panic_hook = "0.1"
-js-sys = "0.3"
+futures-channel = "0.3"
+grpc-web-client = { git = "https://github.com/Authentura/grpc-web-client" }
+instant = { version = "0.1", features = ["wasm-bindgen", "stdweb"] }
 rfd = { version = "0.8", features = ["file-handle-inner"] }
+tonic = { version = "0.7", default-features = false, features = ["codegen", "prost"] }
+tracing = "0.1"
 tracing-wasm = "0.2"
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4"
-wasm_thread = "0.1"
+wasm-rs-async-executor = { version = "0.9", features = ["cooperative-browser", "requestIdleCallback"] }
 web-sys = { version = "0.3", features = ["File", "FilePropertyBag", "console"]}
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
+codectrl-server = { path = "../codectrl-server" }
 codectrl_log_server = { path = "../codectrl-log-server" }
 egui_glow = "0.18"
+poll-promise = { version = "0.1", features = ["tokio"] }
 rfd = "0.8"
 tokio = { version = "1.17", default-features = false, features = ["net", "rt-multi-thread", "io-util", "macros"] }
+tonic = "0.7"
 
 [build-dependencies]
 chrono = "0.4"

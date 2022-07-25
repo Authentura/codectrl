@@ -1,4 +1,4 @@
-use codectrl_logger::Log;
+use codectrl_protobuf_bindings::data::Log;
 use egui::{text::LayoutJob, Color32, Context, FontSelection, TextFormat, TextStyle};
 use std::path::Path;
 use syntect::{
@@ -8,7 +8,7 @@ use syntect::{
     util::LinesWithEndings,
 };
 
-pub fn code_highlighter(code: &str, log: &Log<String>, ctx: &Context) -> LayoutJob {
+pub fn code_highlighter(code: &str, log: &Log, ctx: &Context) -> LayoutJob {
     let syntax_set = SyntaxSet::load_defaults_newlines();
     let theme_set = ThemeSet::load_defaults();
     let font_id = FontSelection::Style(TextStyle::Monospace).resolve(&ctx.style());
