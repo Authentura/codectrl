@@ -1,7 +1,12 @@
 #![warn(clippy::pedantic)]
 
 use std::{
-    collections::VecDeque, fs, net::SocketAddr, path::Path, sync::Arc, time::Instant,
+    collections::VecDeque,
+    fs,
+    net::SocketAddr,
+    path::Path,
+    sync::Arc,
+    time::{Duration, Instant},
 };
 
 use codectrl_protobuf_bindings::{
@@ -19,7 +24,10 @@ use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, Database, DatabaseConnection, EntityTrait, Set,
 };
 use std::fs::File;
-use tokio::sync::{mpsc, RwLock};
+use tokio::{
+    sync::{mpsc, RwLock},
+    time::sleep_until,
+};
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{
     metadata::MetadataMap, transport::Server, Code, Request, Response, Status, Streaming,
@@ -57,10 +65,46 @@ pub struct Service {
     host: String,
     port: u32,
     uptime: Instant,
-    db_connection: DatabaseConnection,
+    db_connection: Arc<DatabaseConnection>,
 }
 
 impl Service {
+    pub fn start_backup_thread(&self) {
+        let connections = Arc::clone(&self.connections);
+        let db_connection = Arc::clone(&self.db_connection);
+
+        tokio::spawn(async move {
+            loop {
+                sleep_until(tokio::time::Instant::now() + Duration::new(5, 0)).await;
+
+                for mut connection in connections.write().await.iter_mut() {
+                    if connection.last_update.elapsed() >= Duration::new(5, 0) {
+                        let sent_logs = if let Ok(sent_log_ids) =
+                            serde_json::to_string(&connection.sent_log_ids)
+                        {
+                            Set(Some(sent_log_ids))
+                        } else {
+                            Set(None)
+                        };
+
+                        let model = ActiveModel {
+                            uuid: Set(connection.key().clone()),
+                            sent_logs,
+                        };
+
+                        if let Err(error) = model.update(db_connection.as_ref()).await {
+                            eprintln!(
+                                "[ERROR] Error occurred while updating DB: {error}"
+                            );
+                        } else {
+                            connection.last_update = Instant::now();
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     #[allow(clippy::missing_panics_doc)]
     pub fn verify_log(
         log: &mut Log,
@@ -128,7 +172,7 @@ impl LogServerTrait for Service {
             sent_logs: NotSet,
         };
 
-        if let Err(error) = model.insert(&self.db_connection).await {
+        if let Err(error) = model.insert(self.db_connection.as_ref()).await {
             return Err(Status::aborted(error.to_string()));
         };
 
@@ -142,7 +186,7 @@ impl LogServerTrait for Service {
         let connection = connection.into_inner();
 
         let connections = match Entity::find_by_id(connection.uuid)
-            .all(&self.db_connection)
+            .all(self.db_connection.as_ref())
             .await
         {
             Ok(connections) => connections,
@@ -172,9 +216,12 @@ impl LogServerTrait for Service {
             );
         }
 
-        dbg!(&connection);
+        let req_result = RequestResult {
+            message: "Re-registration succeeded!".to_string(),
+            status: RequestStatus::Confirmed.into(),
+        };
 
-        todo!()
+        Ok(Response::new(req_result))
     }
 
     async fn get_server_details(
@@ -408,8 +455,10 @@ pub async fn run_server(
         uptime: Instant::now(),
         logs: Arc::clone(&logs),
         connections: Arc::new(RwLock::new(DashMap::new())),
-        db_connection,
+        db_connection: Arc::new(db_connection),
     };
+
+    logs_service.start_backup_thread();
 
     if run_legacy_server {}
 
