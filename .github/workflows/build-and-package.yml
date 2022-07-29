@@ -1,0 +1,15 @@
+name: Build
+on: [push, pull_request]
+
+jobs:
+  build-ubuntu-22.04:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@nightly
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+      - name: Bootstrap Ubuntu
+        run: ./bootstrap-action.sh
+      - name: Build CodeCTRL and package
+        run: cargo deb --release
