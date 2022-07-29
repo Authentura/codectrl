@@ -58,7 +58,7 @@ jobs:
       - name: Rename .rpm
         uses: ./.github/actions/run-fedora-latest
         with:
-          command: /find-and-rename-pkg.sh
+          command: /find-and-rename-pkg.sh /github/workspace
 
       - name: Upload .rpm artifact
         uses: actions/upload-artifact@v3
@@ -94,7 +94,7 @@ jobs:
       - name: Rename .rpm
         uses: ./.github/actions/run-fedora-rawhide
         with:
-          command: /find-and-rename-pkg.sh
+          command: /find-and-rename-pkg.sh /github/workspace
 
       - name: Upload .rpm artifact
         uses: actions/upload-artifact@v3
