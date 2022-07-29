@@ -33,11 +33,16 @@ assets = [
 ]
 depends = "libgtk-3-0"
 
-[package.metadata.rpm]
-package = "codectrl"
+[[package.metadata.generate-rpm.assets]]
+source = "target/release/codectrl"
+dest = "/usr/bin/codectrl"
+mode = "755"
 
-[package.metadata.rpm.cargo]
-buildflags = ["--release"]
+[[package.metadata.generate-rpm.assets]]
+source = "README.md"
+dest = "/usr/share/doc/codectrl/README"
+mode = "644"
+doc = true
 
 [package.metadata.rpm.targets]
 codectrl = { path = "/usr/bin/codectrl" }

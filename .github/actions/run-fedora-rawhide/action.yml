@@ -1,0 +1,11 @@
+name: "Fedora Rawhide"
+description: "Run a command on a pre-prepared Fedora container with Rust installed"
+inputs:
+  command:
+    description: "Path to command to be ran"
+    required: true
+runs:
+  using: "docker"
+  image: "Containerfile"
+  args:
+    - ${{ inputs.command }}
