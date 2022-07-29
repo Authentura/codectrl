@@ -18,5 +18,7 @@ case $ID in
     ;;
 esac
 
-echo -e "\nInstalling wasm32-unknown-unknown Rust target..."
-rustup target install wasm32-unknown-unknown
+if [[ ! -z $(which rustup 2>/dev/null ) ]]; then
+    echo -e "\nInstalling wasm32-unknown-unknown Rust target..."
+    rustup target install wasm32-unknown-unknown
+fi
