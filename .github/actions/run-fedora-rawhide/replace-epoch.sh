@@ -1,3 +1,5 @@
 #!/bin/bash
 
-sed -i "s/<(+)>/$1/" "$2/Cargo.toml"
+set -xe
+
+sed -i "s/<>/$1/g" "$2/Cargo.toml"

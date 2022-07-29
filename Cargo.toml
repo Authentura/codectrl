@@ -34,7 +34,7 @@ assets = [
 depends = "libgtk-3-0"
 
 [package.metadata.generate-rpm]
-epoch = "<(+)>"
+epoch = "<>"
 
 [[package.metadata.generate-rpm.assets]]
 source = "target/release/codectrl"
