@@ -47,7 +47,7 @@ jobs:
       - name: Set epoch to GITHUB_RUN_NUMBER
         uses: ./.github/actions/run-fedora-latest
         with:
-          command: /replace-epoch.sh ${{ github.run_number }} ${{ github.workspace }}
+          command: /replace-epoch.sh ${{ github.run_number }} /github/workspace
 
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-latest
@@ -88,7 +88,7 @@ jobs:
       - name: Set epoch to GITHUB_RUN_NUMBER
         uses: ./.github/actions/run-fedora-rawhide
         with:
-          command: /replace-epoch.sh ${{ github.run_number }} ${{ github.workspace }}
+          command: /replace-epoch.sh ${{ github.run_number }} /github/workspace
 
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-rawhide
