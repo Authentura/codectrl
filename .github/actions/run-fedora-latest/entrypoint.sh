@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source $HOME/.cargo/env
+source /root/.cargo/env
 
 echo -e "\nExecuting \"$@\""
 $@
