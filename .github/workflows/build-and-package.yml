@@ -20,12 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ../actions/run-fedora-latest
+      - uses: ./.github/actions/run-fedora-latest
         with:
           command: cargo build --release
-      - uses: ../actions/run-fedora-latest
+      - uses: ./.github/actions/run-fedora-latest
         with:
           command: strip -s target/release/codectrl
-      - uses: ../actions/run-fedora-latest
+      - uses: ./.github/actions/run-fedora-latest
         with:
           command: cargo generate-rpm
