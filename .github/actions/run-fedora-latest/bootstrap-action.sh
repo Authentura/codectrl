@@ -14,7 +14,7 @@ case $ID in
     ;;
     "fedora")
         sudo dnf groupinstall "Development Tools" -y
-        sudo dnf install gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl -y
+        sudo dnf install gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake -y
     ;;
 esac
 
