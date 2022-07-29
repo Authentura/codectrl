@@ -12,7 +12,7 @@ jobs:
         run: cargo install cargo-deb
       - name: Bootstrap Ubuntu
         run: ./bootstrap-action.sh
-      - name: Build CodeCTRL and package
+      - name: Build CodeCTRL and package into DEB file
         run: cargo deb
 
   build-fedora-latest:
@@ -20,12 +20,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/run-fedora-latest
+      - name: Build CodeCTRL
+        uses: ./.github/actions/run-fedora-latest
         with:
           command: cargo build --release
-      - uses: ./.github/actions/run-fedora-latest
+      - name: Strip resulting binary
+        uses: ./.github/actions/run-fedora-latest
         with:
           command: strip -s target/release/codectrl
-      - uses: ./.github/actions/run-fedora-latest
+      - name: Generate RPM file
+        uses: ./.github/actions/run-fedora-latest
         with:
           command: cargo generate-rpm
