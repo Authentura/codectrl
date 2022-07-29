@@ -4,10 +4,6 @@ source /etc/os-release
 
 set -xe
 
-if [[ ! -z "$CI" ]]; then
-  ls -R
-fi
-
 SUFFIX=""
 DIR=""
 ROOT="."

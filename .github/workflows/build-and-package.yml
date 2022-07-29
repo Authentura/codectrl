@@ -50,10 +50,15 @@ jobs:
         with:
           command: strip -s target/release/codectrl
 
+      - name: Replace epoch with current run number
+        uses: ./.github/actions/run-fedora-latest
+        with:
+          command: /replace-epoch.sh ${{ github.run_number }} /github/workspace
+
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-latest
         with:
-          command: /replace-epoch.sh ${{ github.run_number }} /github/workspace && cargo generate-rpm
+          command: cargo generate-rpm
 
       - name: Rename .rpm
         uses: ./.github/actions/run-fedora-latest
@@ -86,10 +91,15 @@ jobs:
         with:
           command: strip -s target/release/codectrl
 
+      - name: Replace epoch with current run number
+        uses: ./.github/actions/run-fedora-rawhide
+        with:
+          command: /replace-epoch.sh ${{ github.run_number }} /github/workspace
+
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-rawhide
         with:
-          command: /replace-epoch.sh ${{ github.run_number }} /github/workspace && cargo generate-rpm
+          command: cargo generate-rpm
 
       - name: Rename .rpm
         uses: ./.github/actions/run-fedora-rawhide
