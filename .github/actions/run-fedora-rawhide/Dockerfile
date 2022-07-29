@@ -8,4 +8,5 @@ RUN bash -c "source $HOME/.cargo/env && cargo install cargo-generate-rpm"
 
 COPY find-and-rename-pkg.sh /find-and-rename-pkg.sh
 COPY entrypoint.sh /entrypoint.sh
+COPY replace-epoch.sh /replace-epoch.sh
 ENTRYPOINT ["/entrypoint.sh"]
