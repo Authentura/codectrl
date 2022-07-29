@@ -8,16 +8,22 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
+
       - name: Install cargo-deb
         run: cargo install cargo-deb
+
       - name: Bootstrap Ubuntu
         run: ./bootstrap-action.sh
+
       - name: Build CodeCTRL
         run: cargo build --release
+
       - name: Generate DEB file
         run: cargo deb
+
       - name: Rename .deb
         run: ./find-and-rename-pkg.sh
+
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v3
         with:
