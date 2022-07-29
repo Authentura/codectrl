@@ -33,22 +33,32 @@ jobs:
         uses: ./.github/actions/run-fedora-latest
         with:
           command: echo Prepared Docker!
+
       - name: Build CodeCTRL
         uses: ./.github/actions/run-fedora-latest
         with:
           command: cargo build --release
+
       - name: Strip resulting binary
         uses: ./.github/actions/run-fedora-latest
         with:
           command: strip -s target/release/codectrl
+
+      - name: Set epoch to GITHUB_RUN_ID
+        uses: ./.github/actions/run-fedora-latest
+        with:
+          command: sed "s/<(+)>/${{ env.GITHUB_RUN_ID }}/" Cargo.toml
+
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-latest
         with:
           command: cargo generate-rpm
+
       - name: Rename .rpm
         uses: ./.github/actions/run-fedora-rawhide
         with:
           command: /find-and-rename-pkg.sh
+
       - name: Upload .rpm artifact
         uses: actions/upload-artifact@v3
         with:
@@ -64,22 +74,32 @@ jobs:
         uses: ./.github/actions/run-fedora-rawhide
         with:
           command: echo Prepared Docker!
+
       - name: Build CodeCTRL
         uses: ./.github/actions/run-fedora-rawhide
         with:
           command: cargo build --release
+
       - name: Strip resulting binary
         uses: ./.github/actions/run-fedora-rawhide
         with:
           command: strip -s target/release/codectrl
+
+      - name: Set epoch to GITHUB_RUN_ID
+        uses: ./.github/actions/run-fedora-rawhide
+        with:
+          command: sed "s/<(+)>/${{ env.GITHUB_RUN_ID }}/" Cargo.toml
+
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-rawhide
         with:
           command: cargo generate-rpm
+
       - name: Rename .rpm
         uses: ./.github/actions/run-fedora-rawhide
         with:
           command: /find-and-rename-pkg.sh
+
       - name: Upload .rpm artifact
         uses: actions/upload-artifact@v3
         with:
