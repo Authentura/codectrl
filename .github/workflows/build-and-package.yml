@@ -16,6 +16,8 @@ jobs:
         run: cargo build --release
       - name: Generate DEB file
         run: cargo deb
+      - name: Rename .deb
+        run: ./find-and-rename-pkg.sh
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v3
         with:
@@ -43,6 +45,8 @@ jobs:
         uses: ./.github/actions/run-fedora-latest
         with:
           command: cargo generate-rpm
+      - name: Rename .rpm
+        run: ./find-and-rename-pkg.sh
       - name: Upload .rpm artifact
         uses: actions/upload-artifact@v3
         with:
@@ -70,6 +74,8 @@ jobs:
         uses: ./.github/actions/run-fedora-rawhide
         with:
           command: cargo generate-rpm
+      - name: Rename .rpm
+        run: ./find-and-rename-pkg.sh
       - name: Upload .rpm artifact
         uses: actions/upload-artifact@v3
         with:
