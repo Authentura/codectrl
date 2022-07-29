@@ -12,14 +12,25 @@ jobs:
         run: cargo install cargo-deb
       - name: Bootstrap Ubuntu
         run: ./bootstrap-action.sh
-      - name: Build CodeCTRL and package into DEB file
+      - name: Build CodeCTRL
+        run: cargo build --release
+      - name: Generate DEB file
         run: cargo deb
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Ubuntu 22.04 package
+          path: target/debian/*.deb
 
   build-fedora-latest:
     name: Build for latest Fedora
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Prepare Docker image
+        uses: ./.github/actions/run-fedora-latest
+        with:
+          command: echo Prepared Docker!
       - name: Build CodeCTRL
         uses: ./.github/actions/run-fedora-latest
         with:
@@ -32,3 +43,35 @@ jobs:
         uses: ./.github/actions/run-fedora-latest
         with:
           command: cargo generate-rpm
+      - name: Upload .rpm artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Fedora Latest package
+          path: target/generate-rpm/*.rpm
+
+  build-fedora-rawhide:
+    name: Build for Fedora Rawhide
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Prepare Docker image
+        uses: ./.github/actions/run-fedora-rawhide
+        with:
+          command: echo Prepared Docker!
+      - name: Build CodeCTRL
+        uses: ./.github/actions/run-fedora-rawhide
+        with:
+          command: cargo build --release
+      - name: Strip resulting binary
+        uses: ./.github/actions/run-fedora-rawhide
+        with:
+          command: strip -s target/release/codectrl
+      - name: Generate RPM file
+        uses: ./.github/actions/run-fedora-rawhide
+        with:
+          command: cargo generate-rpm
+      - name: Upload .rpm artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Fedora Latest package
+          path: target/generate-rpm/*.rpm
