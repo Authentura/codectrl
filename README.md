@@ -24,7 +24,7 @@ Unofficial language loggers:
 
 - None yet (remove me if/when one is added).
 
-## Requirements
+## Build requirements
 
 The MSRV (minimum supported Rust version): 1.64 (on the nightly toolchain).
 
@@ -38,6 +38,11 @@ Planned support:
 
 - Windows
 - MacOS (M1 and legacy Intel systems)
+
+Packages for Ubuntu 22.04, the latest stable Fedora and Fedora Rawhide are
+built per commit and per pull-request and can be found
+[here](https://github.com/Authentura/codectrl/actions/workflows/build-and-package.yml)
+underneath each of the **_completed_** CI jobs.
 
 ### Linux
 
