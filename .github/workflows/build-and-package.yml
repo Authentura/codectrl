@@ -73,5 +73,5 @@ jobs:
       - name: Upload .rpm artifact
         uses: actions/upload-artifact@v3
         with:
-          name: Fedora Latest package
+          name: Fedora Rawhide package
           path: target/generate-rpm/*.rpm
