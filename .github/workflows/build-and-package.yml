@@ -46,7 +46,9 @@ jobs:
         with:
           command: cargo generate-rpm
       - name: Rename .rpm
-        run: ./find-and-rename-pkg.sh
+        uses: ./.github/actions/run-fedora-rawhide
+        with:
+          command: /find-and-rename-pkg.sh
       - name: Upload .rpm artifact
         uses: actions/upload-artifact@v3
         with:
@@ -75,7 +77,9 @@ jobs:
         with:
           command: cargo generate-rpm
       - name: Rename .rpm
-        run: ./find-and-rename-pkg.sh
+        uses: ./.github/actions/run-fedora-rawhide
+        with:
+          command: /find-and-rename-pkg.sh
       - name: Upload .rpm artifact
         uses: actions/upload-artifact@v3
         with:
