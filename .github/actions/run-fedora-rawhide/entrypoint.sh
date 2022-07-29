@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /root/.cargo/env
+export PATH="$PATH:/root/.cargo/bin"
 
 echo -e "\nExecuting \"$@\""
 $@
