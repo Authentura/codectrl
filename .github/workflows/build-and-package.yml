@@ -1,5 +1,5 @@
 name: Build
-on: [push, pull_request, release]
+on: [push, pull_request]
 
 jobs:
   build-ubuntu-22-04:
@@ -26,7 +26,7 @@ jobs:
       - uses: ../actions/run-fedora-latest
         with:
           command: strip -s target/release/codectrl
-      - name: Build CodeCTRL and package
+      - name: Package into RRM
       - uses: ../actions/run-fedora-latest
         with:
           command: cargo generate-rpm
