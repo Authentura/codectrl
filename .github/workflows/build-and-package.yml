@@ -117,7 +117,7 @@ jobs:
         run: cargo build --release
 
       - name: Generate MSI
-        run: cargo wix
+        run: cargo wix --nocapture
 
       - name: Upload .msi artifact
         uses: actions/upload-artifact@v3
