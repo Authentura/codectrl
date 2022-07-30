@@ -21,7 +21,8 @@ use directories::ProjectDirs;
 use entity::connection::{ActiveModel, Entity};
 use futures::StreamExt;
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::NotSet, Database, DatabaseConnection, EntityTrait, Set,
+    ActiveModelTrait, ActiveValue::NotSet, ConnectionTrait, Database, DatabaseConnection,
+    EntityTrait, Schema, Set,
 };
 use std::fs::File;
 use tokio::{
@@ -428,11 +429,21 @@ pub async fn run_server(
     let data_dir = data_dir.to_string_lossy().to_string();
     let db_file = format!("{data_dir}/db.sqlite");
 
-    if !Path::new(&db_file).exists() {
+    // If the db file does not exist or is completely empty, then create and create
+    // the necessary table.
+    if !Path::new(&db_file).exists() || File::open(&db_file)?.metadata()?.len() == 0 {
         File::create(&db_file)?;
+
+        let db_connection = Database::connect(format!("sqlite:{db_file}")).await?;
+
+        let backend = db_connection.get_database_backend();
+        let schema = Schema::new(backend);
+        let statement = backend.build(&schema.create_table_from_entity(Entity));
+
+        db_connection.execute(statement).await?;
     }
 
-    let db_connection = Database::connect(format!("sqlite:{data_dir}/db.sqlite")).await?;
+    let db_connection = Database::connect(format!("sqlite:{db_file}")).await?;
 
     // TODO: Add the legacy server thread and manage it through the gPRC server.
     let run_legacy_server = if run_legacy_server.is_some() {
