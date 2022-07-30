@@ -422,7 +422,7 @@ pub async fn run_server(
     };
 
     if !data_dir.exists() {
-        fs::create_dir(&data_dir)?;
+        fs::create_dir_all(&data_dir)?;
         dbg!(&data_dir);
     }
 
