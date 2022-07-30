@@ -35,6 +35,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Replace epoch with run number
+        run: |
+          sed -i 's/<>/${{ github.run_number }}/g' Cargo.toml
+          cat Cargo.toml
+
       - name: Prepare Docker image
         uses: ./.github/actions/run-fedora-latest
         with:
@@ -53,7 +59,7 @@ jobs:
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-latest
         with:
-          command: sed -i "s/<>/${{ github.run_number }}/g" Cargo.toml && cargo generate-rpm
+          command: cargo generate-rpm
 
       - name: Rename .rpm
         uses: ./.github/actions/run-fedora-latest
@@ -71,6 +77,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Replace epoch with run number
+        run: |
+          sed -i 's/<>/${{ github.run_number }}/g' Cargo.toml
+          cat Cargo.toml
+
       - name: Prepare Docker image
         uses: ./.github/actions/run-fedora-rawhide
         with:
@@ -89,7 +101,7 @@ jobs:
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-rawhide
         with:
-          command: sed -i "s/<>/${{ github.run_number }}/g" Cargo.toml && cargo generate-rpm
+          command: cargo generate-rpm
 
       - name: Rename .rpm
         uses: ./.github/actions/run-fedora-rawhide
