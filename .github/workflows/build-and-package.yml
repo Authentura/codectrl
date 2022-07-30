@@ -116,9 +116,6 @@ jobs:
       - name: Build CodeCTRL
         run: cargo build --release
 
-      - name: Sign Wix manifest
-        run: cargo wix sign
-
       - name: Generate MSI
         run: cargo wix --nocapture
 
