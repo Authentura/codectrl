@@ -4,6 +4,8 @@ source /etc/os-release
 
 set -xe
 
+cat Cargo.toml
+
 SUFFIX=""
 DIR=""
 ROOT="."

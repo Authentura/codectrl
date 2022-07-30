@@ -2,4 +2,4 @@
 
 set -xe
 
-sed -i.bak "s/<>/$1/g" $2/Cargo.toml
+sed "s/<>/$1/g" "$2/Cargo.toml" > "$2/Cargo.toml"
