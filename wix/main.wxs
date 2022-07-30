@@ -62,11 +62,11 @@
     <Product
         Id='*'
         Name='codectrl'
-        UpgradeCode='5C545FF7-4C78-49F2-BCFA-24248C56D4A1'
+        UpgradeCode='A9898B74-4CDE-4B36-875C-1B8A02016036'
         Manufacturer='Authentura'
         Language='1033'
         Codepage='1252'
-        Version='0.5.0'>
+        Version='$(var.Version)'>
 
         <Package Id='*'
             Keywords='Installer'
@@ -105,7 +105,7 @@
                     </Component>
                     
                     <Directory Id='Bin' Name='bin'>
-                        <Component Id='Path' Guid='54BECF86-7584-4691-AE03-FFBD02DC79CE' KeyPath='yes'>
+                        <Component Id='Path' Guid='B6A3E784-620E-4D41-85E6-0543B7BB4CF2' KeyPath='yes'>
                             <Environment
                                 Id='PATH'
                                 Name='PATH'
