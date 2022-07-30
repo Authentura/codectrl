@@ -512,7 +512,7 @@ dependencies = [
 
 [[package]]
 name = "codectrl"
-version = "0.5.0"
+version = "0.5.0-nightly"
 dependencies = [
  "codectrl_gui",
  "eframe",
@@ -540,6 +540,8 @@ dependencies = [
  "futures-util",
  "prost",
  "sea-orm",
+ "serde",
+ "serde_json",
  "tokio",
  "tokio-stream",
  "tonic",
@@ -549,7 +551,7 @@ dependencies = [
 
 [[package]]
 name = "codectrl_gui"
-version = "0.5.0"
+version = "0.5.0-nightly"
 dependencies = [
  "anyhow",
  "authentura-egui-styling",
@@ -826,6 +828,7 @@ dependencies = [
  "hashbrown",
  "lock_api",
  "parking_lot_core 0.9.3",
+ "serde",
 ]
 
 [[package]]

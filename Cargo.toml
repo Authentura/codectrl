@@ -1,6 +1,6 @@
 [package]
 name = "codectrl"
-version = "0.5.0"
+version = "0.5.0-nightly"
 edition = "2021"
 authors = [
   "Authentura <contact@authentura.com>",
@@ -8,7 +8,7 @@ authors = [
 ]
 description = "A source code analytic tool. Using egui version 0.18."
 license = "MIT"
-rust-version = "1.62.0"
+rust-version = "1.64.0"
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -27,13 +27,19 @@ name = "codectrl"
 maintainer = "Samuel Boyden <s.boyden@authentura.com>"
 copyright = "2022, Authentura <contact@authentura.com>"
 license-file = ["LICENSE", "4"]
-assets = [["README.md", "usr/share/doc/codectrl/README", "644"]]
+assets = [
+  ["target/release/codectrl", "usr/bin/", "755"],
+  ["README.md", "usr/share/doc/codectrl/README", "644"]
+]
+depends = "libgtk-3-0"
 
-[package.metadata.rpm]
-package = "codectrl"
+[[package.metadata.generate-rpm.assets]]
+source = "target/release/codectrl"
+dest = "/usr/bin/codectrl"
+mode = "755"
 
-[package.metadata.rpm.cargo]
-buildflags = ["--release"]
-
-[package.metadata.rpm.targets]
-codectrl = { path = "/usr/bin/codectrl" }
+[[package.metadata.generate-rpm.assets]]
+source = "README.md"
+dest = "/usr/share/doc/codectrl/README"
+mode = "644"
+doc = true

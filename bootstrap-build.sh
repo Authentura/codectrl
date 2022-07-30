@@ -7,11 +7,20 @@ echo -e "\nInstalling dependencies for your distro...\n"
 case $ID in
     "debian" | "ubuntu" | "elementary")
         sudo apt install build-essential gcc clang -y
-        sudo apt install libglib2.0-dev libpango1.0-dev libgdk-pixbuf-2.0-dev libatk1.0-dev libgtk-3-dev libxcb-shape0-dev libxcb-xfixes0-dev -y
+        pixbuf_dev=""
+        case "$VERSION_CODENAME" in
+            "focal" | "buster")
+                pixbuf_dev="libgdk-pixbuf2.0-dev"
+            ;;
+            *)
+                pixbuf_dev="libgdk-pixbuf-2.0-dev"
+            ;;
+        esac
+        sudo apt install libglib2.0-dev libpango1.0-dev "$pixbuf_dev" libatk1.0-dev libgtk-3-dev libxcb-shape0-dev libxcb-xfixes0-dev curl -y
     ;;
     "fedora")
         sudo dnf groupinstall "Development Tools" -y
-        sudo dnf install gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang -y
+        sudo dnf install gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake -y
     ;;
     "arch")
         # TODO: Add Arch Linux packages
@@ -21,7 +30,7 @@ case $ID in
     ;;
 esac
 
-if [[ ! -z $(which rustup 2>/dev/null) ]]; then
+if [[ -z $(which rustup 2>/dev/null) ]]; then
     echo "Installing rustup..."
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- --default-toolchain nightly -y
     source $HOME/.cargo/env
