@@ -103,3 +103,24 @@ jobs:
         with:
           name: Fedora Rawhide package
           path: target/generate-rpm/*.rpm
+
+  build-windows-latest:
+    name: Build for Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install cargo-wix
+        run: cargo install cargo-wix
+
+      - name: Build CodeCTRL
+        run: cargo build --release
+
+      - name: Generate MSI
+        run: cargo wix
+
+      - name: Upload .msi artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Windows installer package
+          path: target/wix/*.msi
