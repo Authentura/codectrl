@@ -62,11 +62,11 @@
     <Product
         Id='*'
         Name='codectrl'
-        UpgradeCode='32BAFF63-D207-4D84-870C-257DD2BE5EF6'
+        UpgradeCode='5C545FF7-4C78-49F2-BCFA-24248C56D4A1'
         Manufacturer='Authentura'
         Language='1033'
         Codepage='1252'
-        Version='$(var.Version)'>
+        Version='0.5.0'>
 
         <Package Id='*'
             Keywords='Installer'
@@ -105,7 +105,7 @@
                     </Component>
                     
                     <Directory Id='Bin' Name='bin'>
-                        <Component Id='Path' Guid='2C1FEBFE-0371-462B-90EE-8D20992E4658' KeyPath='yes'>
+                        <Component Id='Path' Guid='54BECF86-7584-4691-AE03-FFBD02DC79CE' KeyPath='yes'>
                             <Environment
                                 Id='PATH'
                                 Name='PATH'
@@ -167,18 +167,8 @@
         <!--<Icon Id='ProductICO' SourceFile='wix\Product.ico'/>-->
         <!--<Property Id='ARPPRODUCTICON' Value='ProductICO' />-->
 
+        <Property Id='ARPHELPLINK' Value='https://codectrl.authentura.com'/>
         
-        <!--
-          Adding a URL to Add/Remove Programs control panel listing for the
-          application is a two step process:
-
-          1. Uncomment the following `Property` tag with the "ARPHELPLINK" Id
-             attribute value.
-          2. Change the value for `Value` attribute of the following
-             `Property` tag to a valid URL.
-        -->
-        <!--<Property Id='ARPHELPLINK' Value='ChangeMe'/>-->
-
         <UI>
             <UIRef Id='WixUI_FeatureTree'/>
             <!--
