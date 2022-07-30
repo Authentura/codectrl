@@ -36,11 +36,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Replace epoch with run number
-        run: |
-          sed -i 's/<>/${{ github.run_number }}/g' Cargo.toml
-          cat Cargo.toml
-
       - name: Prepare Docker image
         uses: ./.github/actions/run-fedora-latest
         with:
@@ -77,11 +72,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Replace epoch with run number
-        run: |
-          sed -i 's/<>/${{ github.run_number }}/g' Cargo.toml
-          cat Cargo.toml
 
       - name: Prepare Docker image
         uses: ./.github/actions/run-fedora-rawhide
