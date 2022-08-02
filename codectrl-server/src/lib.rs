@@ -1,14 +1,5 @@
 #![warn(clippy::pedantic)]
 
-use std::{
-    collections::VecDeque,
-    fs,
-    net::SocketAddr,
-    path::Path,
-    sync::Arc,
-    time::{Duration, Instant},
-};
-
 use codectrl_protobuf_bindings::{
     data::Log,
     logs_service::{
@@ -24,7 +15,14 @@ use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, ConnectionTrait, Database, DatabaseConnection,
     EntityTrait, Schema, Set,
 };
-use std::fs::File;
+use std::{
+    collections::VecDeque,
+    fs::{self, File},
+    net::SocketAddr,
+    path::Path,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 use tokio::{
     sync::{mpsc, RwLock},
     time::sleep_until,
