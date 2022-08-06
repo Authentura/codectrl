@@ -1,5 +1,6 @@
 {
-    "lldb.displayFormat": "auto",
-    "lldb.showDisassembly": "always",
-    "lldb.dereferencePointers": true
+  "lldb.displayFormat": "auto",
+  "lldb.showDisassembly": "always",
+  "lldb.dereferencePointers": true,
+  "nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix"
 }
