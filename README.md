@@ -26,7 +26,7 @@ Unofficial language loggers:
 
 ## Build requirements
 
-The MSRV (minimum supported Rust version): 1.64 (on the nightly toolchain).
+The MSRV (minimum supported Rust version): 1.62.
 
 Below you will find the requirements to build on each platform. The supported platform(s)
 are:
