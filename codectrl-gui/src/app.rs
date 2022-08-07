@@ -1,4 +1,4 @@
-// In this file, we create the main graphical GUI for codeCTRL. A layout was
+// In this file, we create the main graphical GUI for CodeCTRL. A layout was
 // proposed in issue #3, where Sebastian proposed a layout similar to this:
 // _________________________________________________________________________
 // | [ Filter search ] [x] Case insensitive [x] Regex | Some other settings|
@@ -194,7 +194,7 @@ impl App {
     ) -> Self {
         let mut app = Self {
             state: AppState::default(),
-            title: "codeCTRL",
+            title: "CodeCTRL",
             grpc_client: Some(grpc_client),
             promise: None,
         };
@@ -256,7 +256,7 @@ impl App {
     ) -> Self {
         let mut app = Self {
             state: AppState::default(),
-            title: "codeCTRL",
+            title: "CodeCTRL",
             grpc_client: Some(grpc_client.clone()),
             client_connection_channel: None,
             started_logs_loop: false,
@@ -360,7 +360,7 @@ impl App {
                 "{file_name}.cdctrl",
                 file_name = self.state.session_timestamp
             ))
-            .add_filter("codeCTRL Session", &["cdctrl"])
+            .add_filter("CodeCTRL Session", &["cdctrl"])
             .save_file()
         {
             file_path
@@ -435,7 +435,7 @@ impl App {
     #[cfg(not(target_arch = "wasm32"))]
     fn load_file_dialog(&mut self) {
         let file_path = if let Some(file_path) = FileDialog::new()
-            .add_filter("codeCTRL Session", &["cdctrl"])
+            .add_filter("CodeCTRL Session", &["cdctrl"])
             .pick_file()
         {
             file_path
@@ -473,7 +473,7 @@ impl App {
         spawn_local(async move {
             *file_path_clone.as_ref().lock().unwrap() = if let Some(file_path) =
                 FileDialog::new()
-                    .add_filter("codeCTRL Session", &["cdctrl"])
+                    .add_filter("CodeCTRL Session", &["cdctrl"])
                     .pick_file()
                     .await
             {
