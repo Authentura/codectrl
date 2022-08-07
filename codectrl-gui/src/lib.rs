@@ -1,4 +1,3 @@
-#![feature(thread_spawn_unchecked)]
 #![warn(clippy::pedantic)]
 #![allow(
     clippy::blocks_in_if_conditions,
@@ -168,7 +167,7 @@ pub async fn run() {
     };
 
     eframe::run_native(
-        "codeCtrl",
+        "CodeCTRL",
         options,
         Box::new(move |cc| {
             let mut app = App::new(cc, grpc_client, registered_client, &handle);

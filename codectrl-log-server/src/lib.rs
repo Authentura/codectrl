@@ -39,7 +39,7 @@ impl Server {
         socket.set_reuseaddr(true)?;
         #[cfg(unix)]
         socket.set_reuseport(true)?; // If we're using a *NIX system, allow for multiple
-                                     // instances of codeCTRL to use the same port.
+                                     // instances of CodeCTRL to use the same port.
                                      // *However*, this will cause some instances to
                                      // receive POST data but some others will not.
 

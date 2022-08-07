@@ -96,7 +96,7 @@ pub fn draw_about_body(
             },
             AboutState::License => {
                 ui.heading(
-                    RichText::new("codeCTRL License")
+                    RichText::new("CodeCTRL License")
                         .color(DARK_HEADER_FOREGROUND_COLOUR),
                 );
                 ui.add(

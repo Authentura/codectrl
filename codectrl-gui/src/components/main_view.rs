@@ -159,7 +159,7 @@ pub fn main_view_empty(ctx: &Context, socket_address: &str) {
     egui::CentralPanel::default().show(ctx, |ui| {
         ui.vertical_centered(|ui| {
             ui.label(
-                RichText::new("codeCTRL")
+                RichText::new("CodeCTRL")
                     .color(CODECTRL_GREEN)
                     .font(TextStyle::Name("Extra Large".into()).resolve(&ctx.style())),
             );
