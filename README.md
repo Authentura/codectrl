@@ -8,13 +8,13 @@
 
 By default, these are the officially supported loggers:
 
-| Language | Updated to gRPC?                                    | Link                                                         |
-| :------- | :-------------------------------------------------- | :----------------------------------------------------------- |
-| Rust     | Yes (on the grpc-rewrite branch, soon to be merged) | [Here](https://github.com/Authentura/codectrl-rust-logger)   |
-| C++      | No                                                  | [Here](https://github.com/Authentura/codectrl-cxx-logger)    |
-| Python   | No                                                  | [Here](https://github.com/Authentura/codectrl-python-logger) |
-| PHP      | No                                                  | [Here](https://github.com/Authentura/codectrl-php-logger)    |
-| NodeJS   | No                                                  | [Here](https://github.com/Authentura/codectrl-nodejs-logger) |
+| Language | Updated to gRPC? | Link                                                         |
+| :------- | :--------------- | :----------------------------------------------------------- |
+| Rust     | Yes              | [Here](https://github.com/Authentura/codectrl-rust-logger)   |
+| C++      | No               | [Here](https://github.com/Authentura/codectrl-cxx-logger)    |
+| Python   | No               | [Here](https://github.com/Authentura/codectrl-python-logger) |
+| PHP      | No               | [Here](https://github.com/Authentura/codectrl-php-logger)    |
+| NodeJS   | No               | [Here](https://github.com/Authentura/codectrl-nodejs-logger) |
 
 All language loggers now need to use gRPC in order to implement the API schema.
 The protobuf files are available
