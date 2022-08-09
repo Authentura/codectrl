@@ -7,14 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Install Nix
-        uses: cachix/install-nix-action@v17
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Build CodeCTRL
-        run: nix-shell --run "cargo build --release --target=x86_64-unknown-linux-gnu"
+        run: RUSTFLAGS="-Ctarget-feature=+crt-static" cargo build --release --target=x86_64-unknown-linux-gnu
 
       - name: Strip binary
         run: strip -s target/x86_64-unknown-linux-gnu/release/codectrl
