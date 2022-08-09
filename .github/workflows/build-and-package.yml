@@ -16,7 +16,7 @@ jobs:
           target: x86_64-unknown-linux-musl
 
       - name: Build CodeCTRL
-        run: RUSTFLAGS="-Ctarget-feature=+crt-static" cargo build --release --target=x86_64-unknown-linux-musl
+        run: PKG_CONFIG_SYSROOT_DIR="/" RUSTFLAGS="-Ctarget-feature=+crt-static" cargo build --release --target=x86_64-unknown-linux-musl
 
       - name: Strip binary
         run: strip -s target/x86_64-unknown-linux-musl/release/codectrl
