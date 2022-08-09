@@ -538,7 +538,6 @@ dependencies = [
  "futures",
  "futures-core",
  "futures-util",
- "libsqlite3-sys",
  "prost",
  "sea-orm",
  "serde",

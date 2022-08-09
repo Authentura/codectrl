@@ -2,24 +2,44 @@ name: Build
 on: [push, pull_request]
 
 jobs:
-  build-ubuntu-22-04:
-    name: Build for Ubuntu 22.04
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v17
+
+      - name: Build CodeCTRL
+        run: nix-shell --run "cargo build --release"
+
+      - name: Strip binary
+        run: strip -s target/release/codectrl
+
+      - name: Cache binary
+        uses: actions/cache@v3
+        with:
+          path: target/release/codectrl
+          key: codectrl
+
+  package-ubuntu-22-04:
+    name: Package for 22.04
+    needs: build
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/rust-toolchain@stable
 
-      - name: Install cargo-deb
-        run: cargo install cargo-deb
-
-      - name: Bootstrap Ubuntu
-        run: ./bootstrap-action.sh
-
-      - name: Build CodeCTRL
-        run: cargo build --release
+      - name: Fetch cached build
+        uses: actions/cache@v3
+        with:
+          restore-keys: codectrl
 
       - name: Generate DEB file
-        run: cargo deb
+        run: |
+          cargo install cargo-deb
+          cargo deb --no-build
 
       - name: Rename .deb
         run: ./find-and-rename-pkg.sh
@@ -30,26 +50,22 @@ jobs:
           name: Ubuntu 22.04 package
           path: target/debian/*.deb
 
-  build-fedora-latest:
-    name: Build for latest Fedora
+  package-fedora-latest:
+    name: Package for latest stable Fedora
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Fetch cached build
+        uses: actions/cache@v3
+        with:
+          restore-keys: codectrl
 
       - name: Prepare Docker image
         uses: ./.github/actions/run-fedora-latest
         with:
           command: echo Prepared Docker!
-
-      - name: Build CodeCTRL
-        uses: ./.github/actions/run-fedora-latest
-        with:
-          command: cargo build --release
-
-      - name: Strip resulting binary
-        uses: ./.github/actions/run-fedora-latest
-        with:
-          command: strip -s target/release/codectrl
 
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-latest
@@ -67,26 +83,22 @@ jobs:
           name: Fedora Latest package
           path: target/generate-rpm/*.rpm
 
-  build-fedora-rawhide:
+  package-fedora-rawhide:
     name: Build for Fedora Rawhide
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Fetch cached build
+        uses: actions/cache@v3
+        with:
+          restore-keys: codectrl
 
       - name: Prepare Docker image
         uses: ./.github/actions/run-fedora-rawhide
         with:
           command: echo Prepared Docker!
-
-      - name: Build CodeCTRL
-        uses: ./.github/actions/run-fedora-rawhide
-        with:
-          command: cargo build --release
-
-      - name: Strip resulting binary
-        uses: ./.github/actions/run-fedora-rawhide
-        with:
-          command: strip -s target/release/codectrl
 
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-rawhide
