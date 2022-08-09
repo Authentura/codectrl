@@ -7,13 +7,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
 
       - name: Bootstrap dependencies
         run: ./bootstrap-action.sh
 
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          target: x86_64-unknown-linux-musl
+
       - name: Build CodeCTRL
-        run: RUSTFLAGS="-Ctarget-feature=+crt-static" cargo build --release --target=x86_64-unknown-linux-gnu
+        run: RUSTFLAGS="-Ctarget-feature=+crt-static" cargo build --release --target=x86_64-unknown-linux-musl
 
       - name: Strip binary
         run: strip -s target/x86_64-unknown-linux-gnu/release/codectrl
