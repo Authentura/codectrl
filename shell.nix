@@ -17,10 +17,12 @@ pkgs.stdenv.mkDerivation rec {
   name = "build-shell";
 
   buildInputs = with pkgs; [
+    # clang
+    # mold
     atk
     cairo
-    # clang
     cmake
+    gcc
     gdk-pixbuf
     glib
     glibc
@@ -28,7 +30,6 @@ pkgs.stdenv.mkDerivation rec {
     gobject-introspection
     gtk3
     libxkbcommon
-    # mold
     pango
     pkg-config
     rustPlatform.rust.cargo
