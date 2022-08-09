@@ -19,7 +19,7 @@ pkgs.stdenv.mkDerivation rec {
   buildInputs = with pkgs; [
     atk
     cairo
-    clang
+    # clang
     cmake
     gdk-pixbuf
     glib
@@ -28,7 +28,7 @@ pkgs.stdenv.mkDerivation rec {
     gobject-introspection
     gtk3
     libxkbcommon
-    mold
+    # mold
     pango
     pkg-config
     rustPlatform.rust.cargo
@@ -41,7 +41,8 @@ pkgs.stdenv.mkDerivation rec {
   ];
 
   LD_LIBRARY_PATH = "${lib.makeLibraryPath buildInputs}";
-  RUSTFLAGS = "-Ctarget-feature=+crt-static -Clinker=clang -Clink-arg=-fuse-ld=${pkgs.mold}/bin/mold";
+  # RUSTFLAGS = "-Ctarget-feature=+crt-static -Clinker=clang -Clink-arg=-fuse-ld=${pkgs.mold}/bin/mold";
+  RUSTFLAGS = "-Ctarget-feature=+crt-static";
 
   shellHook = ''
     echo "Entered Nix-Shell environment..."
