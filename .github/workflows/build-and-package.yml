@@ -82,7 +82,7 @@ jobs:
           path: target/generate-rpm/*.rpm
 
   package-fedora-rawhide:
-    name: Build for Fedora Rawhide
+    name: Package for Fedora Rawhide
     needs: build
     runs-on: ubuntu-latest
     steps:
