@@ -11,15 +11,18 @@ case $ID in
     "debian" | "ubuntu" | "elementary")
         sudo apt update -y
         pixbuf_dev=""
+        libc_static=""
         case "$VERSION_CODENAME" in
             "focal" | "buster")
                 pixbuf_dev="libgdk-pixbuf2.0-dev"
+                libc_static="libc6-dev"
             ;;
             *)
                 pixbuf_dev="libgdk-pixbuf-2.0-dev"
+                libc_static="glibc-static"
             ;;
         esac
-        sudo apt install build-essential gcc clang libglib2.0-dev libpango1.0-dev "$pixbuf_dev" libatk1.0-dev libgtk-3-dev libxcb-shape0-dev libxcb-xfixes0-dev curl glibc-static -y
+        sudo apt install build-essential gcc clang libglib2.0-dev libpango1.0-dev "$pixbuf_dev" libatk1.0-dev libgtk-3-dev libxcb-shape0-dev libxcb-xfixes0-dev curl "$libc_static" -y
     ;;
     "fedora")
         sudo dnf update -y
