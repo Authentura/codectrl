@@ -10,6 +10,8 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v17
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Build CodeCTRL
         run: nix-shell --run "cargo build --release"
