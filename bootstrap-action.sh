@@ -19,7 +19,7 @@ case $ID in
                 pixbuf_dev="libgdk-pixbuf-2.0-dev"
             ;;
         esac
-        sudo apt install build-essential gcc clang libglib2.0-dev libpango1.0-dev "$pixbuf_dev" libatk1.0-dev libgtk-3-dev libxcb-shape0-dev libxcb-xfixes0-dev curl -y
+        sudo apt install build-essential gcc clang libglib2.0-dev libpango1.0-dev "$pixbuf_dev" libatk1.0-dev libgtk-3-dev libxcb-shape0-dev libxcb-xfixes0-dev curl glibc-static -y
     ;;
     "fedora")
         sudo dnf update -y
