@@ -14,15 +14,15 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Build CodeCTRL
-        run: nix-shell --run "cargo build --release"
+        run: nix-shell --run "cargo build --release --target=x86_64-unknown-linux-gnu"
 
       - name: Strip binary
-        run: strip -s target/release/codectrl
+        run: strip -s target/x86_64-unknown-linux-gnu/release/codectrl
 
       - name: Cache binary
         uses: actions/cache@v3
         with:
-          path: target/release/codectrl
+          path: target/x86_64-unknown-linux-gnu/release/codectrl
           key: codectrl
 
   package-ubuntu-22-04:
@@ -41,7 +41,7 @@ jobs:
       - name: Generate DEB file
         run: |
           cargo install cargo-deb
-          cargo deb --no-build
+          cargo deb --no-build --no-strip --target x86_64-unknown-linux-gnu
 
       - name: Rename .deb
         run: ./find-and-rename-pkg.sh
@@ -72,7 +72,7 @@ jobs:
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-latest
         with:
-          command: cargo generate-rpm
+          command: cargo generate-rpm --target-dir target/x86_64-unknown-linux-gnu/release
 
       - name: Rename .rpm
         uses: ./.github/actions/run-fedora-latest
@@ -105,7 +105,7 @@ jobs:
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-rawhide
         with:
-          command: cargo generate-rpm
+          command: cargo generate-rpm --target-dir target/x86_64-unknown-linux-gnu/release
 
       - name: Rename .rpm
         uses: ./.github/actions/run-fedora-rawhide
