@@ -21,8 +21,8 @@ jobs:
             target/
           key: ${{ hashFiles('**/Cargo.lock') }}
 
-      - if: ${{ steps.has-cache.outputs.cache-hit == 'false' }}
-        name: Bootstrap dependencies
+      # - if: ${{ steps.has-cache.outputs.cache-hit == 'false' }}
+      - name: Bootstrap dependencies
         run: ./bootstrap-action.sh
 
       # - if: ${{ steps.has-cache.outputs.cache-hit == 'false' }}
