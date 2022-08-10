@@ -1,5 +1,10 @@
 FROM fedora:latest
 
+USER github
+ENV HOME="/github/home"
+
+RUN mkdir -p "$HOME"
+
 COPY bootstrap-action.sh /bootstrap-action.sh
 RUN /bootstrap-action.sh
 

@@ -1,5 +1,10 @@
 FROM ubuntu:20.04
 
+USER github
+ENV HOME="/github/home"
+
+RUN mkdir -p "$HOME"
+
 COPY bootstrap-action.sh /bootstrap-action.sh
 RUN /bootstrap-action.sh
 
