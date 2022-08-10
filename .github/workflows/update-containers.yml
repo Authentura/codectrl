@@ -1,5 +1,7 @@
 name: Auto-update Containers
-on: [push] # temporary until we have at least one build for each container
+on:
+  push:
+    branches: [main]
 
 jobs:
   build-ubuntu-latest:
