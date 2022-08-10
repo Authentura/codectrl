@@ -28,7 +28,6 @@ jobs:
           push: true
           tags: |
             ghcr.io/authentura/codectrl-ubuntu-latest:latest
-            ghcr.io/authentura/codectrl-ubuntu-latest:$(date +"%F_%s")
 
   build-ubuntu-20-04:
     name: Build and push Ubuntu 20.04 container
@@ -56,7 +55,6 @@ jobs:
           push: true
           tags: |
             ghcr.io/authentura/codectrl-ubuntu-20-04:latest
-            ghcr.io/authentura/codectrl-ubuntu-20-04:$(date +"%F_%s")
 
   build-fedora-latest:
     name: Build and push latest Fedora container
@@ -84,7 +82,6 @@ jobs:
           push: true
           tags: |
             ghcr.io/authentura/codectrl-fedora-latest:latest
-            ghcr.io/authentura/codectrl-fedora-latest:$(date +"%F_%s")
 
   build-fedora-rawhide:
     name: Build and push Fedora Rawhide container
@@ -112,4 +109,3 @@ jobs:
           push: true
           tags: |
             ghcr.io/authentura/codectrl-fedora-rawhide:latest
-            ghcr.io/authentura/codectrl-fedora-rawhide:$(date +"%F_%s")
