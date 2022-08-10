@@ -1,0 +1,16 @@
+name: Auto-update Containers
+on:
+  schedule:
+    - cron: "0 0 * * */1"
+
+env:
+  USER: STBoyden
+  CR_PAT: ${{ secret.CR_PAT }}
+
+jobs:
+  build:
+    name: Build and update containers
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Run build-and-upload-containers.sh
+        run: ./build-and-upload-containers.sh
