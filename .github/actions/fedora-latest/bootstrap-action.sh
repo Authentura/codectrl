@@ -9,6 +9,8 @@ echo -e "\nInstalling dependencies for your distro...\n"
 
 case $ID in
     "debian" | "ubuntu" | "elementary")
+        export DEBIAN_FRONTEND=noninteractive
+
         apt update -y
         pixbuf_dev=""
         libc_static=""
