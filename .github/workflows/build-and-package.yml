@@ -8,14 +8,30 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Bootstrap dependencies
+      - name: Fetch cache if already exists
+        continue-on-error: true
+        uses: actions/cache@v3
+        id: cache-binary
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ hashFiles('**/Cargo.lock') }}
+
+      - if: ${{ steps.cache-binary.outputs.cache-hit == 'false' }}
+        name: Bootstrap dependencies
         run: ./bootstrap-action.sh
 
-      - uses: dtolnay/rust-toolchain@stable
+      - if: ${{ steps.cache-binary.outputs.cache-hit == 'false' }}
+        uses: dtolnay/rust-toolchain@stable
         with:
           target: x86_64-unknown-linux-musl
 
-      - name: Build CodeCTRL
+      - if: ${{ steps.cache-binary.outputs.cache-hit == 'false' }}
+        name: Build CodeCTRL
         run: PKG_CONFIG_SYSROOT_DIR="/" RUSTFLAGS="-Ctarget-feature=+crt-static" cargo build --release --target=x86_64-unknown-linux-musl
 
       - name: Strip binary
