@@ -1,5 +1,8 @@
 name: Build
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 jobs:
   build-ubuntu-22-04:
@@ -8,6 +11,9 @@ jobs:
     container: ghcr.io/authentura/codectrl-ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
 
       - name: Fetch cache if already exists
         continue-on-error: true
@@ -53,6 +59,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+
       - name: Fetch cached build
         uses: actions/cache@v3
         id: has-cache
@@ -97,6 +106,9 @@ jobs:
     container: ghcr.io/authentura/codectrl-fedora-rawhide
     steps:
       - uses: actions/checkout@v3
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
 
       - name: Fetch cached build
         uses: actions/cache@v3
