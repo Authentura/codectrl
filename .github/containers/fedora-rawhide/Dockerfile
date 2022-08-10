@@ -1,7 +1,7 @@
 FROM fedora:rawhide
 
+RUN useradd -d /github/home -g root -G wheel -ms /bin/bash github
 USER github
-ENV HOME="/github/home"
 
 RUN mkdir -p "$HOME"
 

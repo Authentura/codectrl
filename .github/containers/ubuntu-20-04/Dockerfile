@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 
+RUN useradd -d /github/home -g root -G sudo -ms /bin/bash github
 USER github
-ENV HOME="/github/home"
 
 RUN mkdir -p "$HOME"
 
