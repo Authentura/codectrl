@@ -10,7 +10,7 @@ jobs:
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         with:
-          key: ubuntu-latest
+          key: ubuntu-latest-{hash}
         continue-on-error: true
 
       - name: Login to GitHub Container Registry
@@ -28,7 +28,7 @@ jobs:
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         with:
-          key: ubuntu-latest
+          key: ubuntu-latest-{hash}
         continue-on-error: true
 
   build-ubuntu-20-04:
@@ -39,7 +39,7 @@ jobs:
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         with:
-          key: ubuntu-22-04
+          key: ubuntu-20-04-{hash}
         continue-on-error: true
 
       - name: Login to GitHub Container Registry
@@ -57,7 +57,7 @@ jobs:
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         with:
-          key: ubuntu-22-04
+          key: ubuntu-20-04-{hash}
         continue-on-error: true
 
   build-fedora-latest:
@@ -68,7 +68,7 @@ jobs:
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         with:
-          key: fedora-latest
+          key: fedora-latest-{hash}
         continue-on-error: true
 
       - name: Login to GitHub Container Registry
@@ -86,7 +86,7 @@ jobs:
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         with:
-          key: fedora-latest
+          key: fedora-latest-{hash}
         continue-on-error: true
 
   build-fedora-rawhide:
@@ -97,7 +97,7 @@ jobs:
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         with:
-          key: fedora-rawhide
+          key: fedora-rawhide-{hash}
         continue-on-error: true
 
       - name: Login to GitHub Container Registry
@@ -115,5 +115,5 @@ jobs:
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         with:
-          key: fedora-rawhide
+          key: fedora-rawhide-{hash}
         continue-on-error: true
