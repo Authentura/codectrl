@@ -11,7 +11,7 @@ jobs:
       - name: Fetch cache if already exists
         continue-on-error: true
         uses: actions/cache@v3
-        id: cache-binary
+        id: has-cache
         with:
           path: |
             ~/.cargo/bin/
@@ -21,16 +21,16 @@ jobs:
             target/
           key: ${{ hashFiles('**/Cargo.lock') }}
 
-      - if: ${{ steps.cache-binary.outputs.cache-hit == 'false' }}
+      - if: ${{ steps.has-cache.outputs.cache-hit == 'false' }}
         name: Bootstrap dependencies
         run: ./bootstrap-action.sh
 
-      - if: ${{ steps.cache-binary.outputs.cache-hit == 'false' }}
+      - if: ${{ steps.has-cache.outputs.cache-hit == 'false' }}
         uses: dtolnay/rust-toolchain@stable
         with:
           target: x86_64-unknown-linux-musl
 
-      - if: ${{ steps.cache-binary.outputs.cache-hit == 'false' }}
+      - if: ${{ steps.has-cache.outputs.cache-hit == 'false' }}
         name: Build CodeCTRL
         run: PKG_CONFIG_SYSROOT_DIR="/" RUSTFLAGS="-Ctarget-feature=+crt-static" cargo build --release --target=x86_64-unknown-linux-musl
 
