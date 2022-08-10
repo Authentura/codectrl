@@ -69,10 +69,23 @@ jobs:
             target/
           key: ${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Generate DEB file
-        run: |
-          cargo install cargo-deb
-          cargo deb --no-build --no-strip --target x86_64-unknown-linux-musl
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+
+      - name: Regenerate cache with cargo-deb
+        uses: actions/cache@v3
+        id: regen-cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Generate .deb
+        run: cargo deb --no-build --no-strip --target x86_64-unknown-linux-musl
 
       - name: Rename .deb
         run: ./find-and-rename-pkg.sh
@@ -110,7 +123,7 @@ jobs:
         with:
           command: echo Prepared Docker!
 
-      - name: Generate RPM file
+      - name: Generate .rpm file
         uses: ./.github/actions/run-fedora-latest
         with:
           command: cargo generate-rpm --target x86_64-unknown-linux-musl
@@ -153,7 +166,7 @@ jobs:
         with:
           command: echo Prepared Docker!
 
-      - name: Generate RPM file
+      - name: Generate .rpm file
         uses: ./.github/actions/run-fedora-rawhide
         with:
           command: cargo generate-rpm --target x86_64-unknown-linux-musl
@@ -191,7 +204,7 @@ jobs:
       - name: Install cargo-wix
         run: cargo install cargo-wix
 
-      - if: ${{ steps.windows-has-cache.outputs.cache-hit == 'false' }}
+      - if: ${{ steps.windows-has-cache.outputs.cache-hit != 'true' }}
         name: Build CodeCTRL
         run: cargo build --release
 
