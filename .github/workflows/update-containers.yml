@@ -16,16 +16,13 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.CR_PAT }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: ./.github/actions/ubuntu-latest
-          platforms: linux/amd64
-          push: true
-          tags: |
-            ghcr.io/user/codectrl-ubuntu-latest:latest
+        working-directory: ./.github/actions/ubuntu-latest
+        run: |
+          docker build -t authentura/codectrl-ubuntu-latest:latest .
+          docker push ghcr.io/authentura/codectrl-ubuntu-latest:latest
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
@@ -44,16 +41,13 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.CR_PAT }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: ./.github/actions/ubuntu-20-04
-          platforms: linux/amd64
-          push: true
-          tags: |
-            ghcr.io/user/codectrl-ubuntu-20-04:latest
+        working-directory: ./.github/actions/ubuntu-20-04
+        run: |
+          docker build -t authentura/codectrl-ubuntu-20-04:latest .
+          docker push ghcr.io/authentura/codectrl-ubuntu-20-04:latest
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
@@ -72,16 +66,13 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.CR_PAT }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: ./.github/actions/fedora-latest
-          platforms: linux/amd64
-          push: true
-          tags: |
-            ghcr.io/user/codectrl-fedora-latest:latest
+        working-directory: ./.github/actions/fedora-latest
+        run: |
+          docker build -t authentura/codectrl-fedora-latest:latest .
+          docker push ghcr.io/authentura/codectrl-fedora-latest:latest
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
@@ -100,16 +91,13 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.CR_PAT }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: ./.github/actions/fedora-rawhide
-          platforms: linux/amd64
-          push: true
-          tags: |
-            ghcr.io/user/codectrl-fedora-rawhide:latest
+        working-directory: ./.github/actions/fedora-rawhide
+        run: |
+          docker build -t authentura/codectrl-fedora-rawhide:latest .
+          docker push ghcr.io/authentura/codectrl-fedora-rawhide:latest
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
