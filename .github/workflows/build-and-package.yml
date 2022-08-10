@@ -93,7 +93,6 @@ jobs:
 
   package-fedora-rawhide:
     name: Package for Fedora Rawhide
-    needs: build
     runs-on: ubuntu-latest
     container: ghcr.io/authentura/codectrl-fedora-rawhide
     steps:
