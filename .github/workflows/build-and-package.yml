@@ -28,7 +28,7 @@ jobs:
             target/
           key: ubuntu-22-04-${{ hashFiles('**/Cargo.lock') }}
 
-      - run: source $HOME/.cargo/env
+      - run: source /root/.cargo/env
 
       - if: steps.has-cache.outputs.cache-hit != 'true'
         name: Build and package CodeCTRL
@@ -76,7 +76,7 @@ jobs:
             target/
           key: fedora-latest-${{ hashFiles('**/Cargo.lock') }}
 
-      - run: source $HOME/.cargo/env
+      - run: source /root/.cargo/env
 
       - if: steps.has-cache.outputs.cache-hit != 'true'
         name: Build and package CodeCTRL
@@ -126,7 +126,7 @@ jobs:
             target/
           key: fedora-rawhide-${{ hashFiles('**/Cargo.lock') }}
 
-      - run: source $HOME/.cargo/env
+      - run: source /root/.cargo/env
 
       - if: steps.has-cache.outputs.cache-hit != 'true'
         name: Build and package CodeCTRL
