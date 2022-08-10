@@ -12,6 +12,6 @@ jobs:
           target: wasm32-unknown-unknown
           components: clippy
       - name: Bootstrap Ubuntu
-        run: ./bootstrap-action.sh
+        run: sudo ./bootstrap-action.sh
       - name: Run clippy check
         run: cargo clippy --release --all-targets
