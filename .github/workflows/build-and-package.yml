@@ -178,7 +178,7 @@ jobs:
       - name: Fetch cache if already exists
         continue-on-error: true
         uses: actions/cache@v3
-        id: has-cache
+        id: windows-has-cache
         with:
           path: |
             ~/.cargo/bin/
@@ -191,7 +191,7 @@ jobs:
       - name: Install cargo-wix
         run: cargo install cargo-wix
 
-      - if: ${{ steps.has-cache.outputs.cache-hit == 'false' }}
+      - if: ${{ steps.windows-has-cache.outputs.cache-hit == 'false' }}
         name: Build CodeCTRL
         run: cargo build --release
 
