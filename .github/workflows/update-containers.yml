@@ -3,7 +3,7 @@ on: [push, pull_request] # temporary until we have at least one build for each c
 
 env:
   USER: STBoyden
-  CR_PAT: ${{ secret.CR_PAT }}
+  CR_PAT: ${{ secrets.CR_PAT }}
 
 jobs:
   build:
