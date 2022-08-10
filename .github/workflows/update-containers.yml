@@ -2,7 +2,7 @@ name: Auto-update Containers
 on: [push, pull_request] # temporary until we have at least one build for each container
 
 env:
-  USER: STBoyden
+  USERNAME: STBoyden
   CR_PAT: ${{ secrets.CR_PAT }}
 
 jobs:
@@ -13,4 +13,4 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Run build-and-upload-containers.sh
-        run: ./build-and-upload-containers.sh
+        run: ./build-and-upload-containers.sh ${{ env.USERNAME }}
