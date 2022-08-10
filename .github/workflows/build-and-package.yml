@@ -81,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Ubuntu 22.04 package
-          path: target/debian/*.deb
+          path: target/x86_64-unknown-linux-musl/debian/*.deb
 
   package-fedora-latest:
     name: Package for latest stable Fedora
@@ -113,7 +113,7 @@ jobs:
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-latest
         with:
-          command: cargo generate-rpm --target-dir target/x86_64-unknown-linux-musl/release
+          command: cargo generate-rpm --target x86_64-unknown-linux-musl
 
       - name: Rename .rpm
         uses: ./.github/actions/run-fedora-latest
@@ -124,7 +124,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Fedora Latest package
-          path: target/generate-rpm/*.rpm
+          path: target/x86_64-unknown-linux-musl/generate-rpm/*.rpm
 
   package-fedora-rawhide:
     name: Package for Fedora Rawhide
@@ -156,7 +156,7 @@ jobs:
       - name: Generate RPM file
         uses: ./.github/actions/run-fedora-rawhide
         with:
-          command: cargo generate-rpm --target-dir target/x86_64-unknown-linux-musl/release
+          command: cargo generate-rpm --target x86_64-unknown-linux-musl
 
       - name: Rename .rpm
         uses: ./.github/actions/run-fedora-rawhide
@@ -167,7 +167,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Fedora Rawhide package
-          path: target/generate-rpm/*.rpm
+          path: target/x86_64-unknown-linux-musl/generate-rpm/*.rpm
 
   build-windows-latest:
     name: Build for Windows
@@ -175,10 +175,24 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Fetch cache if already exists
+        continue-on-error: true
+        uses: actions/cache@v3
+        id: has-cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Install cargo-wix
         run: cargo install cargo-wix
 
-      - name: Build CodeCTRL
+      - if: ${{ steps.has-cache.outputs.cache-hit == 'false' }}
+        name: Build CodeCTRL
         run: cargo build --release
 
       - name: Generate MSI
@@ -189,3 +203,15 @@ jobs:
         with:
           name: Windows installer package
           path: target/wix/*.msi
+
+      - name: Cache binary
+        uses: actions/cache@v3
+        id: cache-binary
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
