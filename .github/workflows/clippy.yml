@@ -14,4 +14,4 @@ jobs:
       - name: Bootstrap Ubuntu
         run: ./bootstrap-action.sh
       - name: Run clippy check
-        run: cargo clippy --release --all-features --all-targets
+        run: cargo clippy --release --all-targets
