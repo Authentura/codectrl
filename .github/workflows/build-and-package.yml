@@ -25,13 +25,13 @@ jobs:
         name: Bootstrap dependencies
         run: ./bootstrap-action.sh
 
-      - if: ${{ steps.has-cache.outputs.cache-hit == 'false' }}
-        uses: dtolnay/rust-toolchain@stable
+      # - if: ${{ steps.has-cache.outputs.cache-hit == 'false' }}
+      - uses: dtolnay/rust-toolchain@stable
         with:
           target: x86_64-unknown-linux-musl
 
-      - if: ${{ steps.has-cache.outputs.cache-hit == 'false' }}
-        name: Build CodeCTRL
+      # - if: ${{ steps.has-cache.outputs.cache-hit == 'false' }}
+      - name: Build CodeCTRL
         run: PKG_CONFIG_SYSROOT_DIR="/" RUSTFLAGS="-Ctarget-feature=+crt-static" cargo build --release --target=x86_64-unknown-linux-musl
 
       - name: Strip binary
@@ -216,8 +216,7 @@ jobs:
         continue-on-error: true
         run: cargo install cargo-wix
 
-      - if: ${{ steps.windows-has-cache.outputs.cache-hit != 'true' }}
-        name: Build CodeCTRL
+      - name: Build CodeCTRL
         run: cargo build --release
 
       - name: Generate MSI
