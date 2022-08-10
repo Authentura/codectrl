@@ -1,7 +1,5 @@
 name: Auto-update Containers
-on:
-  schedule:
-    - cron: "0 0 * * */1"
+on: [push, pull_request] # temporary until we have at least one build for each container
 
 env:
   USER: STBoyden
