@@ -8,3 +8,6 @@ RUN bash -c "source $HOME/.cargo/env && cargo install cargo-generate-rpm"
 RUN bash -c "source $HOME/.cargo/env && rustup default stable"
 
 COPY find-and-rename-pkg.sh /find-and-rename-pkg.sh
+
+ENTRYPOINT ["/bin/bash", "-l"]
+CMD ["/bin/bash"]

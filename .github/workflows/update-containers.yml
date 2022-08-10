@@ -1,7 +1,5 @@
 name: Auto-update Containers
-on:
-  push:
-    branches: [main]
+on: push
 
 jobs:
   build-ubuntu-latest:
@@ -25,11 +23,12 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: ./.github/actions/ubuntu-latest
+          context: ./.github/containers/ubuntu-latest
           platforms: linux/amd64
           push: true
           tags: |
             ghcr.io/authentura/codectrl-ubuntu-latest:latest
+            ghcr.io/authentura/codectrl-ubuntu-latest:$(date +"%F_%s")
 
   build-ubuntu-20-04:
     name: Build and push Ubuntu 20.04 container
@@ -52,11 +51,12 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: ./.github/actions/ubuntu-20-04
+          context: ./.github/containers/ubuntu-20-04
           platforms: linux/amd64
           push: true
           tags: |
             ghcr.io/authentura/codectrl-ubuntu-20-04:latest
+            ghcr.io/authentura/codectrl-ubuntu-20-04:$(date +"%F_%s")
 
   build-fedora-latest:
     name: Build and push latest Fedora container
@@ -79,11 +79,12 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: ./.github/actions/fedora-latest
+          context: ./.github/containers/fedora-latest
           platforms: linux/amd64
           push: true
           tags: |
             ghcr.io/authentura/codectrl-fedora-latest:latest
+            ghcr.io/authentura/codectrl-fedora-latest:$(date +"%F_%s")
 
   build-fedora-rawhide:
     name: Build and push Fedora Rawhide container
@@ -106,8 +107,9 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: ./.github/actions/fedora-rawhide
+          context: ./.github/containers/fedora-rawhide
           platforms: linux/amd64
           push: true
           tags: |
             ghcr.io/authentura/codectrl-fedora-rawhide:latest
+            ghcr.io/authentura/codectrl-fedora-rawhide:$(date +"%F_%s")

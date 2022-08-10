@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:latest
 
 COPY bootstrap-action.sh /bootstrap-action.sh
 RUN /bootstrap-action.sh
@@ -8,3 +8,6 @@ RUN bash -c "source $HOME/.cargo/env && cargo install cargo-deb"
 RUN bash -c "source $HOME/.cargo/env && rustup default stable"
 
 COPY find-and-rename-pkg.sh /find-and-rename-pkg.sh
+
+ENTRYPOINT ["/bin/bash", "-l"]
+CMD ["/bin/bash"]
