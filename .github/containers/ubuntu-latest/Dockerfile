@@ -16,6 +16,5 @@ USER root
 
 COPY find-and-rename-pkg.sh /find-and-rename-pkg.sh
 
-USER github
 ENTRYPOINT ["/bin/bash", "-l"]
 CMD ["/bin/bash"]
