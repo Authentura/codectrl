@@ -30,7 +30,10 @@ jobs:
 
       - if: steps.has-cache.outputs.cache-hit != 'true'
         name: Build and package CodeCTRL
-        run: cargo deb
+        shell: bash
+        run: |
+          . $HOME/.cargo/env
+          cargo deb
 
       - name: Cache build
         uses: actions/cache@v3
@@ -50,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Ubuntu 22.04 package
-          path: target/x86_64-unknown-linux-musl/debian/*.deb
+          path: target/debian/*.deb
 
   package-fedora-latest:
     name: Package for latest stable Fedora
@@ -76,7 +79,9 @@ jobs:
 
       - if: steps.has-cache.outputs.cache-hit != 'true'
         name: Build and package CodeCTRL
+        shell: bash
         run: |
+          . $HOME/.cargo/env
           cargo build --release
           cargo generate-rpm
 
@@ -124,7 +129,9 @@ jobs:
 
       - if: steps.has-cache.outputs.cache-hit != 'true'
         name: Build and package CodeCTRL
+        shell: bash
         run: |
+          . $HOME/.cargo/env
           cargo build --release
           cargo generate-rpm
 
