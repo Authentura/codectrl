@@ -9,12 +9,8 @@ USER github
 RUN mkdir -p "$HOME"
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- --default-toolchain stable -y
-RUN bash -c "source $HOME/.cargo/env && cargo install cargo-deb"
-RUN bash -c "source $HOME/.cargo/env && rustup default stable"
 
 USER root
+RUN bash -c "source /github/home/.cargo/env && cargo install --root /bin cargo-deb"
 
 COPY find-and-rename-pkg.sh /find-and-rename-pkg.sh
-
-ENTRYPOINT ["/bin/bash", "-l"]
-CMD ["/bin/bash"]
