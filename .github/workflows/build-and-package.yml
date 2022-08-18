@@ -59,7 +59,7 @@ jobs:
           path: target/debian/*.deb
 
   package-fedora-latest:
-    name: Package for latest stable Fedora
+    name: Build and Package for latest stable Fedora
     runs-on: ubuntu-latest
     container: ghcr.io/authentura/codectrl-fedora-latest
     steps:
@@ -111,7 +111,7 @@ jobs:
           path: target/generate-rpm/*.rpm
 
   package-fedora-rawhide:
-    name: Package for Fedora Rawhide
+    name: Build and Package for Fedora Rawhide
     runs-on: ubuntu-latest
     container: ghcr.io/authentura/codectrl-fedora-rawhide
     steps:
