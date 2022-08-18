@@ -80,6 +80,11 @@ jobs:
             target/
           key: fedora-latest-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Are we actually on the container?
+        run: |
+          uname -a
+          ls /bin | egrep cargo
+
       - if: steps.has-cache.outputs.cache-hit != 'true'
         name: Build and package CodeCTRL
         shell: bash
