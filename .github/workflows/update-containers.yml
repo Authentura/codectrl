@@ -1,0 +1,196 @@
+name: Auto-update Containers
+on:
+  push:
+    branches: [main, update-containers/*]
+  schedule:
+    - cron: "0 */2 * * */1"
+
+jobs:
+  build-debian-latest:
+    name: Build and push Debian latest container
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        with:
+          key: debian-latest-{hash}
+        continue-on-error: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./.github/containers/debian-latest
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/authentura/codectrl-debian-latest:latest
+
+  build-debian-10:
+    name: Build and push Debian 10 container
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        with:
+          key: debian-10-{hash}
+        continue-on-error: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./.github/containers/debian-10
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/authentura/codectrl-debian-10:latest
+
+  build-debian-sid:
+    name: Build and push Debian Sid container
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        with:
+          key: debian-sid-{hash}
+        continue-on-error: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./.github/containers/debian-sid
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/authentura/codectrl-debian-sid:latest
+
+  build-ubuntu-latest:
+    name: Build and push Ubuntu latest container
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        with:
+          key: ubuntu-latest-{hash}
+        continue-on-error: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./.github/containers/ubuntu-latest
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/authentura/codectrl-ubuntu-latest:latest
+
+  build-ubuntu-20-04:
+    name: Build and push Ubuntu 20.04 container
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        with:
+          key: ubuntu-20-04-{hash}
+        continue-on-error: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./.github/containers/ubuntu-20-04
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/authentura/codectrl-ubuntu-20-04:latest
+
+  build-fedora-latest:
+    name: Build and push latest Fedora container
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        with:
+          key: fedora-latest-{hash}
+        continue-on-error: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./.github/containers/fedora-latest
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/authentura/codectrl-fedora-latest:latest
+
+  build-fedora-rawhide:
+    name: Build and push Fedora Rawhide container
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        with:
+          key: fedora-rawhide-{hash}
+        continue-on-error: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./.github/containers/fedora-rawhide
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/authentura/codectrl-fedora-rawhide:latest
