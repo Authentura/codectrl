@@ -392,7 +392,7 @@ jobs:
       - name: Fetch cache if already exists
         continue-on-error: true
         uses: actions/cache@v3
-        id: windows-has-cache
+        id: has-cache
         with:
           path: |
             ~/.cargo/bin/
@@ -402,11 +402,13 @@ jobs:
             target/
           key: ${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install cargo-wix
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Install cargo-wix
         continue-on-error: true
         run: cargo install cargo-wix
 
-      - name: Build CodeCTRL
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Build CodeCTRL
         run: cargo build --release
 
       - name: Generate MSI
@@ -441,10 +443,18 @@ jobs:
       - build-ubuntu-20-04
       - build-fedora-latest
       - build-fedora-rawhide
+      - build-windows-latest
     steps:
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
         with:
           path: .
 
-      - run: ls -al
+      - name: Zip all packages
+        run: zip -r codectrl-packages.zip .
+
+      - name: Upload Zip
+        uses: actions/upload-artifact@v3
+        with:
+          name: CodeCTRL Packages
+          path: codectrl-packages.zip
