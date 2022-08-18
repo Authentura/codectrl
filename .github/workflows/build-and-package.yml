@@ -584,7 +584,7 @@ jobs:
       - name: Upload .msi artifact
         uses: actions/upload-artifact@v3
         with:
-          name: Windows installer package
+          name: Windows MSI package
           path: target/wix/*.msi
 
       - name: Cache binary
