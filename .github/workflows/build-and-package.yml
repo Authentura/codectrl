@@ -450,11 +450,8 @@ jobs:
         with:
           path: .
 
-      - name: Zip all packages
-        run: zip -r codectrl-packages.zip .
-
       - name: Upload Zip
         uses: actions/upload-artifact@v3
         with:
-          name: CodeCTRL Packages
-          path: codectrl-packages.zip
+          name: All-in-One CodeCTRL Packages
+          path: .
