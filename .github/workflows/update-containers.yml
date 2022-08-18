@@ -34,7 +34,7 @@ jobs:
             ghcr.io/authentura/codectrl-debian-latest:latest
 
   build-debian-10:
-    name: Build and push Debian latest container
+    name: Build and push Debian 10 container
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -61,7 +61,7 @@ jobs:
             ghcr.io/authentura/codectrl-debian-10:latest
 
   build-debian-sid:
-    name: Build and push Debian latest container
+    name: Build and push Debian Sid container
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
