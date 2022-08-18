@@ -502,7 +502,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions-rs/toolchain@v1
 
       - name: Fetch cached build
         uses: actions/cache@v3
