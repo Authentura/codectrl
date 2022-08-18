@@ -1,7 +1,7 @@
 name: Auto-update Containers
 on:
   push:
-    branches: [main, update-containers/*, sboyden/*]
+    branches: [main, update-containers/*]
   schedule:
     - cron: "0 */2 * * */1"
 
