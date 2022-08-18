@@ -31,10 +31,15 @@ jobs:
           key: ubuntu-22-04-${{ hashFiles('**/Cargo.lock') }}
 
       - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Install cargo-deb
+        continue-on-error: true
+        run: cargo install cargo-deb
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
         name: Build and package CodeCTRL
         shell: bash
         run: |
-          cargo-deb
+          cargo deb
 
       - name: Cache build
         uses: actions/cache@v3
@@ -80,17 +85,16 @@ jobs:
             target/
           key: fedora-latest-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Are we actually on the container?
-        run: |
-          cat /etc/os-release
+      - name: Install cargo-generate-rpm
+        continue-on-error: true
+        run: cargo install cargo-generate-rpm
 
       - if: steps.has-cache.outputs.cache-hit != 'true'
         name: Build and package CodeCTRL
         shell: bash
         run: |
-          . $HOME/.cargo/env
           cargo build --release
-          cargo-generate-rpm
+          cargo generate-rpm
 
       - name: Cache build
         uses: actions/cache@v3
@@ -136,12 +140,16 @@ jobs:
             target/
           key: fedora-rawhide-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Install cargo-generate-rpm
+        continue-on-error: true
+        run: cargo install cargo-generate-rpm
+
       - if: steps.has-cache.outputs.cache-hit != 'true'
         name: Build and package CodeCTRL
         shell: bash
         run: |
           cargo build --release
-          cargo-generate-rpm
+          cargo generate-rpm
 
       - name: Cache build
         uses: actions/cache@v3
