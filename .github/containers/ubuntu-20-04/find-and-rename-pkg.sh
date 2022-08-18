@@ -28,7 +28,7 @@ case $ID in
   ;;
 esac
 
-package_file=$(find "$ROOT"/target/x86_64-unknown-linux-musl/"$DIR" | egrep '*\.(deb|rpm)' | head -n1)
+package_file=$(find "$ROOT"/target/"$DIR" | egrep '*\.(deb|rpm)' | head -n1)
 file_name=$(basename -s "$FILE_EXTENSION" $package_file)
 output_file="$(dirname $package_file)/$file_name$SUFFIX$FILE_EXTENSION"
 
