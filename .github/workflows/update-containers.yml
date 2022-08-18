@@ -194,3 +194,84 @@ jobs:
           push: true
           tags: |
             ghcr.io/authentura/codectrl-fedora-rawhide:latest
+
+  build-rhel-latest:
+    name: Build and push latest RHEL container
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        with:
+          key: rhel-latest-{hash}
+        continue-on-error: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./.github/containers/rhel-latest
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/authentura/codectrl-rhel-latest:latest
+
+  build-rhel-8:
+    name: Build and push RHEL 8 container
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        with:
+          key: rhel-8-{hash}
+        continue-on-error: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./.github/containers/rhel-8
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/authentura/codectrl-rhel-8:latest
+
+  build-rhel-7:
+    name: Build and push RHEL 7 container
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        with:
+          key: rhel-7-{hash}
+        continue-on-error: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./.github/containers/rhel-7
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/authentura/codectrl-rhel-7:latest
