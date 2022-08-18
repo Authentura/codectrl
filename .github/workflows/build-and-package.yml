@@ -503,6 +503,8 @@ jobs:
       - uses: actions/checkout@v3
 
       - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
 
       - name: Fetch cached build
         uses: actions/cache@v3
