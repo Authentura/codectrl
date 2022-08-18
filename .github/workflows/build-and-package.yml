@@ -296,7 +296,8 @@ jobs:
             target/
           key: fedora-latest-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install cargo-generate-rpm
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Install cargo-generate-rpm
         continue-on-error: true
         run: cargo install cargo-generate-rpm
 
@@ -350,7 +351,8 @@ jobs:
             target/
           key: fedora-rawhide-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install cargo-generate-rpm
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Install cargo-generate-rpm
         continue-on-error: true
         run: cargo install cargo-generate-rpm
 
