@@ -37,10 +37,11 @@ case $ID in
         fi
     ;;
     "centos")
+        yum install epel-release -y
         yum update -y
         yum groupinstall "Development Tools" -y
 
-        yum install gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake git -y
+        yum install gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake3 git -y
     ;;
 esac
 
