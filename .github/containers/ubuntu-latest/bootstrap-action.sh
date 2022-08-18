@@ -42,6 +42,7 @@ case $ID in
         yum groupinstall "Development Tools" -y
 
         yum install gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake3 git -y
+        ln -s /usr/bin/cmake3 /usr/bin/cmake
     ;;
 esac
 
