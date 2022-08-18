@@ -218,7 +218,7 @@ jobs:
           path: target/debian/*.deb
 
   build-ubuntu-20-04:
-    name: Build and Package for latest Ubuntu LTS
+    name: Build and Package for Ubuntu 20.04 LTS
     runs-on: ubuntu-latest
     container: ghcr.io/authentura/codectrl-ubuntu-20-04
     steps:
