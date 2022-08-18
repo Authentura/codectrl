@@ -31,16 +31,16 @@ The MSRV (minimum supported Rust version): 1.62.
 Below you will find the requirements to build on each platform. The supported platform(s)
 are:
 
-- [Linux](#Linux)
+- [Linux](#Linux) - Supported: Ubuntu 22.04, Ubuntu 20.04, Fedora 36, Fedora Rawhide,
+  Debian 11, Debian 10 and Debian Sid.
 - [Web](#Web)
+- [Windows](#Windows)
 
 Planned support:
 
-- Windows
 - MacOS (M1 and legacy Intel systems)
 
-Packages for Ubuntu 22.04, the latest stable Fedora and Fedora Rawhide are
-built per commit and per pull-request and can be found
+Packages for the supported distributions listed above can be found
 [here](https://github.com/Authentura/codectrl/actions/workflows/build-and-package.yml)
 underneath each of the **_completed_** CI jobs.
 
@@ -48,8 +48,8 @@ underneath each of the **_completed_** CI jobs.
 
 The current _officially_ supported Linux distributions are the following:
 
-- [Fedora](#Fedora)
-- [Ubuntu and Debian 11](#Debian-based)
+- [Fedora (36, Rawhide)](#Fedora)
+- [Ubuntu (22.04, 20.04) and Debian (11, 10, Sid)](#Debian-based)
 
 **_NOTE:_** You can use the `./bootstrap-build.sh` or the
 `./bootstrap-action.sh` scripts to automatically install the dependencies for
@@ -63,7 +63,7 @@ Support is planned for the following:
 
 #### Fedora
 
-Minimum supported Fedora version: 34.
+Minimum supported Fedora version: 36.
 
 You will need to install the "Development Tools" group. You can do this by running:
 `sudo dnf groupinstall "Development Tools" -y`.
@@ -79,14 +79,15 @@ You will need to install the "Development Tools" group. You can do this by runni
 
 #### Debian-based
 
-There is confirmed support for Ubuntu 22.04, 21.10, 21.04, and Debian 11 and 10.
+There is support for Ubuntu 22.04, Ubuntu 20.04, Debian 11, Debian 10 and
+Debian Sid.
 
 ##### Dependencies
 
 - A C/C++ compiler. For example `gcc` or `clang`.
 - `libglib2.0-dev`
 - `libpango1.0-dev`
-- `libgdk-pixbuf-2.0-dev`
+- `libgdk-pixbuf-2.0-dev` (or `libgdk-pixbuf2.0-dev` on 20.04).
 - `libatk1.0-dev`
 - `libgtk-3-dev`
 - `libxcb-shape0-dev`
@@ -104,3 +105,13 @@ for it and to use the `Trunk.toml` you can issue this command to install a
 version of `trunk` that _does_ support manually specifying headers: `cargo install --git https://github.com/oberien/trunk --branch headers --force trunk`
 
 Then, you can run a local server with `trunk serve --release`.
+
+### Windows
+
+You can build CodeCTRL for Windows simply by installing `rustup` via the normal
+channel: [here](https://rustup.rs), and issuing a `cargo build --release` at
+the root of this project.
+
+A MSI for Windows is automatically generated on every commit of the CodeCTRL
+`main` branch and can be found in one of the completed workflow runs
+[here](https://github.com/Authentura/codectrl/actions/workflows/build-and-package.yml).
