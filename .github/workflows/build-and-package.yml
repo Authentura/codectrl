@@ -580,7 +580,8 @@ jobs:
         name: Build CodeCTRL
         run: cargo build --release
 
-      - name: Generate MSI
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Generate MSI
         run: cargo wix --nocapture --no-build
 
       - name: Upload .msi artifact
