@@ -385,6 +385,173 @@ jobs:
           name: Fedora Rawhide package
           path: target/generate-rpm/*.rpm
 
+  build-rhel-latest:
+    name: Build and Package for latest RHEL
+    runs-on: ubuntu-latest
+    container: ghcr.io/authentura/codectrl-rhel-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Fetch cached build
+        uses: actions/cache@v3
+        id: has-cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: rhel-latest-${{ hashFiles('**/Cargo.lock') }}
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Install cargo-generate-rpm
+        continue-on-error: true
+        run: cargo install cargo-generate-rpm
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Build and package CodeCTRL
+        shell: bash
+        run: |
+          cargo build --release
+          strip -s target/release/codectrl
+          cargo generate-rpm
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: rhel-latest-${{ hashFiles('**/Cargo.lock') }}
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Rename .rpm
+        run: ./find-and-rename-pkg.sh
+
+      - name: Upload .rpm artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: RHEL Latest package
+          path: target/generate-rpm/*.rpm
+
+  build-rhel-8:
+    name: Build and Package for RHEL 8
+    runs-on: ubuntu-latest
+    container: ghcr.io/authentura/codectrl-rhel-8
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Fetch cached build
+        uses: actions/cache@v3
+        id: has-cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: rhel-8-${{ hashFiles('**/Cargo.lock') }}
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Install cargo-generate-rpm
+        continue-on-error: true
+        run: cargo install cargo-generate-rpm
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Build and package CodeCTRL
+        shell: bash
+        run: |
+          cargo build --release
+          strip -s target/release/codectrl
+          cargo generate-rpm
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: rhel-8-${{ hashFiles('**/Cargo.lock') }}
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Rename .rpm
+        run: ./find-and-rename-pkg.sh
+
+      - name: Upload .rpm artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: RHEL 8 package
+          path: target/generate-rpm/*.rpm
+
+  build-rhel-7:
+    name: Build and Package for RHEL 7
+    runs-on: ubuntu-latest
+    container: ghcr.io/authentura/codectrl-rhel-7
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Fetch cached build
+        uses: actions/cache@v3
+        id: has-cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: rhel-7-${{ hashFiles('**/Cargo.lock') }}
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Install cargo-generate-rpm
+        continue-on-error: true
+        run: cargo install cargo-generate-rpm
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Build and package CodeCTRL
+        shell: bash
+        run: |
+          cargo build --release
+          strip -s target/release/codectrl
+          cargo generate-rpm
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: rhel-7-${{ hashFiles('**/Cargo.lock') }}
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Rename .rpm
+        run: ./find-and-rename-pkg.sh
+
+      - name: Upload .rpm artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: RHEL 7 package
+          path: target/generate-rpm/*.rpm
+
   build-windows-latest:
     name: Build for Windows
     runs-on: windows-latest
@@ -413,13 +580,14 @@ jobs:
         name: Build CodeCTRL
         run: cargo build --release
 
-      - name: Generate MSI
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Generate MSI
         run: cargo wix --nocapture --no-build
 
       - name: Upload .msi artifact
         uses: actions/upload-artifact@v3
         with:
-          name: Windows installer package
+          name: Windows MSI package
           path: target/wix/*.msi
 
       - name: Cache binary
@@ -445,15 +613,13 @@ jobs:
       - build-ubuntu-20-04
       - build-fedora-latest
       - build-fedora-rawhide
+      - build-rhel-latest
+      - build-rhel-8
+      - build-rhel-7
       - build-windows-latest
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v2
-        # uses: dawidd6/action-download-artifact@v2
-        # with:
-        #   path: .
-        #   run_id: ${{ github.run_id }}
-        #   run_number: ${{ github.run_number }}
 
       - name: Upload Zip
         uses: actions/upload-artifact@v3

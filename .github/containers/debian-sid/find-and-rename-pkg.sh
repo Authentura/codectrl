@@ -23,7 +23,12 @@ case $ID in
   ;;
   "fedora")
     FILE_EXTENSION=".rpm"
-    SUFFIX=".$ID-$(rpm -E %fedora)"
+    SUFFIX=".$ID-f$(rpm -E %fedora)"
+    DIR="generate-rpm"
+  ;;
+  "rocky" | "centos")
+    FILE_EXTENSION=".rpm"
+    SUFFIX=".el$(rpm -E %rhel)"
     DIR="generate-rpm"
   ;;
 esac

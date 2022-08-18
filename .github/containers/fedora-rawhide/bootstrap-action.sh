@@ -24,10 +24,24 @@ case $ID in
         esac
         apt install build-essential clang cmake libglib2.0-dev libpango1.0-dev "$pixbuf_dev" libatk1.0-dev libgtk-3-dev libxcb-shape0-dev libxcb-xfixes0-dev curl libc6-dev libsqlite3-dev git -y
     ;;
-    "fedora")
-        sudo dnf update -y
-        sudo dnf groupinstall "Development Tools" -y
-        sudo dnf install gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake git -y
+    "fedora" | "rocky")
+        packages=(gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake git)
+
+        dnf update -y
+        dnf groupinstall "Development Tools" -y
+
+        if [[ "$ID" == "rocky" && $(rpm -E %rhel) -ge 9 ]]; then
+            dnf --enablerepo=crb install ${packages[@]} -y
+        else
+            dnf install ${packages[@]} -y
+        fi
+    ;;
+    "centos")
+        yum install epel-release -y
+        yum update -y
+        yum groupinstall "Development Tools" -y
+
+        yum install gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake3 git -y
     ;;
 esac
 
