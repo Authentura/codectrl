@@ -5,10 +5,10 @@ on:
   pull_request:
 
 jobs:
-  build-ubuntu-22-04:
-    name: Build and Package for Ubuntu 22.04
+  build-debian-latest:
+    name: Build and Package for latest Debian release
     runs-on: ubuntu-latest
-    container: ghcr.io/authentura/codectrl-ubuntu-latest
+    container: ghcr.io/authentura/codectrl-debian-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -25,7 +25,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ubuntu-22-04-${{ hashFiles('**/Cargo.lock') }}
+          key: debian-latest-${{ hashFiles('**/Cargo.lock') }}
 
       - if: steps.has-cache.outputs.cache-hit != 'true'
         name: Install cargo-deb
@@ -47,7 +47,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ubuntu-22-04-${{ hashFiles('**/Cargo.lock') }}
+          key: debian-latest-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Rename .deb
         run: ./find-and-rename-pkg.sh
@@ -55,7 +55,219 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v3
         with:
-          name: Ubuntu 22.04 package
+          name: Debian Latest package
+          path: target/debian/*.deb
+
+  build-debian-10:
+    name: Build and Package for Debian 10
+    runs-on: ubuntu-latest
+    container: ghcr.io/authentura/codectrl-debian-10
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Fetch cache if already exists
+        continue-on-error: true
+        uses: actions/cache@v3
+        id: has-cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: debian-10-${{ hashFiles('**/Cargo.lock') }}
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Install cargo-deb
+        continue-on-error: true
+        run: cargo install cargo-deb
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Build and package CodeCTRL
+        shell: bash
+        run: |
+          cargo deb
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: debian-10-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Rename .deb
+        run: ./find-and-rename-pkg.sh
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Debian 10 package
+          path: target/debian/*.deb
+
+  build-debian-sid:
+    name: Build and Package for Debian Sid
+    runs-on: ubuntu-latest
+    container: ghcr.io/authentura/codectrl-debian-sid
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Fetch cache if already exists
+        continue-on-error: true
+        uses: actions/cache@v3
+        id: has-cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: debian-sid-${{ hashFiles('**/Cargo.lock') }}
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Install cargo-deb
+        continue-on-error: true
+        run: cargo install cargo-deb
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Build and package CodeCTRL
+        shell: bash
+        run: |
+          cargo deb
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: debian-sid-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Rename .deb
+        run: ./find-and-rename-pkg.sh
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Debian Sid package
+          path: target/debian/*.deb
+
+  build-ubuntu-lts:
+    name: Build and Package for latest Ubuntu LTS
+    runs-on: ubuntu-latest
+    container: ghcr.io/authentura/codectrl-ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Fetch cache if already exists
+        continue-on-error: true
+        uses: actions/cache@v3
+        id: has-cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ubuntu-latest-${{ hashFiles('**/Cargo.lock') }}
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Install cargo-deb
+        continue-on-error: true
+        run: cargo install cargo-deb
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Build and package CodeCTRL
+        shell: bash
+        run: |
+          cargo deb
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ubuntu-latest-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Rename .deb
+        run: ./find-and-rename-pkg.sh
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Ubuntu Latest LTS package
+          path: target/debian/*.deb
+
+  build-ubuntu-20-04:
+    name: Build and Package for latest Ubuntu LTS
+    runs-on: ubuntu-latest
+    container: ghcr.io/authentura/codectrl-ubuntu-20-04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Fetch cache if already exists
+        continue-on-error: true
+        uses: actions/cache@v3
+        id: has-cache
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ubuntu-20-04-${{ hashFiles('**/Cargo.lock') }}
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Install cargo-deb
+        continue-on-error: true
+        run: cargo install cargo-deb
+
+      - if: steps.has-cache.outputs.cache-hit != 'true'
+        name: Build and package CodeCTRL
+        shell: bash
+        run: |
+          cargo deb
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ubuntu-20-04-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Rename .deb
+        run: ./find-and-rename-pkg.sh
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Ubuntu 20.04 LTS package
           path: target/debian/*.deb
 
   package-fedora-latest:
@@ -88,6 +300,7 @@ jobs:
         shell: bash
         run: |
           cargo build --release
+          strip -s target/release/codectrl
           cargo generate-rpm
 
       - name: Cache build
@@ -140,6 +353,7 @@ jobs:
         shell: bash
         run: |
           cargo build --release
+          strip -s target/release/codectrl
           cargo generate-rpm
 
       - name: Cache build
