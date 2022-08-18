@@ -447,15 +447,15 @@ jobs:
       - build-fedora-rawhide
       - build-windows-latest
     steps:
-      - name: Download artifact
+      - name: Download artifacts
         uses: dawidd6/action-download-artifact@v2
         with:
           path: .
+          run_id: ${{ github.run_id }}
+          run_number: ${{ github.run_number }}
 
       - name: Upload Zip
         uses: actions/upload-artifact@v3
         with:
           name: All-in-One CodeCTRL Packages
           path: .
-          run_id: ${{ github.run_id }}
-          run_number: ${{ github.run_number }}
