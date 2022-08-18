@@ -82,8 +82,7 @@ jobs:
 
       - name: Are we actually on the container?
         run: |
-          uname -a
-          ls /bin | egrep cargo
+          cat /etc/os-release
 
       - if: steps.has-cache.outputs.cache-hit != 'true'
         name: Build and package CodeCTRL
