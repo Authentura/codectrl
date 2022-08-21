@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly-2022-08-21
+      - uses: dtolnay/rust-toolchain@master
         with:
-          target: wasm32-unknown-unknown
+          toolchain: nightly-2022-08-21
           components: clippy
       - name: Bootstrap Ubuntu
         run: sudo ./bootstrap-action.sh

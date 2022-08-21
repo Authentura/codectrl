@@ -12,7 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@nightly-2022-08-21
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2022-08-21
 
       - name: Fetch cache if already exists
         continue-on-error: true
@@ -66,7 +68,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@nightly-2022-08-21
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2022-08-21
 
       - name: Fetch cache if already exists
         continue-on-error: true
@@ -120,7 +124,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@nightly-2022-08-21
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2022-08-21
 
       - name: Fetch cache if already exists
         continue-on-error: true
@@ -174,7 +180,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@nightly-2022-08-21
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2022-08-21
 
       - name: Fetch cache if already exists
         continue-on-error: true
@@ -228,7 +236,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@nightly-2022-08-21
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2022-08-21
 
       - name: Fetch cache if already exists
         continue-on-error: true
@@ -282,7 +292,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@nightly-2022-08-21
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2022-08-21
 
       - name: Fetch cached build
         uses: actions/cache@v3
@@ -337,7 +349,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@nightly-2022-08-21
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2022-08-21
 
       - name: Fetch cached build
         uses: actions/cache@v3
@@ -392,7 +406,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@nightly-2022-08-21
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2022-08-21
 
       - name: Fetch cached build
         uses: actions/cache@v3
@@ -447,7 +463,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: dtolnay/rust-toolchain@nightly-2022-08-21
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2022-08-21
 
       - name: Fetch cached build
         uses: actions/cache@v3
