@@ -73,16 +73,17 @@ impl<'a> App for Login<'a> {
                             };
 
                         responsive_row(ui, "Token", &mut self.token);
-
                         responsive_row(ui, "Host", &mut self.host);
-
                         responsive_row(ui, "Port", &mut self.port);
                     }
                 });
 
-            if ui.button("Click me!").clicked() {
-                // *self.wrapper_msg.borrow_mut() = WrapperMsg::Main {};
-            }
+            ui.add_space(5.0);
+
+            if ui
+                .button(if self.is_local { "Start" } else { "Login" })
+                .clicked()
+            {}
         });
     }
 }
