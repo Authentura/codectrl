@@ -12,6 +12,8 @@ mod app;
 mod components;
 mod consts;
 mod data;
+mod login;
+mod wrapper;
 
 #[cfg(not(target_arch = "wasm32"))]
 extern crate clap;
@@ -26,12 +28,14 @@ use codectrl_server::run_server;
 use eframe::wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
 use grpc_web_client::Client;
+use login::Login;
 #[cfg(not(target_arch = "wasm32"))]
 use rfd::MessageDialog;
 #[cfg(not(target_arch = "wasm32"))]
 use std::{collections::HashMap, env, path::Path};
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::runtime::Handle;
+use wrapper::Wrapper;
 
 #[cfg(target_arch = "wasm32")]
 pub fn run(host: &'static str, port: &'static str) -> Result<(), JsValue> {
@@ -169,16 +173,23 @@ pub async fn run() {
     eframe::run_native(
         "CodeCTRL",
         options,
-        Box::new(move |cc| {
-            let mut app = App::new(cc, grpc_client, registered_client, &handle);
-
-            if file_path.exists() {
-                if let Err(error) = App::load_from_file(&file_path, &mut app) {
-                    panic!("An error occurred: {error}");
-                }
-            }
-
-            Box::new(app)
-        }),
+        Box::new(move |_| Box::new(Wrapper::new())),
     );
+
+    // eframe::run_native(
+    //     "CodeCTRL",
+    //     options,
+    //     Box::new(move |cc| {
+    //         let mut app = App::new(cc, grpc_client, registered_client,
+    // &handle);
+    //
+    //         if file_path.exists() {
+    //             if let Err(error) = App::load_from_file(&file_path, &mut app)
+    // {                 panic!("An error occurred: {error}");
+    //             }
+    //         }
+    //
+    //         Box::new(app)
+    //     }),
+    // );
 }

@@ -1,29 +1,3 @@
-// In this file, we create the main graphical GUI for CodeCTRL. A layout was
-// proposed in issue #3, where Sebastian proposed a layout similar to this:
-// _________________________________________________________________________
-// | [ Filter search ] [x] Case insensitive [x] Regex | Some other settings|
-// |-----------------------------------------------------------------------|
-// |    _______________________________________________________________    |
-// |    | x | Message | Host | File name | Line number | Time | ...   |    |
-// |    ---------------------------------------------------------------    |
-// |    _______________________________________________________________    |
-// |    |   | Message | Host | File name | Line number | Time | ...   |    |
-// |    ---------------------------------------------------------------    |
-// |    _______________________________________________________________    |
-// |    |   | Message | Host | File name | Line number | Time | ...   |    |
-// |    ---------------------------------------------------------------    |
-// |_______________________________________________________________________|
-// |  Log details                    |  Code snippet                       |
-// |                                 |                                     |
-// |                                 |                                     |
-// |                                 |                                     |
-// |                                 |                                     |
-// |                                 |                                     |
-// ----------------------------------|--------------------------------------
-//
-// Further changes can be discussed and implemented at later dates, but this is
-// the proposal so far.
-
 #[cfg(target_arch = "wasm32")]
 use crate::data::Received;
 use crate::{
@@ -187,7 +161,8 @@ pub struct App {
 impl App {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new(
-        cc: &eframe::CreationContext,
+        ctx: &egui::Context,
+        storage: Option<&dyn Storage>,
         grpc_client: GrpcClient,
         grpc_client_connection: Connection,
         runtime: &Handle,
@@ -199,13 +174,13 @@ impl App {
             promise: None,
         };
 
-        cc.egui_ctx.set_fonts(fonts());
-        cc.egui_ctx
-            .set_style(application_style(app.state.application_settings.font_sizes));
+        ctx.set_fonts(fonts());
+        ctx.set_style(application_style(app.state.application_settings.font_sizes));
 
-        if let Some(storage) = cc.storage {
+        if let Some(storage) = storage {
             let data: AppState =
-                eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+                eframe::get_value(storage, &format!("{}-appstate", eframe::APP_KEY))
+                    .unwrap_or_default();
 
             if data.preserve_session {
                 app.state = data;
@@ -217,7 +192,7 @@ impl App {
 
         let received = Arc::clone(&app.state.received);
 
-        cc.egui_ctx.set_visuals(app.state.current_theme.clone());
+        ctx.set_visuals(app.state.current_theme.clone());
 
         let mut grpc_client = app.grpc_client.clone().unwrap();
         let grpc_client_connection =
@@ -249,7 +224,8 @@ impl App {
 
     #[cfg(target_arch = "wasm32")]
     pub fn new(
-        cc: &eframe::CreationContext,
+        ctx: &egui::Context,
+        storage: Option<&dyn Storage>,
         grpc_client: GrpcClient,
         server_host: &'static str,
         server_port: &'static str,
@@ -264,9 +240,10 @@ impl App {
             server_port,
         };
 
-        if let Some(storage) = cc.storage {
+        if let Some(storage) = storage {
             let state: AppState =
-                eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+                eframe::get_value(storage, &format!("{}-appstate", eframe::APP_KEY))
+                    .unwrap_or_default();
 
             if state.preserve_session {
                 app.state = state;
@@ -280,9 +257,8 @@ impl App {
 
         app.client_connection_channel = Some(register_client(grpc_client));
 
-        cc.egui_ctx.set_fonts(fonts());
-        cc.egui_ctx
-            .set_style(application_style(app.state.application_settings.font_sizes));
+        ctx.set_fonts(fonts());
+        ctx.set_style(application_style(app.state.application_settings.font_sizes));
 
         app
     }
