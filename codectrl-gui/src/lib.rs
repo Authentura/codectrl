@@ -12,14 +12,14 @@ mod app;
 mod components;
 mod consts;
 mod data;
+mod login;
+mod wrapper;
 
 #[cfg(not(target_arch = "wasm32"))]
 extern crate clap;
 
-use app::App;
 #[cfg(not(target_arch = "wasm32"))]
 use clap::{crate_authors, crate_name, crate_version, Arg, Command};
-use codectrl_protobuf_bindings::logs_service::log_server_client::LogServerClient;
 #[cfg(not(target_arch = "wasm32"))]
 use codectrl_server::run_server;
 #[cfg(target_arch = "wasm32")]
@@ -32,6 +32,7 @@ use rfd::MessageDialog;
 use std::{collections::HashMap, env, path::Path};
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::runtime::Handle;
+use wrapper::Wrapper;
 
 #[cfg(target_arch = "wasm32")]
 pub fn run(host: &'static str, port: &'static str) -> Result<(), JsValue> {
@@ -119,9 +120,8 @@ pub async fn run() {
 
     let handle = Handle::current();
 
-    let host_clone = host.clone();
     handle.spawn(async move {
-        if let Err(error) = run_server(None, Some(host_clone), Some(port)).await {
+        if let Err(error) = run_server(None, Some(host), Some(port)).await {
             if MessageDialog::new()
                 .set_title("Could not start CodeCtrl server")
                 .set_level(rfd::MessageLevel::Error)
@@ -133,22 +133,6 @@ pub async fn run() {
             }
         }
     });
-
-    println!("Waiting for gRPC server to become available...");
-    let mut grpc_client = loop {
-        let res = LogServerClient::connect(format!("http://{host}:{port}")).await;
-
-        if let Ok(res) = res {
-            break res;
-        }
-    };
-    println!("Found gRPC server!");
-
-    let registered_client = if let Ok(client) = grpc_client.register_client(()).await {
-        client.into_inner()
-    } else {
-        panic!("Could not register client!");
-    };
 
     let file_path = if let Some(project_file) = project_file {
         let file_path = match Path::new(project_file).canonicalize() {
@@ -169,16 +153,6 @@ pub async fn run() {
     eframe::run_native(
         "CodeCTRL",
         options,
-        Box::new(move |cc| {
-            let mut app = App::new(cc, grpc_client, registered_client, &handle);
-
-            if file_path.exists() {
-                if let Err(error) = App::load_from_file(&file_path, &mut app) {
-                    panic!("An error occurred: {error}");
-                }
-            }
-
-            Box::new(app)
-        }),
+        Box::new(move |_| Box::new(Wrapper::new(handle, file_path))),
     );
 }

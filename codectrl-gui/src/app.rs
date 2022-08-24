@@ -1,34 +1,9 @@
-// In this file, we create the main graphical GUI for CodeCTRL. A layout was
-// proposed in issue #3, where Sebastian proposed a layout similar to this:
-// _________________________________________________________________________
-// | [ Filter search ] [x] Case insensitive [x] Regex | Some other settings|
-// |-----------------------------------------------------------------------|
-// |    _______________________________________________________________    |
-// |    | x | Message | Host | File name | Line number | Time | ...   |    |
-// |    ---------------------------------------------------------------    |
-// |    _______________________________________________________________    |
-// |    |   | Message | Host | File name | Line number | Time | ...   |    |
-// |    ---------------------------------------------------------------    |
-// |    _______________________________________________________________    |
-// |    |   | Message | Host | File name | Line number | Time | ...   |    |
-// |    ---------------------------------------------------------------    |
-// |_______________________________________________________________________|
-// |  Log details                    |  Code snippet                       |
-// |                                 |                                     |
-// |                                 |                                     |
-// |                                 |                                     |
-// |                                 |                                     |
-// |                                 |                                     |
-// ----------------------------------|--------------------------------------
-//
-// Further changes can be discussed and implemented at later dates, but this is
-// the proposal so far.
-
 #[cfg(target_arch = "wasm32")]
 use crate::data::Received;
 use crate::{
     components::{about_view, details_view, main_view, main_view_empty, settings_view},
     data::{AppState, Filter},
+    wrapper::WrapperMsg,
 };
 #[cfg(target_arch = "wasm32")]
 use tracing::info;
@@ -69,6 +44,7 @@ use std::sync::Mutex;
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::{Duration, Instant};
 use std::{
+    cell::RefCell,
     collections::{BTreeSet, VecDeque},
     error::Error,
     io::{BufReader, Error as IOError, ErrorKind},
@@ -182,30 +158,35 @@ pub struct App {
     #[cfg(target_arch = "wasm32")]
     #[serde(skip)]
     server_port: &'static str,
+    #[serde(skip)]
+    wrapper_msg: Option<Arc<RefCell<WrapperMsg>>>,
 }
 
 impl App {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new(
-        cc: &eframe::CreationContext,
+        ctx: &egui::Context,
+        storage: Option<&dyn Storage>,
         grpc_client: GrpcClient,
         grpc_client_connection: Connection,
-        runtime: &Handle,
+        wrapper_msg: Arc<RefCell<WrapperMsg>>,
+        handle: &Handle,
     ) -> Self {
         let mut app = Self {
             state: AppState::default(),
             title: "CodeCTRL",
             grpc_client: Some(grpc_client),
             promise: None,
+            wrapper_msg: Some(wrapper_msg),
         };
 
-        cc.egui_ctx.set_fonts(fonts());
-        cc.egui_ctx
-            .set_style(application_style(app.state.application_settings.font_sizes));
+        ctx.set_fonts(fonts());
+        ctx.set_style(application_style(app.state.application_settings.font_sizes));
 
-        if let Some(storage) = cc.storage {
+        if let Some(storage) = storage {
             let data: AppState =
-                eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+                eframe::get_value(storage, &format!("{}-appstate", eframe::APP_KEY))
+                    .unwrap_or_default();
 
             if data.preserve_session {
                 app.state = data;
@@ -217,7 +198,7 @@ impl App {
 
         let received = Arc::clone(&app.state.received);
 
-        cc.egui_ctx.set_visuals(app.state.current_theme.clone());
+        ctx.set_visuals(app.state.current_theme.clone());
 
         let mut grpc_client = app.grpc_client.clone().unwrap();
         let grpc_client_connection =
@@ -227,7 +208,7 @@ impl App {
                 grpc_client_connection
             };
 
-        runtime.spawn(async move {
+        handle.spawn(async move {
             loop {
                 if let Ok(res) =
                     grpc_client.get_logs(grpc_client_connection.clone()).await
@@ -249,7 +230,8 @@ impl App {
 
     #[cfg(target_arch = "wasm32")]
     pub fn new(
-        cc: &eframe::CreationContext,
+        ctx: &egui::Context,
+        storage: Option<&dyn Storage>,
         grpc_client: GrpcClient,
         server_host: &'static str,
         server_port: &'static str,
@@ -264,9 +246,10 @@ impl App {
             server_port,
         };
 
-        if let Some(storage) = cc.storage {
+        if let Some(storage) = storage {
             let state: AppState =
-                eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+                eframe::get_value(storage, &format!("{}-appstate", eframe::APP_KEY))
+                    .unwrap_or_default();
 
             if state.preserve_session {
                 app.state = state;
@@ -280,9 +263,8 @@ impl App {
 
         app.client_connection_channel = Some(register_client(grpc_client));
 
-        cc.egui_ctx.set_fonts(fonts());
-        cc.egui_ctx
-            .set_style(application_style(app.state.application_settings.font_sizes));
+        ctx.set_fonts(fonts());
+        ctx.set_style(application_style(app.state.application_settings.font_sizes));
 
         app
     }
@@ -645,7 +627,6 @@ impl eframe::App for App {
                             self.save_file_dialog();
                         }
 
-                        // #[cfg(not(target_arch = "wasm32"))]
                         if ui.button("Open project").clicked() {
                             self.load_file_dialog();
                         }
@@ -654,6 +635,16 @@ impl eframe::App for App {
 
                         if ui.button("Settings").clicked() {
                             self.state.is_settings_open = !self.state.is_settings_open;
+                        }
+
+                        ui.separator();
+                        if ui.button("Log out").clicked() {
+                            if let Some(wrapper_msg) = self.wrapper_msg.as_deref() {
+                                if let Ok(mut wrapper_msg) = wrapper_msg.try_borrow_mut()
+                                {
+                                    *wrapper_msg = WrapperMsg::LogOut;
+                                }
+                            }
                         }
 
                         #[cfg(not(target_arch = "wasm32"))]
@@ -800,6 +791,10 @@ impl eframe::App for App {
     }
 
     fn save(&mut self, storage: &mut dyn Storage) {
-        eframe::set_value(storage, eframe::APP_KEY, &self.state);
+        eframe::set_value(
+            storage,
+            &format!("{}-appstate", eframe::APP_KEY),
+            &self.state,
+        );
     }
 }
