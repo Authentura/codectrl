@@ -4,9 +4,8 @@ use authentura_egui_styling::{application_style, fonts, FontSizes};
 use codectrl_protobuf_bindings::logs_service::{
     log_server_client::LogServerClient, Connection,
 };
-use e::{Color32, Vec2};
 use eframe::{App, Frame};
-use egui::{self as e, Context};
+use egui::{Color32, Context, Vec2};
 use poll_promise::Promise;
 #[cfg(not(target_arch = "wasm32"))]
 use std::{cell::RefCell, sync::Arc};
@@ -50,7 +49,7 @@ impl Login {
 }
 
 impl App for Login {
-    fn update(&mut self, ctx: &e::Context, frame: &mut Frame) {
+    fn update(&mut self, ctx: &egui::Context, frame: &mut Frame) {
         #[cfg(not(target_arch = "wasm32"))]
         egui::TopBottomPanel::top("top_bar")
             .resizable(false)
@@ -67,8 +66,8 @@ impl App for Login {
                 });
             });
 
-        e::CentralPanel::default().show(ctx, |ui| {
-            e::Grid::new("login_form")
+        egui::CentralPanel::default().show(ctx, |ui| {
+            egui::Grid::new("login_form")
                 .min_col_width(ui.available_width() / 2.0)
                 .spacing(Vec2::new(10.0, 10.0))
                 .show(ui, |ui| {
@@ -76,7 +75,7 @@ impl App for Login {
                     ui.end_row();
 
                     let responsive_row =
-                        |ui: &mut e::Ui, text: &str, data: &mut String| {
+                        |ui: &mut egui::Ui, text: &str, data: &mut String| {
                             ui.colored_label(
                                 if data.is_empty() {
                                     Color32::LIGHT_RED
