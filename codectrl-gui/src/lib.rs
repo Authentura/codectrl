@@ -50,6 +50,8 @@ pub fn run(host: &'static str, port: &'static str) -> Result<(), JsValue> {
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
 pub async fn run() {
+    env_logger::try_init().ok();
+
     let command_line = env::vars().collect::<HashMap<String, String>>();
 
     let matches = Command::new(crate_name!())

@@ -1,7 +1,15 @@
 use codectrl_gui::run;
 
 #[cfg(not(target_arch = "wasm32"))]
-fn main() { run(); }
+use dotenv::dotenv;
+
+#[cfg(not(target_arch = "wasm32"))]
+fn main() {
+    dotenv().ok();
+    env_logger::try_init().ok();
+
+    run();
+}
 
 #[cfg(target_arch = "wasm32")]
 fn main() -> Result<(), eframe::wasm_bindgen::JsValue> {

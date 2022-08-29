@@ -1,6 +1,16 @@
 #![warn(clippy::pedantic)]
 
 use codectrl_protobuf_bindings::{
+    auth_service::{
+        // authentication_client::AuthenticationClient,
+        authentication_server::{Authentication, AuthenticationServer},
+        GenerateTokenRequest,
+        GenerateTokenRequestResult,
+        RevokeTokenRequestResult,
+        Token,
+        VerifyTokenRequest,
+        VerifyTokenRequestResult,
+    },
     data::Log,
     logs_service::{
         Connection, LogClientService, LogClientTrait, LogServerService, LogServerTrait,
@@ -9,14 +19,22 @@ use codectrl_protobuf_bindings::{
 };
 use dashmap::{DashMap, DashSet};
 use directories::ProjectDirs;
+use dotenv::dotenv;
 use entity::connection::{ActiveModel, Entity};
 use futures::StreamExt;
+use log::{error, info, trace, warn};
+use rand::{
+    distributions::{Alphanumeric, DistString},
+    thread_rng,
+};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, ConnectionTrait, Database, DatabaseConnection,
     EntityTrait, Schema, Set,
 };
+use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
+    env,
     fs::{self, File},
     net::SocketAddr,
     path::Path,
@@ -72,7 +90,10 @@ impl Service {
         let connections = Arc::clone(&self.connections);
         let db_connection = Arc::clone(&self.db_connection);
 
+        info!("Starting background backup thread...");
+
         tokio::spawn(async move {
+            info!(target: "codectrl_server - background backup thread", "Running every 5 seconds");
             loop {
                 sleep_until(tokio::time::Instant::now() + Duration::new(5, 0)).await;
 
@@ -92,16 +113,17 @@ impl Service {
                         };
 
                         if let Err(error) = model.update(db_connection.as_ref()).await {
-                            eprintln!(
-                                "[ERROR] Error occurred while updating DB: {error}"
-                            );
+                            error!(target: "codectrl_server - background backup thread", "Error occurred while updating DB: {error}");
                         } else {
+                            trace!(target: "codectrl_server - background backup thread", "Updated DB");
                             connection.last_update = Instant::now();
                         }
                     }
                 }
             }
         });
+
+        info!("... Done!");
     }
 
     #[allow(clippy::missing_panics_doc)]
@@ -157,7 +179,7 @@ impl Service {
 impl LogServerTrait for Service {
     async fn register_client(
         &self,
-        _: Request<()>,
+        req: Request<()>,
     ) -> Result<Response<Connection>, Status> {
         let connection = Connection::new();
 
@@ -175,6 +197,12 @@ impl LogServerTrait for Service {
             return Err(Status::aborted(error.to_string()));
         };
 
+        info!(
+            "Registered new connection: {} to {}",
+            &connection.uuid,
+            req.remote_addr().unwrap()
+        );
+
         Ok(Response::new(connection))
     }
 
@@ -182,6 +210,7 @@ impl LogServerTrait for Service {
         &self,
         connection: Request<Connection>,
     ) -> Result<Response<RequestResult>, Status> {
+        let remote_addr = connection.remote_addr().clone().unwrap();
         let connection = connection.into_inner();
 
         let connections = match Entity::find_by_id(connection.uuid)
@@ -218,14 +247,20 @@ impl LogServerTrait for Service {
         let req_result = RequestResult {
             message: "Re-registration succeeded!".to_string(),
             status: RequestStatus::Confirmed.into(),
+            auth_status: None,
         };
+
+        info!(
+            "Re-registered a connection: {} to {}",
+            &connection.uuid, remote_addr
+        );
 
         Ok(Response::new(req_result))
     }
 
     async fn get_server_details(
         &self,
-        _: Request<()>,
+        req: Request<()>,
     ) -> Result<Response<ServerDetails>, Status> {
         let host = std::env::var("HOST").unwrap_or_else(|_| self.host.clone());
 
@@ -233,7 +268,10 @@ impl LogServerTrait for Service {
             host,
             port: self.port,
             uptime: self.uptime.elapsed().as_secs(),
+            requires_authentication: true,
         });
+
+        trace!("{} requested server details", req.remote_addr().unwrap());
 
         Ok(res)
     }
@@ -242,6 +280,7 @@ impl LogServerTrait for Service {
         &self,
         connection: Request<Connection>,
     ) -> Result<Response<Log>, Status> {
+        let remote_addr = connection.remote_addr().clone().unwrap();
         let connection = connection.into_inner();
 
         if Uuid::try_parse(&connection.uuid).is_err() {
@@ -283,6 +322,8 @@ impl LogServerTrait for Service {
                     key.add_log(&log);
                 }
 
+                trace!("{} requested one log and received new log", remote_addr);
+
                 return Ok(Response::new(log));
             }
         }
@@ -296,6 +337,7 @@ impl LogServerTrait for Service {
         &self,
         connection: Request<Connection>,
     ) -> Result<Response<Self::GetLogsStream>, Status> {
+        let remote_addr = connection.remote_addr().clone().unwrap();
         let (tx, rx) = mpsc::channel(1024);
         let connection = connection.into_inner();
 
@@ -330,6 +372,8 @@ impl LogServerTrait for Service {
             .filter(|log| !ignore.contains(&log.uuid))
             .collect::<VecDeque<_>>();
 
+        let log_amount = logs.len();
+
         tokio::spawn(async move {
             let key = connections.write().await;
             let mut key = key.get_mut(&connection.uuid);
@@ -337,13 +381,19 @@ impl LogServerTrait for Service {
             while let Some(log) = logs.pop_front() {
                 if !ignore.contains(&log.uuid) {
                     if let Err(e) = tx.send(Ok(log.clone())).await {
-                        eprintln!("[ERROR] Occurred when writing to channel: {e:?}");
+                        error!("Occurred when writing to channel: {e:?}");
                     } else if let Some(key) = key.as_mut() {
                         key.add_log(&log);
                     }
                 }
             }
         });
+
+        trace!(
+            "{} requested log stream and will recieve new {} log(s)",
+            remote_addr,
+            log_amount
+        );
 
         Ok(Response::new(ReceiverStream::new(rx)))
     }
@@ -363,9 +413,12 @@ impl LogClientTrait for Service {
 
         self.logs.write().await.push_back(log);
 
+        info!("Log received from {}", remote_addr.unwrap());
+
         Ok(Response::new(RequestResult {
             message: "Log added!".into(),
             status: RequestStatus::Confirmed.into(),
+            auth_status: None,
         }))
     }
 
@@ -389,11 +442,68 @@ impl LogClientTrait for Service {
             amount += 1;
         }
 
+        info!("{amount} log(s) received from {}", remote_addr.unwrap());
+
         Ok(Response::new(RequestResult {
             message: format!("{amount} logs added!"),
             status: RequestStatus::Confirmed.into(),
+            auth_status: None,
         }))
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct TokenClaims {
+    #[serde(rename = "iat")]
+    issued_at: usize,
+    #[serde(rename = "iss")]
+    issuer: String,
+    #[serde(rename = "exp")]
+    expire: usize,
+    #[serde(rename = "sub")]
+    subject: String,
+    #[serde(rename = "nbf")]
+    not_before: usize,
+}
+
+#[tonic::async_trait]
+impl Authentication for Service {
+    async fn verify_token(
+        &self,
+        request: Request<VerifyTokenRequest>,
+    ) -> Result<Response<VerifyTokenRequestResult>, Status> {
+        todo!()
+    }
+
+    async fn generate_token(
+        &self,
+        request: Request<GenerateTokenRequest>,
+    ) -> Result<Response<GenerateTokenRequestResult>, Status> {
+        todo!()
+    }
+
+    async fn revoke_token(
+        &self,
+        request: Request<Token>,
+    ) -> Result<Response<RevokeTokenRequestResult>, Status> {
+        todo!()
+    }
+
+    async fn refresh_token(
+        &self,
+        request: Request<Token>,
+    ) -> Result<Response<Token>, Status> {
+        todo!()
+    }
+}
+
+fn generate_token() -> String {
+    let mut rng = thread_rng();
+    let secret = Alphanumeric.sample_string(&mut rng, 50);
+
+    info!("Auto-generated token secret (DO NOT SHARE!): {secret}");
+
+    secret
 }
 
 /// Runs the `gRPC` server to be used by the GUI or the standalone binary.
@@ -411,6 +521,21 @@ pub async fn run_server(
     host: Option<String>,
     port: Option<u32>,
 ) -> anyhow::Result<()> {
+    dotenv().ok();
+    env_logger::try_init().ok();
+
+    let token_secret = if let Ok(secret) = env::var("TOKEN_SECRET") {
+        if secret.is_empty() {
+            warn!("TOKEN_SECRET was found but was empty!");
+            generate_token()
+        } else {
+            warn!("TOKEN_SECRET wasn't found in the environment variables!");
+            secret
+        }
+    } else {
+        generate_token()
+    };
+
     let data_dir = if let Some(data_directory) =
         ProjectDirs::from("com", "Authentura", "codectrl-server")
     {
@@ -419,15 +544,20 @@ pub async fn run_server(
         Path::new(".codectrl-server").to_owned()
     };
 
+    info!(
+        "Data directory for CodeCTRL: {}",
+        data_dir.to_string_lossy()
+    );
+
     if !data_dir.exists() {
         fs::create_dir_all(&data_dir)?;
-        dbg!(&data_dir);
+        info!("Created {}", data_dir.to_string_lossy());
     }
 
     let data_dir = data_dir.to_string_lossy().to_string();
     let db_file = format!("{data_dir}/db.sqlite");
 
-    // If the db file does not exist or is completely empty, then create and create
+    // If the DB file does not exist or is completely empty, then create and create
     // the necessary table.
     if !Path::new(&db_file).exists() || File::open(&db_file)?.metadata()?.len() == 0 {
         File::create(&db_file)?;
@@ -437,6 +567,8 @@ pub async fn run_server(
         let backend = db_connection.get_database_backend();
         let schema = Schema::new(backend);
         let statement = backend.build(&schema.create_table_from_entity(Entity));
+
+        info!("Creating initial SQLite database");
 
         db_connection.execute(statement).await?;
     }
@@ -469,19 +601,23 @@ pub async fn run_server(
 
     logs_service.start_backup_thread();
 
-    if run_legacy_server {}
+    if run_legacy_server {
+        info!("Legacy server compatiblity not yet implemented");
+    }
 
     let server_service = LogServerService::new(logs_service.clone());
-    let client_service = LogClientService::new(logs_service);
+    let client_service = LogClientService::new(logs_service.clone());
+    let auth_service = AuthenticationServer::new(logs_service);
 
     let grpc_addr = format!("{host}:{port}").parse()?;
 
-    println!("Starting gPRC server on {grpc_addr}...");
+    info!("Starting gPRC server on {grpc_addr}...");
 
     Server::builder()
         .accept_http1(true)
         .add_service(tonic_web::enable(server_service))
         .add_service(tonic_web::enable(client_service))
+        .add_service(tonic_web::enable(auth_service))
         .serve(grpc_addr)
         .await?;
 

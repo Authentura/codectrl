@@ -5,6 +5,8 @@ use crate::{
     data::{AppState, Filter},
     wrapper::WrapperMsg,
 };
+#[cfg(not(target_arch = "wasm32"))]
+use log::info;
 #[cfg(target_arch = "wasm32")]
 use tracing::info;
 
@@ -652,6 +654,7 @@ impl eframe::App for App {
 
                         #[cfg(not(target_arch = "wasm32"))]
                         if ui.button("Quit").clicked() {
+                            info!("Quitting...");
                             _frame.quit();
                         }
                     });
