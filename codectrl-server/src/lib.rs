@@ -27,7 +27,6 @@ use rand::{
     distributions::{Alphanumeric, DistString},
     thread_rng,
 };
-use signal_hook::{consts::TERM_SIGNALS, iterator::Signals};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, ConnectionTrait, Database, DatabaseConnection,
     EntityTrait, Schema, Set,
