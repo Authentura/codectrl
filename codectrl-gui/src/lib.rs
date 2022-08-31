@@ -120,9 +120,9 @@ pub async fn run() {
         "127.0.0.1".to_owned()
     };
 
-    let handle = Handle::current();
+    let server_only = matches.is_present("server_only");
 
-    handle.spawn(async move {
+    let spawn = async move {
         if let Err(error) = run_server(None, Some(host), Some(port), None).await {
             if MessageDialog::new()
                 .set_title("Could not start CodeCtrl server")
@@ -134,27 +134,35 @@ pub async fn run() {
                 std::process::exit(1);
             }
         }
-    });
+    };
 
-    let file_path = if let Some(project_file) = project_file {
-        let file_path = match Path::new(project_file).canonicalize() {
-            Ok(file_path) => file_path,
-            Err(error) => panic!("Could not cannonicalise PROJECT file path: {error}"),
+    let handle = Handle::current();
+
+    if server_only {
+        spawn.await;
+    } else {
+        handle.spawn(spawn);
+
+        let file_path = if let Some(project_file) = project_file {
+            let file_path = match Path::new(project_file).canonicalize() {
+                Ok(file_path) => file_path,
+                Err(error) => panic!("Could not cannonicalise PROJECT file path: {error}"),
+            };
+
+            file_path
+        } else {
+            Path::new("").to_path_buf()
         };
 
-        file_path
-    } else {
-        Path::new("").to_path_buf()
-    };
+        let options = eframe::NativeOptions {
+            drag_and_drop_support: true,
+            ..eframe::NativeOptions::default()
+        };
 
-    let options = eframe::NativeOptions {
-        drag_and_drop_support: true,
-        ..eframe::NativeOptions::default()
-    };
-
-    eframe::run_native(
-        "CodeCTRL",
-        options,
-        Box::new(move |_| Box::new(Wrapper::new(handle, file_path))),
-    );
+        eframe::run_native(
+            "CodeCTRL",
+            options,
+            Box::new(move |_| Box::new(Wrapper::new(handle, file_path))),
+        );
+    }
 }
