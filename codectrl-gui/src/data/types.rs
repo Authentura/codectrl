@@ -34,7 +34,7 @@ impl fmt::Display for TimeFormatString {
             )
             .is_err()
             {
-                let _ = f.write_str("?");
+                _ = f.write_str("?");
             }
         }
 

@@ -7,7 +7,8 @@ use authentura_egui_styling::DARK_HEADER_FOREGROUND_COLOUR;
 use chrono::{DateTime, Local};
 use codectrl_protobuf_bindings::data::Log;
 use egui::{
-    text::LayoutJob, Context, Layout, RichText, Sense, TextStyle, Ui, Vec2, WidgetText,
+    text::LayoutJob, Align, Context, Layout, RichText, Sense, TextStyle, Ui, Vec2,
+    WidgetText,
 };
 use egui_extras::{Size, TableBuilder};
 use xxhash_rust::xxh3::xxh3_128 as xxhash;
@@ -28,7 +29,7 @@ pub fn draw_information_grid(app_state: &mut AppState, ctx: &Context, ui: &mut U
         ui.add_space((ui.available_width() / 2.0) - heading_width * 0.5);
         ui.label(heading_label);
 
-        ui.with_layout(Layout::right_to_left(), |ui| {
+        ui.with_layout(Layout::right_to_left(Align::TOP), |ui| {
             // u1f5d9 = 🗙
             if ui.button("\u{1f5d9} Close").clicked() {
                 app_state.clicked_item = None;

@@ -655,7 +655,7 @@ impl eframe::App for App {
                         #[cfg(not(target_arch = "wasm32"))]
                         if ui.button("Quit").clicked() {
                             info!("Quitting...");
-                            _frame.quit();
+                            _frame.close();
                         }
                     });
 

@@ -99,8 +99,8 @@ impl<'a> eframe::App for Wrapper<'a> {
                     let mut app = App::new(
                         ctx,
                         frame.storage(),
-                        grpc_client.clone(),
-                        grpc_client_connection.clone(),
+                        grpc_client,
+                        grpc_client_connection,
                         Arc::clone(&self.msg),
                         &Arc::clone(&self.handle),
                     );

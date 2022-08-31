@@ -17,13 +17,13 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-authentura-egui-styling = { git = "https://github.com/Authentura/authentura-egui-styling", rev = "51b23f1" }
+authentura-egui-styling = { git = "https://github.com/Authentura/authentura-egui-styling", tag = "v0.3.0" }
 ciborium = "0.2"
 clap = { version = "3.1", features = ["cargo"] }
-codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.7.6" }
-eframe = { version = "0.18", features = ["persistence"] }
-egui = { version = "0.18", features = ["persistence"] }
-egui_extras = "0.18"
+codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.8.0" }
+eframe = { version = "0.19", features = ["persistence"] }
+egui = { version = "0.19", features = ["persistence"] }
+egui_extras = "0.19"
 flate2 = "1.0"
 lazy_static = "1.4"
 regex = "1.5"
@@ -51,7 +51,7 @@ anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 codectrl-server = { path = "../codectrl-server" }
 codectrl_log_server = { path = "../codectrl-log-server" }
-egui_glow = "0.18"
+egui_glow = "0.19"
 env_logger = "0.9.0"
 log = "0.4.17"
 poll-promise = { version = "0.1", features = ["tokio"] }

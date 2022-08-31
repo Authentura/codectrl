@@ -83,6 +83,7 @@ pub struct Service {
     port: u32,
     uptime: Instant,
     db_connection: Arc<DatabaseConnection>,
+    requires_authentication: bool,
 }
 
 impl Service {
@@ -173,6 +174,10 @@ impl Service {
             None => log.address = "Unknown".into(),
         }
     }
+
+    pub fn requires_authentication(&mut self, requires_authentication: bool) {
+        self.requires_authentication = requires_authentication;
+    }
 }
 
 #[tonic::async_trait]
@@ -210,7 +215,7 @@ impl LogServerTrait for Service {
         &self,
         connection: Request<Connection>,
     ) -> Result<Response<RequestResult>, Status> {
-        let remote_addr = connection.remote_addr().clone().unwrap();
+        let remote_addr = connection.remote_addr().unwrap();
         let connection = connection.into_inner();
 
         let connections = match Entity::find_by_id(connection.uuid)
@@ -264,23 +269,23 @@ impl LogServerTrait for Service {
     ) -> Result<Response<ServerDetails>, Status> {
         let host = std::env::var("HOST").unwrap_or_else(|_| self.host.clone());
 
-        let res = Response::new(ServerDetails {
+        let response = Response::new(ServerDetails {
             host,
             port: self.port,
             uptime: self.uptime.elapsed().as_secs(),
-            requires_authentication: true,
+            requires_authentication: self.requires_authentication,
         });
 
         trace!("{} requested server details", req.remote_addr().unwrap());
 
-        Ok(res)
+        Ok(response)
     }
 
     async fn get_log(
         &self,
         connection: Request<Connection>,
     ) -> Result<Response<Log>, Status> {
-        let remote_addr = connection.remote_addr().clone().unwrap();
+        let remote_addr = connection.remote_addr().unwrap();
         let connection = connection.into_inner();
 
         if Uuid::try_parse(&connection.uuid).is_err() {
@@ -337,7 +342,7 @@ impl LogServerTrait for Service {
         &self,
         connection: Request<Connection>,
     ) -> Result<Response<Self::GetLogsStream>, Status> {
-        let remote_addr = connection.remote_addr().clone().unwrap();
+        let remote_addr = connection.remote_addr().unwrap();
         let (tx, rx) = mpsc::channel(1024);
         let connection = connection.into_inner();
 
@@ -470,28 +475,28 @@ struct TokenClaims {
 impl Authentication for Service {
     async fn verify_token(
         &self,
-        request: Request<VerifyTokenRequest>,
+        _request: Request<VerifyTokenRequest>,
     ) -> Result<Response<VerifyTokenRequestResult>, Status> {
         todo!()
     }
 
     async fn generate_token(
         &self,
-        request: Request<GenerateTokenRequest>,
+        _request: Request<GenerateTokenRequest>,
     ) -> Result<Response<GenerateTokenRequestResult>, Status> {
         todo!()
     }
 
     async fn revoke_token(
         &self,
-        request: Request<Token>,
+        _request: Request<Token>,
     ) -> Result<Response<RevokeTokenRequestResult>, Status> {
         todo!()
     }
 
     async fn refresh_token(
         &self,
-        request: Request<Token>,
+        _request: Request<Token>,
     ) -> Result<Response<Token>, Status> {
         todo!()
     }
@@ -520,11 +525,12 @@ pub async fn run_server(
     run_legacy_server: Option<bool>,
     host: Option<String>,
     port: Option<u32>,
+    requires_authentication: Option<bool>,
 ) -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::try_init().ok();
 
-    let token_secret = if let Ok(secret) = env::var("TOKEN_SECRET") {
+    let _token_secret = if let Ok(secret) = env::var("TOKEN_SECRET") {
         if secret.is_empty() {
             warn!("TOKEN_SECRET was found but was empty!");
             generate_token()
@@ -543,6 +549,13 @@ pub async fn run_server(
     } else {
         Path::new(".codectrl-server").to_owned()
     };
+
+    let requires_authentication =
+        if let Some(requires_authentication) = requires_authentication {
+            requires_authentication
+        } else {
+            false
+        };
 
     info!(
         "Data directory for CodeCTRL: {}",
@@ -597,6 +610,7 @@ pub async fn run_server(
         logs: Arc::clone(&logs),
         connections: Arc::new(RwLock::new(DashMap::new())),
         db_connection: Arc::new(db_connection),
+        requires_authentication,
     };
 
     logs_service.start_backup_thread();
