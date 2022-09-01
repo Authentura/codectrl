@@ -16,9 +16,6 @@ mod login;
 mod wrapper;
 
 #[cfg(not(target_arch = "wasm32"))]
-extern crate clap;
-
-#[cfg(not(target_arch = "wasm32"))]
 use clap::{crate_authors, crate_name, crate_version, Arg, Command};
 #[cfg(not(target_arch = "wasm32"))]
 use codectrl_server::run_server;
@@ -50,6 +47,8 @@ pub fn run(host: &'static str, port: &'static str) -> Result<(), JsValue> {
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
 pub async fn run() {
+    #[cfg(debug_assertions)]
+    console_subscriber::init();
     env_logger::try_init().ok();
 
     let command_line = env::vars().collect::<HashMap<String, String>>();
