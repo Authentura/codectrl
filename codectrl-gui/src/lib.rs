@@ -145,7 +145,8 @@ pub async fn run() {
         let file_path = if let Some(project_file) = project_file {
             let file_path = match Path::new(project_file).canonicalize() {
                 Ok(file_path) => file_path,
-                Err(error) => panic!("Could not cannonicalise PROJECT file path: {error}"),
+                Err(error) =>
+                    panic!("Could not cannonicalise PROJECT file path: {error}"),
             };
 
             file_path
