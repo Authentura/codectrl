@@ -6,6 +6,8 @@ use codectrl_protobuf_bindings::{
         authentication_server::{Authentication, AuthenticationServer},
         GenerateTokenRequest,
         GenerateTokenRequestResult,
+        GhLogin,
+        LoginUrl,
         RevokeTokenRequestResult,
         Token,
         VerifyTokenRequest,
@@ -50,6 +52,11 @@ use tonic::{
     metadata::MetadataMap, transport::Server, Code, Request, Response, Status, Streaming,
 };
 use uuid::Uuid;
+
+use oauth2::{
+    basic::BasicClient, AuthUrl, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
+    TokenUrl,
+};
 
 mod entity;
 
@@ -500,6 +507,50 @@ impl Authentication for Service {
     ) -> Result<Response<Token>, Status> {
         todo!()
     }
+
+    async fn github_login(
+        &self,
+        _request: Request<GhLogin>,
+    ) -> Result<Response<LoginUrl>, Status> {
+        Ok(Response::new(LoginUrl {
+            url: generate_github_login_url(),
+        }))
+    }
+}
+
+fn generate_github_login_url() -> String {
+    let github_client_id = ClientId::new(
+        env::var("GITHUB_CLIENT_ID")
+            .expect("Missing the GITHUB_CLIENT_ID environment variable."),
+    );
+    let github_client_secret = ClientSecret::new(
+        env::var("GITHUB_CLIENT_SECRET")
+            .expect("Missing the GITHUB_CLIENT_SECRET environment variable."),
+    );
+    let auth_url = AuthUrl::new("https://github.com/login/oauth/authorize".to_string())
+        .expect("Invalid authorization endpoint URL");
+    let token_url =
+        TokenUrl::new("https://github.com/login/oauth/access_token".to_string())
+            .expect("Invalid token endpoint URL");
+
+    let client = BasicClient::new(
+        github_client_id,
+        Some(github_client_secret),
+        auth_url,
+        Some(token_url),
+    )
+    .set_redirect_uri(
+        RedirectUrl::new("http://localhost:8080".to_string())
+            .expect("Invalid redirect URL"),
+    );
+
+    let (authorize_url, _csrf_state) = client
+        .authorize_url(CsrfToken::new_random)
+        .add_scope(Scope::new("public_repo".to_string()))
+        .add_scope(Scope::new("user:email".to_string()))
+        .url();
+
+    return authorize_url.to_string();
 }
 
 fn generate_token() -> String {

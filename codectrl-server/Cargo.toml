@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.8.0" }
+codectrl-protobuf-bindings = { git = "https://github.com/z9fr/codectrl-rust-protobuf-bindings", tag = "v0.8.0" }
 dashmap = { version = "5.3.4", features = ["serde"] }
 directories = "4.0"
 dotenv = "0.15.0"
@@ -36,6 +36,7 @@ tokio-stream = "0.1"
 tonic = "0.7"
 tonic-web = "0.3.0"
 uuid = { version = "1.1.2", features = ["v4", "fast-rng", "macro-diagnostics"] }
+oauth2 = "4.2.3"
 
 [[bin]]
 path = "bin/standalone.rs"
