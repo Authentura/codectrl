@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-debian-latest:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == "Authentura"
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == 'Authentura'
     name: Build and push Debian latest container
     runs-on: ubuntu-22.04
     steps:
@@ -35,7 +35,7 @@ jobs:
             ghcr.io/authentura/codectrl-debian-latest:latest
 
   build-debian-10:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == "Authentura"
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == 'Authentura'
     name: Build and push Debian 10 container
     runs-on: ubuntu-22.04
     steps:
@@ -63,7 +63,7 @@ jobs:
             ghcr.io/authentura/codectrl-debian-10:latest
 
   build-debian-sid:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == "Authentura"
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == 'Authentura'
     name: Build and push Debian Sid container
     runs-on: ubuntu-22.04
     steps:
@@ -91,7 +91,7 @@ jobs:
             ghcr.io/authentura/codectrl-debian-sid:latest
 
   build-ubuntu-latest:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == "Authentura"
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == 'Authentura'
     name: Build and push Ubuntu latest container
     runs-on: ubuntu-22.04
     steps:
@@ -119,7 +119,7 @@ jobs:
             ghcr.io/authentura/codectrl-ubuntu-latest:latest
 
   build-ubuntu-20-04:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == "Authentura"
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == 'Authentura'
     name: Build and push Ubuntu 20.04 container
     runs-on: ubuntu-22.04
     steps:
@@ -147,7 +147,7 @@ jobs:
             ghcr.io/authentura/codectrl-ubuntu-20-04:latest
 
   build-fedora-latest:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == "Authentura"
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == 'Authentura'
     name: Build and push latest Fedora container
     runs-on: ubuntu-22.04
     steps:
@@ -175,7 +175,7 @@ jobs:
             ghcr.io/authentura/codectrl-fedora-latest:latest
 
   build-fedora-rawhide:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == "Authentura"
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == 'Authentura'
     name: Build and push Fedora Rawhide container
     runs-on: ubuntu-22.04
     steps:
@@ -203,7 +203,7 @@ jobs:
             ghcr.io/authentura/codectrl-fedora-rawhide:latest
 
   build-rhel-latest:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == "Authentura"
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == 'Authentura'
     name: Build and push latest RHEL container
     runs-on: ubuntu-22.04
     steps:
@@ -231,7 +231,7 @@ jobs:
             ghcr.io/authentura/codectrl-rhel-latest:latest
 
   build-rhel-8:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == "Authentura"
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == 'Authentura'
     name: Build and push RHEL 8 container
     runs-on: ubuntu-22.04
     steps:
