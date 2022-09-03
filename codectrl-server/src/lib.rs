@@ -546,7 +546,6 @@ fn generate_github_login_url() -> String {
 
     let (authorize_url, _csrf_state) = client
         .authorize_url(CsrfToken::new_random)
-        .add_scope(Scope::new("public_repo".to_string()))
         .add_scope(Scope::new("user:email".to_string()))
         .url();
 
