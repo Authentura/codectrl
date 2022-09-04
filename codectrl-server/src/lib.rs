@@ -1,5 +1,8 @@
 #![warn(clippy::pedantic)]
 
+mod entity;
+pub mod redirect_handler;
+
 use codectrl_protobuf_bindings::{
     auth_service::{
         // authentication_client::AuthenticationClient,
@@ -25,6 +28,10 @@ use dotenv::dotenv;
 use entity::connection::{ActiveModel, Entity};
 use futures::StreamExt;
 use log::{error, info, trace, warn};
+use oauth2::{
+    basic::BasicClient, AuthUrl, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
+    TokenUrl,
+};
 use rand::{
     distributions::{Alphanumeric, DistString},
     thread_rng,
@@ -44,6 +51,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::{
+    runtime::Handle,
     sync::{mpsc, RwLock},
     time::sleep_until,
 };
@@ -53,12 +61,7 @@ use tonic::{
 };
 use uuid::Uuid;
 
-use oauth2::{
-    basic::BasicClient, AuthUrl, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
-    TokenUrl,
-};
-
-mod entity;
+use crate::redirect_handler::RedirectHandler;
 
 #[derive(Debug, Clone)]
 pub struct ConnectionState {
@@ -549,7 +552,7 @@ fn generate_github_login_url() -> String {
         .add_scope(Scope::new("user:email".to_string()))
         .url();
 
-    return authorize_url.to_string();
+    authorize_url.to_string()
 }
 
 fn generate_token() -> String {
@@ -572,10 +575,10 @@ fn generate_token() -> String {
 /// 3. The inner tonic server returns an error during runtime.
 #[allow(clippy::missing_panics_doc)]
 pub async fn run_server(
-    run_legacy_server: Option<bool>,
     host: Option<String>,
     port: Option<u32>,
     requires_authentication: Option<bool>,
+    redirect_handler_port: Option<u16>,
 ) -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::try_init().ok();
@@ -606,6 +609,16 @@ pub async fn run_server(
         } else {
             false
         };
+
+    let mut handler_port = 8080;
+
+    if requires_authentication {
+        handler_port = if let Some(port) = redirect_handler_port {
+            port
+        } else {
+            8080
+        };
+    };
 
     info!(
         "Data directory for CodeCTRL: {}",
@@ -638,12 +651,6 @@ pub async fn run_server(
 
     let db_connection = Database::connect(format!("sqlite:{db_file}")).await?;
 
-    // TODO: Add the legacy server thread and manage it through the gPRC server.
-    let run_legacy_server = if run_legacy_server.is_some() {
-        run_legacy_server.unwrap()
-    } else {
-        false
-    };
     let host = if host.is_some() {
         host.unwrap()
     } else {
@@ -664,10 +671,6 @@ pub async fn run_server(
     };
 
     logs_service.start_backup_thread();
-
-    if run_legacy_server {
-        info!("Legacy server compatiblity not yet implemented");
-    }
 
     let server_service = LogServerService::new(logs_service.clone());
     let client_service = LogClientService::new(logs_service.clone());
