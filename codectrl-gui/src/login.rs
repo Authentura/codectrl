@@ -10,12 +10,12 @@ use egui::{
     Vec2, Window,
 };
 use poll_promise::Promise;
-use tokio::task::JoinHandle;
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 #[cfg(not(target_arch = "wasm32"))]
 use std::{cell::RefCell, sync::Arc};
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::runtime::Handle;
+use tokio::task::JoinHandle;
 #[cfg(not(target_arch = "wasm32"))]
 use tonic::transport::Channel;
 
@@ -186,37 +186,37 @@ impl App for Login {
                 #[cfg(not(target_arch = "wasm32"))]
                 {
                     let fun = || {
-                            let (sender, promise) = Promise::new();
+                        let (sender, promise) = Promise::new();
 
-                            let host = self.host.clone();
-                            let port = self.port.clone();
+                        let host = self.host.clone();
+                        let port = self.port.clone();
 
-                            let promise_handle = if let Some(handle) = self.handle.as_deref() {
-                                handle.spawn(async move {
-                                    let grpc_client = loop {
-                                        let res = LogServerClient::connect(format!(
-                                            "http://{host}:{port}"
-                                        ))
-                                        .await;
+                        let promise_handle = if let Some(handle) = self.handle.as_deref()
+                        {
+                            handle.spawn(async move {
+                                let grpc_client = loop {
+                                    let res = LogServerClient::connect(format!(
+                                        "http://{host}:{port}"
+                                    ))
+                                    .await;
 
-                                        if let Ok(res) = res {
-                                            break res;
-                                        }
-                                    };
+                                    if let Ok(res) = res {
+                                        break res;
+                                    }
+                                };
 
-                                    sender.send(grpc_client);
-                                })
-                            } else { 
-                                panic!("No tokio runtime!")
-                            };
-
-                            (promise, promise_handle)
+                                sender.send(grpc_client);
+                            })
+                        } else {
+                            panic!("No tokio runtime!")
                         };
+
+                        (promise, promise_handle)
+                    };
 
                     if self.reset_connection {
                         self.connection_promise.replace(fun());
                         self.reset_connection = false;
-
                     } else {
                         self.connection_promise.get_or_insert_with(fun);
                     }
@@ -228,16 +228,22 @@ impl App for Login {
             if let Some(connection_promise) = &mut self.connection_promise {
                 match connection_promise.0.ready_mut() {
                     None => {
-                        if let Some(promise_initialised) = self.connection_promise_initialised {
+                        if let Some(promise_initialised) =
+                            self.connection_promise_initialised
+                        {
                             if promise_initialised.elapsed() > Duration::new(10, 0) {
                                 connection_promise.1.abort();
                                 self.reset_connection = true;
-                                ui.colored_label(Color32::RED, "Could not connect to gRPC server: timed out after 10s")
-                            }  else {
+                                ui.colored_label(
+                                    Color32::RED,
+                                    "Could not connect to gRPC server: timed out after \
+                                     10s",
+                                )
+                            } else {
                                 ui.spinner()
                             }
                         } else {
-                            ui.spinner() 
+                            ui.spinner()
                         }
                     },
                     Some(channel) => {
