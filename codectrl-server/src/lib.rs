@@ -9,7 +9,6 @@ use codectrl_protobuf_bindings::{
         authentication_server::{Authentication, AuthenticationServer},
         GenerateTokenRequest,
         GenerateTokenRequestResult,
-        GhLogin,
         LoginUrl,
         RevokeTokenRequestResult,
         Token,
@@ -51,7 +50,6 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::{
-    runtime::Handle,
     sync::{mpsc, RwLock},
     time::sleep_until,
 };
@@ -60,8 +58,6 @@ use tonic::{
     metadata::MetadataMap, transport::Server, Code, Request, Response, Status, Streaming,
 };
 use uuid::Uuid;
-
-use crate::redirect_handler::RedirectHandler;
 
 #[derive(Debug, Clone)]
 pub struct ConnectionState {
@@ -511,10 +507,7 @@ impl Authentication for Service {
         todo!()
     }
 
-    async fn github_login(
-        &self,
-        _request: Request<GhLogin>,
-    ) -> Result<Response<LoginUrl>, Status> {
+    async fn github_login(&self, _: Request<()>) -> Result<Response<LoginUrl>, Status> {
         Ok(Response::new(LoginUrl {
             url: generate_github_login_url(),
         }))
@@ -610,8 +603,10 @@ pub async fn run_server(
             false
         };
 
+    #[allow(unused_variables)] // TODO: Remove when handler is implemented server-side
     let mut handler_port = 8080;
 
+    #[allow(unused_assignments)] // TODO: Remove when handler is implemented server-side
     if requires_authentication {
         handler_port = if let Some(port) = redirect_handler_port {
             port

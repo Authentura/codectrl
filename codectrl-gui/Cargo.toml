@@ -20,7 +20,7 @@ license = "MIT"
 authentura-egui-styling = { git = "https://github.com/Authentura/authentura-egui-styling", tag = "v0.3.0" }
 ciborium = "0.2"
 clap = { version = "3.1", features = ["cargo"] }
-codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.8.0" }
+codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.8.2" }
 eframe = { version = "0.19", features = ["persistence"] }
 egui = { version = "0.19", features = ["persistence"] }
 egui_extras = "0.19"
