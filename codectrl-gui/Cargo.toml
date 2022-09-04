@@ -50,7 +50,6 @@ web-sys = { version = "0.3", features = ["File", "FilePropertyBag", "console"]}
 anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 codectrl-server = { path = "../codectrl-server" }
-codectrl_log_server = { path = "../codectrl-log-server" }
 console-subscriber = "0.1.7"
 egui_glow = "0.19"
 env_logger = "0.9.0"
