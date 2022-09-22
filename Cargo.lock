@@ -578,9 +578,8 @@ dependencies = [
  "chrono",
  "ciborium",
  "clap",
- "codectrl-protobuf-bindings 0.8.0",
+ "codectrl-protobuf-bindings",
  "codectrl-server",
- "codectrl_log_server",
  "console-subscriber",
  "console_error_panic_hook",
  "eframe 0.19.0",
@@ -613,20 +612,11 @@ dependencies = [
 
 [[package]]
 name = "codectrl-protobuf-bindings"
-version = "0.7.6"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.6#2681a0a60d49bae7177d18672169549fb5a85d20"
-dependencies = [
- "native 0.0.0 (git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.6)",
- "web 0.0.0 (git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.6)",
-]
-
-[[package]]
-name = "codectrl-protobuf-bindings"
 version = "0.8.0"
 source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.0#5947c0e1658726dc473b1f06e74cea4d62d888ca"
 dependencies = [
- "native 0.0.0 (git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.0)",
- "web 0.0.0 (git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.0)",
+ "native",
+ "web",
 ]
 
 [[package]]
@@ -634,7 +624,7 @@ name = "codectrl-server"
 version = "0.2.0"
 dependencies = [
  "anyhow",
- "codectrl-protobuf-bindings 0.8.0",
+ "codectrl-protobuf-bindings",
  "dashmap",
  "directories",
  "dotenv",
@@ -654,30 +644,6 @@ dependencies = [
  "tonic 0.7.2",
  "tonic-web",
  "uuid",
-]
-
-[[package]]
-name = "codectrl_log_server"
-version = "0.3.0"
-dependencies = [
- "ciborium",
- "codectrl-protobuf-bindings 0.7.6",
- "log",
- "serde",
- "serde_json",
- "simple_logger",
- "tokio",
-]
-
-[[package]]
-name = "colored"
-version = "1.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4ffc801dacf156c5854b9df4f425a626539c3a6ef7893cc0c5084a23f0b6c59"
-dependencies = [
- "atty",
- "lazy_static",
- "winapi",
 ]
 
 [[package]]
@@ -2304,19 +2270,6 @@ checksum = "e5ce46fe64a9d73be07dcbe690a38ce1b293be448fd8ce1e6c1b8062c9f72c6a"
 [[package]]
 name = "native"
 version = "0.0.0"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.6#2681a0a60d49bae7177d18672169549fb5a85d20"
-dependencies = [
- "prost 0.10.4",
- "prost-build",
- "serde",
- "tonic 0.7.2",
- "tonic-build",
- "uuid",
-]
-
-[[package]]
-name = "native"
-version = "0.0.0"
 source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.0#5947c0e1658726dc473b1f06e74cea4d62d888ca"
 dependencies = [
  "prost 0.10.4",
@@ -3475,18 +3428,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "simple_logger"
-version = "1.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45b60258a35dc3cb8a16890b8fd6723349bfa458d7960e25e633f1b1c19d7b5e"
-dependencies = [
- "atty",
- "colored",
- "log",
- "winapi",
-]
-
-[[package]]
 name = "slab"
 version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4583,18 +4524,6 @@ dependencies = [
  "dlib",
  "lazy_static",
  "pkg-config",
-]
-
-[[package]]
-name = "web"
-version = "0.0.0"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.7.6#2681a0a60d49bae7177d18672169549fb5a85d20"
-dependencies = [
- "prost 0.10.4",
- "prost-build",
- "serde",
- "tonic 0.7.2",
- "tonic-build",
 ]
 
 [[package]]
