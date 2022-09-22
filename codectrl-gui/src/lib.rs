@@ -122,7 +122,7 @@ pub async fn run() {
     let server_only = matches.is_present("server_only");
 
     let spawn = async move {
-        if let Err(error) = run_server(None, Some(host), Some(port), None).await {
+        if let Err(error) = run_server(Some(host), Some(port), None, None).await {
             if MessageDialog::new()
                 .set_title("Could not start CodeCtrl server")
                 .set_level(rfd::MessageLevel::Error)

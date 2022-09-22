@@ -1,11 +1,15 @@
 #![warn(clippy::pedantic)]
 
+mod entity;
+pub mod redirect_handler;
+
 use codectrl_protobuf_bindings::{
     auth_service::{
         // authentication_client::AuthenticationClient,
         authentication_server::{Authentication, AuthenticationServer},
         GenerateTokenRequest,
         GenerateTokenRequestResult,
+        LoginUrl,
         RevokeTokenRequestResult,
         Token,
         VerifyTokenRequest,
@@ -23,6 +27,10 @@ use dotenv::dotenv;
 use entity::connection::{ActiveModel, Entity};
 use futures::StreamExt;
 use log::{error, info, trace, warn};
+use oauth2::{
+    basic::BasicClient, AuthUrl, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
+    TokenUrl,
+};
 use rand::{
     distributions::{Alphanumeric, DistString},
     thread_rng,
@@ -50,8 +58,6 @@ use tonic::{
     metadata::MetadataMap, transport::Server, Code, Request, Response, Status, Streaming,
 };
 use uuid::Uuid;
-
-mod entity;
 
 #[derive(Debug, Clone)]
 pub struct ConnectionState {
@@ -500,6 +506,46 @@ impl Authentication for Service {
     ) -> Result<Response<Token>, Status> {
         todo!()
     }
+
+    async fn github_login(&self, _: Request<()>) -> Result<Response<LoginUrl>, Status> {
+        Ok(Response::new(LoginUrl {
+            url: generate_github_login_url(),
+        }))
+    }
+}
+
+fn generate_github_login_url() -> String {
+    let github_client_id = ClientId::new(
+        env::var("GITHUB_CLIENT_ID")
+            .expect("Missing the GITHUB_CLIENT_ID environment variable."),
+    );
+    let github_client_secret = ClientSecret::new(
+        env::var("GITHUB_CLIENT_SECRET")
+            .expect("Missing the GITHUB_CLIENT_SECRET environment variable."),
+    );
+    let auth_url = AuthUrl::new("https://github.com/login/oauth/authorize".to_string())
+        .expect("Invalid authorization endpoint URL");
+    let token_url =
+        TokenUrl::new("https://github.com/login/oauth/access_token".to_string())
+            .expect("Invalid token endpoint URL");
+
+    let client = BasicClient::new(
+        github_client_id,
+        Some(github_client_secret),
+        auth_url,
+        Some(token_url),
+    )
+    .set_redirect_uri(
+        RedirectUrl::new("http://localhost:8080".to_string())
+            .expect("Invalid redirect URL"),
+    );
+
+    let (authorize_url, _csrf_state) = client
+        .authorize_url(CsrfToken::new_random)
+        .add_scope(Scope::new("user:email".to_string()))
+        .url();
+
+    authorize_url.to_string()
 }
 
 fn generate_token() -> String {
@@ -522,10 +568,10 @@ fn generate_token() -> String {
 /// 3. The inner tonic server returns an error during runtime.
 #[allow(clippy::missing_panics_doc)]
 pub async fn run_server(
-    run_legacy_server: Option<bool>,
     host: Option<String>,
     port: Option<u32>,
     requires_authentication: Option<bool>,
+    redirect_handler_port: Option<u16>,
 ) -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::try_init().ok();
@@ -556,6 +602,18 @@ pub async fn run_server(
         } else {
             false
         };
+
+    #[allow(unused_variables)] // TODO: Remove when handler is implemented server-side
+    let mut handler_port = 8080;
+
+    #[allow(unused_assignments)] // TODO: Remove when handler is implemented server-side
+    if requires_authentication {
+        handler_port = if let Some(port) = redirect_handler_port {
+            port
+        } else {
+            8080
+        };
+    };
 
     info!(
         "Data directory for CodeCTRL: {}",
@@ -588,12 +646,6 @@ pub async fn run_server(
 
     let db_connection = Database::connect(format!("sqlite:{db_file}")).await?;
 
-    // TODO: Add the legacy server thread and manage it through the gPRC server.
-    let run_legacy_server = if run_legacy_server.is_some() {
-        run_legacy_server.unwrap()
-    } else {
-        false
-    };
     let host = if host.is_some() {
         host.unwrap()
     } else {
@@ -614,10 +666,6 @@ pub async fn run_server(
     };
 
     logs_service.start_backup_thread();
-
-    if run_legacy_server {
-        info!("Legacy server compatiblity not yet implemented");
-    }
 
     let server_service = LogServerService::new(logs_service.clone());
     let client_service = LogClientService::new(logs_service.clone());

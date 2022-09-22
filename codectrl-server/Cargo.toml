@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.8.0" }
+codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.8.2" }
 dashmap = { version = "5.3.4", features = ["serde"] }
 directories = "4.0"
 dotenv = "0.15.0"
@@ -17,6 +17,8 @@ futures-core = "0.3"
 futures-util = "0.3"
 jsonwebtoken = { version = "8.1.1", default-features = false }
 log = "0.4.17"
+oauth2 = "4.2.3"
+parking_lot = "0.12.1"
 prost = "0.10"
 rand = "0.8.5"
 sea-orm = { version = "0.9", features = [
@@ -36,6 +38,7 @@ tokio-stream = "0.1"
 tonic = "0.7"
 tonic-web = "0.3.0"
 uuid = { version = "1.1.2", features = ["v4", "fast-rng", "macro-diagnostics"] }
+warp = "0.3.2"
 
 [[bin]]
 path = "bin/standalone.rs"
