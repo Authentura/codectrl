@@ -240,7 +240,7 @@ impl LogServerTrait for Service {
 
         let connection = connections[0].clone();
 
-        if let Some(sent_log_ids) = &connection.sent_logs {
+        if let Some(sent_log_ids) = connection.sent_logs.as_ref() {
             let sent_log_ids: DashSet<String> = match serde_json::from_str(sent_log_ids) {
                 Ok(ids) => ids,
                 Err(error) => return Err(Status::internal(error.to_string())),
