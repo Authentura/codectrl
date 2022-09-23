@@ -2,9 +2,12 @@ use futures::Future;
 use log::{debug, info, trace};
 use parking_lot::Mutex;
 use serde_json::json;
-use std::sync::{
-    atomic::{AtomicU16, Ordering},
-    Arc,
+use std::{
+    fmt,
+    sync::{
+        atomic::{AtomicU16, Ordering},
+        Arc,
+    },
 };
 use tokio::{
     runtime::Handle,
@@ -16,6 +19,31 @@ use tokio::{
     time::{sleep, Duration},
 };
 use warp::Filter;
+
+#[derive(Debug, Clone, Copy)]
+enum OAuthProvider {
+    Unknown,
+    GitHub,
+}
+
+impl OAuthProvider {
+    fn new(provider_str: &str) -> Self {
+        match provider_str.to_lowercase().as_str() {
+            "github" => Self::GitHub,
+            _ => Self::Unknown,
+        }
+    }
+}
+
+impl fmt::Display for OAuthProvider {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let provider = match self {
+            Self::GitHub => "github",
+            Self::Unknown => "unknown",
+        };
+        write!(f, "{provider}")
+    }
+}
 
 struct ThreadHandle<T: Send + Sync + 'static> {
     is_closed_rx: Mutex<Option<WatchReceiver<bool>>>,
@@ -104,23 +132,26 @@ impl RedirectHandler {
                     if arc_self_clone.count.load(Ordering::SeqCst) == 0 {
                         info!(target: "codectrl_server - redirect handler", "Closing temporary Warp server...");
                         arc_self_clone.close(close_signal_sender);
-                        info!(target: "codectrl_server - redirect handler", "Test");
                         break;
                     }
                 }
             });
 
-            let register = warp::path!("register" / String).map(|provider| {
+            let register = warp::path!("oauth" / "register" / String).map(|provider: String| {
+                // TODO: Properly handle response from OAuth providers here.
+
+                let provider = OAuthProvider::new(&provider);
+
                 warp::reply::json(&json!({ "message": format!("Hello {provider}") }))
             });
 
-            info!(target: "codectrl_server - redirect handler", "Spinning up temporary Warp server on 127.0.0.1:{}", arc_self.port);
+            info!(target: "codectrl_server - redirect handler", "Spinning up temporary Warp server on 127.0.0.1:{}.", arc_self.port);
 
             let (_, server) = warp::serve(register)
                 .bind_with_graceful_shutdown(([127, 0, 0, 1], arc_self.port), async move {
                     _ = is_closed_sender.send(false);
                     close_signal_receiver.await.ok();
-                    info!(target: "codectrl_server - redirect handler", "Closed temporary Warp server");
+                    info!(target: "codectrl_server - redirect handler", "Closed temporary Warp server.");
                     _ = is_closed_sender.send(true);
                 });
 
