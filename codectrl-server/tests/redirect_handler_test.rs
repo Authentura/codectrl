@@ -30,7 +30,7 @@ async fn test_flow() {
     redirect_handler.unregister();
     redirect_handler.unregister();
 
-    info!("Waiting 10 seconds for the handler to close...");
+    info!(target: "redirect_handler test", "Waiting 10 seconds for the handler to close...");
     sleep(Duration::new(10, 0)).await;
 
     assert!(!redirect_handler.is_started());
