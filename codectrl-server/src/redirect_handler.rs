@@ -26,9 +26,9 @@ enum OAuthProvider {
     GitHub,
 }
 
-impl OAuthProvider {
-    fn new(provider_str: &str) -> Self {
-        match provider_str.to_lowercase().as_str() {
+impl From<String> for OAuthProvider {
+    fn from(provider: String) -> Self {
+        match provider.to_lowercase().as_str() {
             "github" => Self::GitHub,
             _ => Self::Unknown,
         }
@@ -140,9 +140,8 @@ impl RedirectHandler {
             let register = warp::path!("oauth" / "register" / String).map(|provider: String| {
                 // TODO: Properly handle response from OAuth providers here.
 
-                let provider = OAuthProvider::new(&provider);
-
-                warp::reply::json(&json!({ "message": format!("Hello {provider}") }))
+                let provider: OAuthProvider = provider.into();
+                warp::reply::json(&json!({ "message" : format!("Hello {provider}") }))
             });
 
             info!(target: "codectrl_server - redirect handler", "Spinning up temporary Warp server on 127.0.0.1:{}.", arc_self.port);
