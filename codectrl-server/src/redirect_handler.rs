@@ -77,7 +77,7 @@ impl<T: Send + Sync + 'static> ThreadHandle<T> {
         let lock = self.is_closed_rx.lock();
         trace!(target: "codectrl_server - redirect handler", "Got is_closed_rx lock");
 
-        if let Some(rx) = &*lock {
+        if let Some(rx) = lock.as_ref() {
             let val = *rx.borrow();
             trace!(target: "codectrl_server - redirect handler", "is_closed_rx: {val}");
             !val
@@ -89,7 +89,7 @@ impl<T: Send + Sync + 'static> ThreadHandle<T> {
     pub fn close(&self, tx: OneshotSender<()>) {
         let mut lock = self.inner.lock();
 
-        if let Some(_handle) = &mut *lock {
+        if let Some(_handle) = lock.as_mut() {
             let res = tx.send(());
 
             trace!(target: "codectrl_server - redirect handler", "Result of signal send: {res:#?}");
