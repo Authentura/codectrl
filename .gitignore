@@ -9,3 +9,6 @@
 /.idea/
 
 codectrl-server/migration/target
+node_modules
+package-lock.json
+package.json
