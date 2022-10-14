@@ -6,4 +6,3 @@ if ! command -v pre-commit >/dev/null; then
 fi
 
 pre-commit install
-pre-commit install --hook-type post-commit
