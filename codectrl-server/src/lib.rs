@@ -5,15 +5,9 @@ pub mod redirect_handler;
 
 use codectrl_protobuf_bindings::{
     auth_service::{
-        // authentication_client::AuthenticationClient,
         authentication_server::{Authentication, AuthenticationServer},
-        GenerateTokenRequest,
-        GenerateTokenRequestResult,
-        LoginUrl,
-        RevokeTokenRequestResult,
-        Token,
-        VerifyTokenRequest,
-        VerifyTokenRequestResult,
+        GenerateTokenRequest, GenerateTokenRequestResult, LoginUrl,
+        RevokeTokenRequestResult, Token, VerifyTokenRequest, VerifyTokenRequestResult,
     },
     data::Log,
     logs_service::{
@@ -31,6 +25,7 @@ use oauth2::{
     basic::BasicClient, AuthUrl, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
     TokenUrl,
 };
+use once_cell::{race::OnceBool, sync::OnceCell};
 use rand::{
     distributions::{Alphanumeric, DistString},
     thread_rng,
@@ -58,6 +53,9 @@ use tonic::{
     metadata::MetadataMap, transport::Server, Code, Request, Response, Status, Streaming,
 };
 use uuid::Uuid;
+
+static USERNAME: OnceCell<String> = OnceCell::new();
+static CENSOR_USERNAMES: OnceBool = OnceBool::new();
 
 #[derive(Debug, Clone)]
 pub struct ConnectionState {
@@ -161,6 +159,20 @@ impl Service {
         if log.file_name.is_empty() {
             log.warnings.push("No file name found".into());
             log.file_name = "<None>".into();
+        }
+
+        if let Some(censor_usernames) = CENSOR_USERNAMES.get() {
+            if censor_usernames {
+                let username = USERNAME.get_or_init(whoami::username);
+
+                if log.file_name.contains(username) {
+                    log.file_name = log.file_name.replace(username, "<username>");
+                }
+
+                log.stack.iter_mut().for_each(|stack| {
+                    stack.file_path = stack.file_path.replace(username, "<username>");
+                });
+            }
         }
 
         match metadata.get("x-host") {
@@ -575,6 +587,16 @@ pub async fn run_server(
 ) -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::try_init().ok();
+
+    if let Ok(value) = env::var("CENSOR_USERNAMES") {
+        if let Ok(value) = value.parse::<u8>() {
+            if value == 0 {
+                CENSOR_USERNAMES.get_or_init(|| false);
+            }
+        }
+
+        CENSOR_USERNAMES.get_or_init(|| true);
+    }
 
     let _token_secret = if let Ok(secret) = env::var("TOKEN_SECRET") {
         if secret.is_empty() {

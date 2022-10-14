@@ -44,6 +44,8 @@ pub fn draw_log_item(
     let mut contains_alerts = vec![];
     let mut exact_alert = String::new();
 
+    let mut contains_newlines = false;
+
     for alert in message_alerts {
         if message == *alert {
             exact_alert = message.clone();
@@ -52,16 +54,27 @@ pub fn draw_log_item(
         }
     }
 
-    if log.message.len() > 100 {
+    if log.message.contains('\n') {
+        message = "Message contains newlines...".to_string();
+        contains_newlines = true;
+    } else if log.message.len() > 100 {
         message.truncate(97);
         message.push_str("...");
     }
 
     let labels = vec![
-        Label::new(message),
-        Label::new(&log.address),
-        Label::new(&log.file_name),
-        Label::new(format!("{}", log.line_number)),
+        if contains_newlines {
+            Label::new(message)
+        } else {
+            Label::new(RichText::new(message).monospace())
+        },
+        Label::new(RichText::new(&log.address).monospace()),
+        if log.file_name == "<None>" {
+            Label::new(&log.file_name)
+        } else {
+            Label::new(RichText::new(&log.file_name).monospace())
+        },
+        Label::new(RichText::new(format!("{}", log.line_number)).monospace()),
         Label::new(time.format("%F %X").to_string()),
     ];
 

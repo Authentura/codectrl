@@ -18,6 +18,7 @@ futures-util = "0.3"
 jsonwebtoken = { version = "8.1.1", default-features = false }
 log = "0.4.17"
 oauth2 = "4.2.3"
+once_cell = "1.15.0"
 parking_lot = "0.12.1"
 prost = "0.10"
 rand = "0.8.5"
@@ -39,6 +40,7 @@ tonic = "0.7"
 tonic-web = "0.3.0"
 uuid = { version = "1.1.2", features = ["v4", "fast-rng", "macro-diagnostics"] }
 warp = "0.3.2"
+whoami = "1.0"
 
 [[bin]]
 path = "bin/standalone.rs"

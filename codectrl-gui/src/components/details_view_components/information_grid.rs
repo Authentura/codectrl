@@ -96,14 +96,14 @@ fn detail_scroll(
             ui.vertical(|ui| {
                 ui.horizontal(|ui| {
                     ui.label("Position:");
-                    ui.label(format!("{}:{}", &log.file_name, log.line_number));
+                    ui.monospace(format!("{}:{}", &log.file_name, log.line_number));
                 });
 
                 ui.horizontal(|ui| {
                     ui.label("Message:");
 
                     if log.message.len() <= 200 {
-                        ui.code(log.message.replace('\"', ""));
+                        ui.monospace(log.message.replace('\"', ""));
                     } else {
                         // u25b6 = ▶
                         if ui.button("View message \u{25b6}").clicked() {
@@ -122,7 +122,7 @@ fn detail_scroll(
 
                 ui.horizontal(|ui| {
                     ui.label("Message type:");
-                    ui.code(&log.message_type);
+                    ui.monospace(&log.message_type);
                 });
 
                 ui.horizontal(|ui| {
@@ -132,7 +132,7 @@ fn detail_scroll(
 
                 ui.horizontal(|ui| {
                     ui.label("Received from:");
-                    ui.label(&log.address);
+                    ui.monospace(&log.address);
                 });
 
                 ui.collapsing(
@@ -148,7 +148,7 @@ fn detail_scroll(
                                 ui.horizontal(|ui| {
                                     ui.label(RichText::new("Position:").strong());
 
-                                    ui.label(format!(
+                                    ui.monospace(format!(
                                         "{}:{} column {}",
                                         stack.file_path,
                                         stack.line_number,
@@ -159,7 +159,7 @@ fn detail_scroll(
                                 ui.horizontal(|ui| {
                                     ui.label(RichText::new("Code:").strong());
 
-                                    ui.label(RichText::new(&stack.code).code());
+                                    ui.monospace(&stack.code);
                                 });
                             });
                         }
