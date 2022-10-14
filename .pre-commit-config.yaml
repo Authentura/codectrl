@@ -1,0 +1,19 @@
+repos:
+  - repo: local
+    hooks:
+      - id: rustfmt
+        name: rustfmt
+        description: Check if all files follow the rustfmt style
+        entry: .scripts/pre-commit.sh
+        language: system
+        stages: [commit]
+        pass_filenames: false
+
+      - id: post-commit
+        name: post-commit
+        description: Adds the current git commit SHA, author and message to .git-blame-ignore-revs and amend
+        entry: .scripts/post-commit.sh
+        language: system
+        always_run: true
+        stages: [post-commit]
+        pass_filenames: false
