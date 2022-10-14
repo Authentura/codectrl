@@ -9,10 +9,11 @@ repos:
         stages: [commit]
         pass_filenames: false
 
-      - id: add commit to .git-blame-ignore-revs
-        name: add-commit
+      - id: post-commit
+        name: post-commit
         description: Adds the current git commit SHA, author and message to .git-blame-ignore-revs and amend
         entry: .scripts/post-commit.sh
         language: system
+        always_run: true
         stages: [post-commit]
         pass_filenames: false
