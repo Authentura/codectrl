@@ -2,16 +2,16 @@ default_install_hook_types: [pre-commit, post-commit]
 repos:
   - repo: local
     hooks:
-      - id: rustfmt
-        name: rustfmt
+      - id: rustfmt-pre
+        name: rustfmt-pre
         description: Check if all files follow the rustfmt style
         entry: .scripts/pre-commit.sh
         language: system
         stages: [commit]
         pass_filenames: false
 
-      - id: post-commit
-        name: post-commit
+      - id: rustfmt-post
+        name: rustfmt-post
         description: Adds the current git commit SHA, author and message to .git-blame-ignore-revs and amend
         entry: .scripts/post-commit.sh
         language: system
