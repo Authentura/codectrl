@@ -292,6 +292,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "prost",
  "rand",
+ "regex",
  "sea-orm",
  "serde",
  "serde_json",

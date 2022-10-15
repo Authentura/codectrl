@@ -621,6 +621,7 @@ dependencies = [
  "jsonwebtoken",
  "log",
  "oauth2",
+ "once_cell",
  "parking_lot 0.12.1",
  "prost 0.10.4",
  "rand",

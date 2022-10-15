@@ -34,8 +34,16 @@ maintainer = "Samuel Boyden <s.boyden@authentura.com>"
 copyright = "2022, Authentura <contact@authentura.com>"
 license-file = ["LICENSE", "4"]
 assets = [
-  ["target/release/codectrl", "usr/bin/", "755"],
-  ["README.md", "usr/share/doc/codectrl/README", "644"]
+  [
+    "target/release/codectrl",
+    "usr/bin/",
+    "755",
+  ],
+  [
+    "README.md",
+    "usr/share/doc/codectrl/README",
+    "644",
+  ],
 ]
 depends = "libgtk-3-0"
 

@@ -30,6 +30,7 @@ use rand::{
     distributions::{Alphanumeric, DistString},
     thread_rng,
 };
+use regex::Regex;
 use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, ConnectionTrait, Database, DatabaseConnection,
     EntityTrait, Schema, Set,
@@ -54,8 +55,8 @@ use tonic::{
 };
 use uuid::Uuid;
 
-static USERNAME: OnceCell<String> = OnceCell::new();
 static CENSOR_USERNAMES: OnceBool = OnceBool::new();
+static USERNAME_REGEX: OnceCell<Result<Regex, regex::Error>> = OnceCell::new();
 
 #[derive(Debug, Clone)]
 pub struct ConnectionState {
@@ -131,6 +132,43 @@ impl Service {
         info!("... Done!");
     }
 
+    fn strip_username_from_path(path: &String) -> String {
+        let mut path = path.clone();
+
+        let regex = {
+            #[cfg(target_os = "windows")]
+            let pattern = USERNAME_REGEX
+                .get_or_init(|| Regex::new(r"[A-Z]:\Users\([a-zA-Z0-9]*)\*"));
+            #[cfg(target_os = "macos")]
+            let pattern =
+                USERNAME_REGEX.get_or_init(|| Regex::new(r"/Users/([a-zA-Z0-9_\-]*)/*"));
+            #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+            let pattern =
+                USERNAME_REGEX.get_or_init(|| Regex::new(r"/home/([a-zA-Z0-9_\-]*)/.*"));
+
+            pattern
+        };
+
+        let regex = if let Ok(regex) = regex {
+            regex
+        } else {
+            return path;
+        };
+
+        let captures = regex.captures(&path);
+        let captures = if let Some(captures) = captures {
+            captures
+        } else {
+            return path;
+        };
+
+        if let Some(capture) = captures.get(1) {
+            path = path.replace(capture.as_str(), "<username>");
+        };
+
+        path
+    }
+
     #[allow(clippy::missing_panics_doc)]
     pub fn verify_log(
         log: &mut Log,
@@ -163,14 +201,10 @@ impl Service {
 
         if let Some(censor_usernames) = CENSOR_USERNAMES.get() {
             if censor_usernames {
-                let username = USERNAME.get_or_init(whoami::username);
-
-                if log.file_name.contains(username) {
-                    log.file_name = log.file_name.replace(username, "<username>");
-                }
+                log.file_name = Self::strip_username_from_path(&log.file_name);
 
                 log.stack.iter_mut().for_each(|stack| {
-                    stack.file_path = stack.file_path.replace(username, "<username>");
+                    stack.file_path = Self::strip_username_from_path(&stack.file_path);
                 });
             }
         }
@@ -594,7 +628,8 @@ pub async fn run_server(
                 CENSOR_USERNAMES.get_or_init(|| false);
             }
         }
-
+        CENSOR_USERNAMES.get_or_init(|| true);
+    } else {
         CENSOR_USERNAMES.get_or_init(|| true);
     }
 

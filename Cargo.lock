@@ -658,6 +658,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "prost 0.10.4",
  "rand",
+ "regex",
  "sea-orm",
  "serde",
  "serde_json",
@@ -667,7 +668,6 @@ dependencies = [
  "tonic-web",
  "uuid",
  "warp",
- "whoami",
 ]
 
 [[package]]
@@ -4922,17 +4922,6 @@ dependencies = [
  "either",
  "libc",
  "once_cell",
-]
-
-[[package]]
-name = "whoami"
-version = "1.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6631b6a2fd59b1841b622e8f1a7ad241ef0a46f2d580464ce8140ac94cbd571"
-dependencies = [
- "bumpalo",
- "wasm-bindgen",
- "web-sys",
 ]
 
 [[package]]
