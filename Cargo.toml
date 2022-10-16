@@ -1,6 +1,6 @@
 [package]
 name = "codectrl"
-version = "0.5.0-nightly"
+version = "1.0.0-beta"
 edition = "2021"
 authors = [
   "Authentura <contact@authentura.com>",
