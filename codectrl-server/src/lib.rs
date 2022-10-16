@@ -153,18 +153,18 @@ impl Service {
         let regex = if let Ok(regex) = regex {
             regex
         } else {
-            return path
+            return path;
         };
 
         let captures = regex.captures(&path);
         let captures = if let Some(captures) = captures {
             captures
         } else {
-            return path
+            return path;
         };
 
         if let Some(capture) = captures.get(1) {
-            return path.replace(capture.as_str(), "<username>").into()
+            return path.replace(capture.as_str(), "<username>").into();
         };
 
         path

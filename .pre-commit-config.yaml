@@ -5,7 +5,7 @@ repos:
       - id: rustfmt
         name: rustfmt
         description: Check if all files follow the rustfmt style
-        entry: .scripts/pre-commit.sh
+        entry: cargo +nightly fmt --all -- --unstable-features --error-on-unformatted --check
         language: system
         stages: [commit]
         pass_filenames: false
