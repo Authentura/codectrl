@@ -37,6 +37,7 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 use std::{
+    borrow::Cow,
     collections::VecDeque,
     env,
     fs::{self, File},
@@ -132,7 +133,9 @@ impl Service {
         info!("... Done!");
     }
 
-    fn strip_username_from_path(path: &str) -> &str {
+    fn strip_username_from_path(path: &str) -> Cow<str> {
+        let path: Cow<str> = path.into();
+
         let regex = {
             #[cfg(target_os = "windows")]
             let pattern = USERNAME_REGEX
@@ -150,18 +153,18 @@ impl Service {
         let regex = if let Ok(regex) = regex {
             regex
         } else {
-            return path;
+            return path
         };
 
         let captures = regex.captures(&path);
         let captures = if let Some(captures) = captures {
             captures
         } else {
-            return path;
+            return path
         };
 
         if let Some(capture) = captures.get(1) {
-            path = &path.replace(capture.as_str(), "<username>");
+            return path.replace(capture.as_str(), "<username>").into()
         };
 
         path
@@ -199,10 +202,12 @@ impl Service {
 
         if let Some(censor_usernames) = CENSOR_USERNAMES.get() {
             if censor_usernames {
-                log.file_name = Self::strip_username_from_path(&log.file_name);
+                log.file_name =
+                    Self::strip_username_from_path(&log.file_name).to_string();
 
                 log.stack.iter_mut().for_each(|stack| {
-                    stack.file_path = Self::strip_username_from_path(&stack.file_path);
+                    stack.file_path =
+                        Self::strip_username_from_path(&stack.file_path).to_string();
                 });
             }
         }
