@@ -192,6 +192,7 @@ dependencies = [
 [[package]]
 name = "authentura-egui-styling"
 version = "0.3.0"
+source = "git+https://github.com/Authentura/authentura-egui-styling?tag=v0.3.0#a3157d6af2ee6f7e7ed33d36fa80e5cc594762e8"
 dependencies = [
  "egui",
  "lazy_static",
@@ -556,7 +557,7 @@ dependencies = [
 
 [[package]]
 name = "codectrl-gui"
-version = "0.5.0-nightly"
+version = "1.0.0-beta"
 dependencies = [
  "anyhow",
  "authentura-egui-styling",
