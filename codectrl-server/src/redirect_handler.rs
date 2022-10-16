@@ -126,7 +126,7 @@ impl RedirectHandler {
             runtime_handle.spawn(async move {
                 // wait 5 seconds before auto-closing the inner_handle. gives time for a slow or
                 // manual request
-               sleep(Duration::new(5, 0)).await; 
+               sleep(Duration::new(5, 0)).await;
 
                 loop {
                     if arc_self_clone.count.load(Ordering::SeqCst) == 0 {
