@@ -57,7 +57,11 @@ use tonic::{
 use uuid::Uuid;
 
 static CENSOR_USERNAMES: OnceBool = OnceBool::new();
-static USERNAME_REGEX: OnceCell<Result<Regex, regex::Error>> = OnceCell::new();
+// STBoyden: I haven't measured how much of a performance impact recreating the
+// Regexes each time `strip_username_from_path` is called would have overall on
+// the server, but "caching" them inside a lazy initialised static should
+// definitely be faster.
+static USERNAME_REGEXES: OnceCell<[Result<Regex, regex::Error>; 3]> = OnceCell::new();
 static REDIRECT_HANDLER_PORT: OnceCell<u16> = OnceCell::new();
 
 #[derive(Debug, Clone)]
@@ -137,36 +141,38 @@ impl Service {
     fn strip_username_from_path(path: &str) -> Cow<str> {
         let path: Cow<str> = path.into();
 
-        let regex = {
-            #[cfg(target_os = "windows")]
-            let pattern = USERNAME_REGEX
-                .get_or_init(|| Regex::new(r"[A-Z]:\Users\([a-zA-Z0-9]*)\*"));
-            #[cfg(target_os = "macos")]
-            let pattern =
-                USERNAME_REGEX.get_or_init(|| Regex::new(r"/Users/([a-zA-Z0-9_\-]*)/*"));
-            #[cfg(not(any(target_os = "windows", target_os = "macos")))]
-            let pattern =
-                USERNAME_REGEX.get_or_init(|| Regex::new(r"/home/([a-zA-Z0-9_\-]*)/.*"));
+        // We want to check for _each_ of the possible patterns where in which a
+        // username may appear in a file path. Though this will not account for
+        // _every single possibility_, it should account for the most common ones
+        // - i.e. creating a log from a file that is in a directory under the
+        // user account (depending on platform).
+        let regexes = USERNAME_REGEXES.get_or_init(|| {
+            [
+                // we account for [a-zA-Z] just in case of weird setups on Windows.
+                Regex::new(r"[a-zA-Z]:\Users\([a-zA-Z0-9]*)\*"),
+                Regex::new(r"/Users/([a-zA-Z0-9_\-]*)/*"),
+                Regex::new(r"/home/([a-zA-Z0-9_\-]*)/.*"),
+            ]
+        });
 
-            pattern
-        };
+        for regex in regexes {
+            let regex = if let Ok(regex) = regex {
+                regex
+            } else {
+                continue;
+            };
 
-        let regex = if let Ok(regex) = regex {
-            regex
-        } else {
-            return path;
-        };
+            let captures = regex.captures(&path);
+            let captures = if let Some(captures) = captures {
+                captures
+            } else {
+                continue;
+            };
 
-        let captures = regex.captures(&path);
-        let captures = if let Some(captures) = captures {
-            captures
-        } else {
-            return path;
-        };
-
-        if let Some(capture) = captures.get(1) {
-            return path.replace(capture.as_str(), "<username>").into();
-        };
+            if let Some(capture) = captures.get(1) {
+                return path.replace(capture.as_str(), "<username>").into();
+            };
+        }
 
         path
     }
