@@ -26,6 +26,8 @@ egui = { version = "0.19", features = ["persistence"] }
 egui_extras = "0.19"
 flate2 = "1.0"
 lazy_static = "1.4"
+once_cell = "1.15.0"
+open = "3.0.3"
 regex = "1.5"
 serde = { version = "1.0", features = ["derive"] }
 syntect = { version = "4.2", default-features = false, features = ["default-fancy"]}

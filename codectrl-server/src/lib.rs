@@ -58,6 +58,7 @@ use uuid::Uuid;
 
 static CENSOR_USERNAMES: OnceBool = OnceBool::new();
 static USERNAME_REGEX: OnceCell<Result<Regex, regex::Error>> = OnceCell::new();
+static REDIRECT_HANDLER_PORT: OnceCell<u16> = OnceCell::new();
 
 #[derive(Debug, Clone)]
 pub struct ConnectionState {
@@ -585,8 +586,11 @@ fn generate_github_login_url() -> String {
         Some(token_url),
     )
     .set_redirect_uri(
-        RedirectUrl::new("http://localhost:8080".to_string())
-            .expect("Invalid redirect URL"),
+        RedirectUrl::new(format!(
+            "https://localhost:{}",
+            REDIRECT_HANDLER_PORT.get_or_init(|| 8080)
+        ))
+        .expect("Invalid redirect URL"),
     );
 
     let (authorize_url, _csrf_state) = client
@@ -663,16 +667,15 @@ pub async fn run_server(
             false
         };
 
-    #[allow(unused_variables)] // TODO: Remove when handler is implemented server-side
-    let mut handler_port = 8080;
-
-    #[allow(unused_assignments)] // TODO: Remove when handler is implemented server-side
+    let handler_port;
     if requires_authentication {
         handler_port = if let Some(port) = redirect_handler_port {
             port
         } else {
             8080
         };
+
+        REDIRECT_HANDLER_PORT.get_or_init(|| handler_port);
     };
 
     info!(

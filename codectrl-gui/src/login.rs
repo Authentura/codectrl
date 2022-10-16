@@ -1,14 +1,16 @@
 use crate::wrapper::WrapperMsg;
 
 use authentura_egui_styling::{application_style, fonts, FontSizes};
-use codectrl_protobuf_bindings::logs_service::{
-    log_server_client::LogServerClient, Connection, ServerDetails,
+use codectrl_protobuf_bindings::{
+    auth_service::{authentication_client::AuthenticationClient, LoginUrl},
+    logs_service::{log_server_client::LogServerClient, Connection, ServerDetails},
 };
 use eframe::{App, Frame};
 use egui::{
     Button, CentralPanel, Color32, Context, Grid, Pos2, Response, TopBottomPanel, Ui,
     Vec2, Window,
 };
+use once_cell::race::OnceBool;
 use poll_promise::Promise;
 use std::time::{Duration, Instant};
 #[cfg(not(target_arch = "wasm32"))]
@@ -19,6 +21,8 @@ use tokio::task::JoinHandle;
 #[cfg(not(target_arch = "wasm32"))]
 use tonic::transport::Channel;
 
+static GITHUB_BUTTON_HAS_BEEN_CLICKED: OnceBool = OnceBool::new();
+
 #[derive(Default)]
 pub struct Login {
     token: String,
@@ -27,9 +31,13 @@ pub struct Login {
     port: String,
     is_local: bool,
     handle: Option<Arc<Handle>>,
-    connection_promise: Option<(Promise<LogServerClient<Channel>>, JoinHandle<()>)>,
+    connection_promise: Option<(
+        Promise<(LogServerClient<Channel>, AuthenticationClient<Channel>)>,
+        JoinHandle<()>,
+    )>,
     server_details_promise: Option<Promise<ServerDetails>>,
     registration_promise: Option<Promise<Connection>>,
+    github_login_url_promise: Option<Promise<LoginUrl>>,
     connection_promise_initialised: Option<Instant>,
     reset_connection: bool,
 }
@@ -54,6 +62,7 @@ impl Login {
             server_details_promise: None,
             registration_promise: None,
             connection_promise_initialised: None,
+            github_login_url_promise: None,
             reset_connection: false,
         }
     }
@@ -78,9 +87,13 @@ impl Login {
         &mut self,
         ctx: &Context,
         frame: &mut Frame,
-        channel: &LogServerClient<Channel>,
+        (channel, auth_channel): &(
+            LogServerClient<Channel>,
+            AuthenticationClient<Channel>,
+        ),
     ) -> Response {
         let window_size = frame.info().window_info.size;
+        let mut auth_channel = auth_channel.clone();
 
         Window::new("token_input")
             .title_bar(false)
@@ -90,9 +103,39 @@ impl Login {
                 (window_size.y / 2.0) - 100.0,
             ))
             .show(ctx, |ui| {
-                ui.heading("Please login with your token");
+                ui.heading("Please login with your GitHub");
 
-                responsive_row(ctx, ui, "Token", &mut self.token);
+                if ui.button("GitHub Login").clicked()
+                    || matches!(GITHUB_BUTTON_HAS_BEEN_CLICKED.get(), Some(true))
+                {
+                    GITHUB_BUTTON_HAS_BEEN_CLICKED.get_or_init(|| true);
+
+                    if self.github_login_url_promise.is_none() {
+                        let (sender, promise) = Promise::new();
+
+                        if let Some(handle) = self.handle.as_deref() {
+                            handle.spawn(async move {
+                                if let Ok(result) = auth_channel.github_login(()).await {
+                                    sender.send(result.into_inner());
+                                }
+                            });
+                        }
+
+                        self.github_login_url_promise = Some(promise);
+                    }
+
+                    if let Some(login_url_promise) = &self.github_login_url_promise {
+                        match login_url_promise.ready() {
+                            Some(login_url) => {
+                                let _res = open::that(&login_url.url);
+                                ui.spinner()
+                            },
+                            None => ui.spinner(),
+                        };
+                    }
+
+                    // open::that(path);
+                }
 
                 ui.add_space(5.0);
 
@@ -205,7 +248,18 @@ impl App for Login {
                                     }
                                 };
 
-                                sender.send(grpc_client);
+                                let auth_client = loop {
+                                    let res = AuthenticationClient::connect(format!(
+                                        "http://{host}:{port}"
+                                    ))
+                                    .await;
+
+                                    if let Ok(res) = res {
+                                        break res;
+                                    }
+                                };
+
+                                sender.send((grpc_client, auth_client));
                             })
                         } else {
                             panic!("No tokio runtime!")
@@ -254,7 +308,7 @@ impl App for Login {
                             if let Some(handle) = self.handle.as_deref() {
                                 handle.spawn(async move {
                                     if let Ok(server_details) =
-                                        channel_clone.get_server_details(()).await
+                                        channel_clone.0.get_server_details(()).await
                                     {
                                         sender.send(server_details.into_inner());
                                     }
@@ -272,7 +326,7 @@ impl App for Login {
                                     if server_details.requires_authentication {
                                         self.draw_token_window(ctx, frame, &channel_clone)
                                     } else {
-                                        self.register(channel_clone.clone());
+                                        self.register(channel_clone.clone().0);
                                         ui.label("")
                                     },
                                 None => ui.colored_label(
@@ -291,7 +345,7 @@ impl App for Login {
                                         self.wrapper_msg.try_borrow_mut()
                                     {
                                         *wrapper_msg = WrapperMsg::Main {
-                                            grpc_client: channel_clone,
+                                            grpc_client: channel_clone.0,
                                             grpc_client_connection: registered_client
                                                 .clone(),
                                         };

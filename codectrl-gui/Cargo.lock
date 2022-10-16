@@ -192,7 +192,6 @@ dependencies = [
 [[package]]
 name = "authentura-egui-styling"
 version = "0.3.0"
-source = "git+https://github.com/Authentura/authentura-egui-styling?tag=v0.3.0#a3157d6af2ee6f7e7ed33d36fa80e5cc594762e8"
 dependencies = [
  "egui",
  "lazy_static",
@@ -579,6 +578,8 @@ dependencies = [
  "instant",
  "lazy_static",
  "log",
+ "once_cell",
+ "open",
  "poll-promise",
  "regex",
  "rfd",
@@ -625,6 +626,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "prost 0.10.4",
  "rand",
+ "regex",
  "sea-orm",
  "serde",
  "serde_json",
@@ -634,7 +636,6 @@ dependencies = [
  "tonic-web",
  "uuid",
  "warp",
- "whoami",
 ]
 
 [[package]]
@@ -2460,6 +2461,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
+name = "open"
+version = "3.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4a3100141f1733ea40b53381b0ae3117330735ef22309a190ac57b9576ea716"
+dependencies = [
+ "pathdiff",
+ "windows-sys",
+]
+
+[[package]]
 name = "os_str_bytes"
 version = "6.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2571,6 +2582,12 @@ name = "paste"
 version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1de2e551fb905ac83f73f7aedf2f0cb4a0da7e35efa24a202a936269f1f18e1"
+
+[[package]]
+name = "pathdiff"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8835116a5c179084a830efb3adc117ab007512b535bc1a21c991d3b32a6b44dd"
 
 [[package]]
 name = "percent-encoding"
@@ -4667,17 +4684,6 @@ dependencies = [
  "either",
  "libc",
  "once_cell",
-]
-
-[[package]]
-name = "whoami"
-version = "1.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6631b6a2fd59b1841b622e8f1a7ad241ef0a46f2d580464ce8140ac94cbd571"
-dependencies = [
- "bumpalo",
- "wasm-bindgen",
- "web-sys",
 ]
 
 [[package]]
