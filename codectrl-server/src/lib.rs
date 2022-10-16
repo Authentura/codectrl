@@ -132,9 +132,7 @@ impl Service {
         info!("... Done!");
     }
 
-    fn strip_username_from_path(path: &String) -> String {
-        let mut path = path.clone();
-
+    fn strip_username_from_path(path: &str) -> &str {
         let regex = {
             #[cfg(target_os = "windows")]
             let pattern = USERNAME_REGEX
@@ -163,7 +161,7 @@ impl Service {
         };
 
         if let Some(capture) = captures.get(1) {
-            path = path.replace(capture.as_str(), "<username>");
+            path = &path.replace(capture.as_str(), "<username>");
         };
 
         path
