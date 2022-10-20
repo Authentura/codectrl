@@ -6,7 +6,7 @@ authors = [
   "Authentura <contact@authentura.com>",
   "Samuel Boyden <s.boyden@authentura.com>",
 ]
-description = "A source code analytic tool. Using egui version 0.18."
+description = "A dynamic source code analysis tool, made by Authentura."
 license = "MIT"
 rust-version = "1.62.0"
 readme = "README.md"
