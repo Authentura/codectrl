@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-08-21
+          toolchain: nightly-2022-11-05
           components: clippy
       - name: Bootstrap Ubuntu
         run: sudo ./bootstrap-action.sh

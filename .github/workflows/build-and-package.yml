@@ -14,7 +14,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-08-21
+          toolchain: nightly-2022-11-05
 
       - name: Fetch cache if already exists
         continue-on-error: true
@@ -70,7 +70,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-08-21
+          toolchain: nightly-2022-11-05
 
       - name: Fetch cache if already exists
         continue-on-error: true
@@ -126,7 +126,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-08-21
+          toolchain: nightly-2022-11-05
 
       - name: Fetch cache if already exists
         continue-on-error: true
@@ -182,7 +182,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-08-21
+          toolchain: nightly-2022-11-05
 
       - name: Fetch cache if already exists
         continue-on-error: true
@@ -238,7 +238,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-08-21
+          toolchain: nightly-2022-11-05
 
       - name: Fetch cache if already exists
         continue-on-error: true
@@ -294,7 +294,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-08-21
+          toolchain: nightly-2022-11-05
 
       - name: Fetch cached build
         uses: actions/cache@v3
@@ -351,7 +351,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-08-21
+          toolchain: nightly-2022-11-05
 
       - name: Fetch cached build
         uses: actions/cache@v3
@@ -408,7 +408,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-08-21
+          toolchain: nightly-2022-11-05
 
       - name: Fetch cached build
         uses: actions/cache@v3
@@ -465,7 +465,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2022-08-21
+          toolchain: nightly-2022-11-05
 
       - name: Fetch cached build
         uses: actions/cache@v3
@@ -522,7 +522,7 @@ jobs:
 
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2022-08-21
+          toolchain: nightly-2022-11-05
 
       - name: Fetch cached build
         uses: actions/cache@v3
