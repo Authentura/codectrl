@@ -31,7 +31,7 @@ case $ID in
         dnf groupinstall "Development Tools" -y
 
         if [[ "$ID" == "rocky" && $(rpm -E %rhel) -ge 9 ]]; then
-            dnf --enablerepo=crb install ${packages[@]} -y
+            dnf --enablerepo=crb --allowerasing install ${packages[@]} -y
         else
             dnf install ${packages[@]} -y
         fi
