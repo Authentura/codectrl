@@ -1,12 +1,12 @@
 [package]
 name = "codectrl"
-version = "0.5.0-nightly"
+version = "1.0.0-beta"
 edition = "2021"
 authors = [
   "Authentura <contact@authentura.com>",
   "Samuel Boyden <s.boyden@authentura.com>",
 ]
-description = "A source code analytic tool. Using egui version 0.18."
+description = "A dynamic source code analysis tool, made by Authentura."
 license = "MIT"
 rust-version = "1.62.0"
 readme = "README.md"
@@ -34,8 +34,16 @@ maintainer = "Samuel Boyden <s.boyden@authentura.com>"
 copyright = "2022, Authentura <contact@authentura.com>"
 license-file = ["LICENSE", "4"]
 assets = [
-  ["target/release/codectrl", "usr/bin/", "755"],
-  ["README.md", "usr/share/doc/codectrl/README", "644"]
+  [
+    "target/release/codectrl",
+    "usr/bin/",
+    "755",
+  ],
+  [
+    "README.md",
+    "usr/share/doc/codectrl/README",
+    "644",
+  ],
 ]
 depends = "libgtk-3-0"
 
@@ -53,4 +61,4 @@ doc = true
 [package.metadata.wix]
 name = "CodeCTRL"
 product-name = "CodeCTRL"
-version = "0.5.0"
+version = "1.0.0"

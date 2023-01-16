@@ -28,7 +28,12 @@ pub fn code_highlighter(code: &str, log: &Log, ctx: &Context) -> LayoutJob {
     let mut job = LayoutJob::default();
 
     for line in LinesWithEndings::from(code) {
-        let ranges: Vec<(Style, &str)> = highlight.highlight(line, &syntax_set);
+        let ranges: Vec<(Style, &str)> =
+            if let Ok(ranges) = highlight.highlight_line(line, &syntax_set) {
+                ranges
+            } else {
+                vec![(Style::default(), line)]
+            };
 
         for h in ranges {
             let (style, code) = h;

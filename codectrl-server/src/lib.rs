@@ -1,15 +1,13 @@
 #![warn(clippy::pedantic)]
 
+mod entity;
+pub mod redirect_handler;
+
 use codectrl_protobuf_bindings::{
     auth_service::{
-        // authentication_client::AuthenticationClient,
         authentication_server::{Authentication, AuthenticationServer},
-        GenerateTokenRequest,
-        GenerateTokenRequestResult,
-        RevokeTokenRequestResult,
-        Token,
-        VerifyTokenRequest,
-        VerifyTokenRequestResult,
+        GenerateTokenRequest, GenerateTokenRequestResult, LoginUrl,
+        RevokeTokenRequestResult, Token, VerifyTokenRequest, VerifyTokenRequestResult,
     },
     data::Log,
     logs_service::{
@@ -23,16 +21,23 @@ use dotenv::dotenv;
 use entity::connection::{ActiveModel, Entity};
 use futures::StreamExt;
 use log::{error, info, trace, warn};
+use oauth2::{
+    basic::BasicClient, AuthUrl, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
+    TokenUrl,
+};
+use once_cell::{race::OnceBool, sync::OnceCell};
 use rand::{
     distributions::{Alphanumeric, DistString},
     thread_rng,
 };
+use regex::Regex;
 use sea_orm::{
     ActiveModelTrait, ActiveValue::NotSet, ConnectionTrait, Database, DatabaseConnection,
     EntityTrait, Schema, Set,
 };
 use serde::{Deserialize, Serialize};
 use std::{
+    borrow::Cow,
     collections::VecDeque,
     env,
     fs::{self, File},
@@ -51,7 +56,13 @@ use tonic::{
 };
 use uuid::Uuid;
 
-mod entity;
+static CENSOR_USERNAMES: OnceBool = OnceBool::new();
+// STBoyden: I haven't measured how much of a performance impact recreating the
+// Regexes each time `strip_username_from_path` is called would have overall on
+// the server, but "caching" them inside a lazy initialised static should
+// definitely be faster.
+static USERNAME_REGEXES: OnceCell<[Result<Regex, regex::Error>; 3]> = OnceCell::new();
+static REDIRECT_HANDLER_PORT: OnceCell<u16> = OnceCell::new();
 
 #[derive(Debug, Clone)]
 pub struct ConnectionState {
@@ -127,6 +138,45 @@ impl Service {
         info!("... Done!");
     }
 
+    fn strip_username_from_path(path: &str) -> Cow<str> {
+        let path: Cow<str> = path.into();
+
+        // We want to check for _each_ of the possible patterns where in which a
+        // username may appear in a file path. Though this will not account for
+        // _every single possibility_, it should account for the most common ones
+        // - i.e. creating a log from a file that is in a directory under the
+        // user account (depending on platform).
+        let regexes = USERNAME_REGEXES.get_or_init(|| {
+            [
+                // we account for [a-zA-Z] just in case of weird setups on Windows.
+                Regex::new(r"[a-zA-Z]:\Users\([a-zA-Z0-9]*)\*"),
+                Regex::new(r"/Users/([a-zA-Z0-9_\-]*)/*"),
+                Regex::new(r"/home/([a-zA-Z0-9_\-]*)/.*"),
+            ]
+        });
+
+        for regex in regexes {
+            let regex = if let Ok(regex) = regex {
+                regex
+            } else {
+                continue;
+            };
+
+            let captures = regex.captures(&path);
+            let captures = if let Some(captures) = captures {
+                captures
+            } else {
+                continue;
+            };
+
+            if let Some(capture) = captures.get(1) {
+                return path.replace(capture.as_str(), "<username>").into();
+            };
+        }
+
+        path
+    }
+
     #[allow(clippy::missing_panics_doc)]
     pub fn verify_log(
         log: &mut Log,
@@ -155,6 +205,18 @@ impl Service {
         if log.file_name.is_empty() {
             log.warnings.push("No file name found".into());
             log.file_name = "<None>".into();
+        }
+
+        if let Some(censor_usernames) = CENSOR_USERNAMES.get() {
+            if censor_usernames {
+                log.file_name =
+                    Self::strip_username_from_path(&log.file_name).to_string();
+
+                log.stack.iter_mut().for_each(|stack| {
+                    stack.file_path =
+                        Self::strip_username_from_path(&stack.file_path).to_string();
+                });
+            }
         }
 
         match metadata.get("x-host") {
@@ -234,7 +296,7 @@ impl LogServerTrait for Service {
 
         let connection = connections[0].clone();
 
-        if let Some(sent_log_ids) = &connection.sent_logs {
+        if let Some(sent_log_ids) = connection.sent_logs.as_ref() {
             let sent_log_ids: DashSet<String> = match serde_json::from_str(sent_log_ids) {
                 Ok(ids) => ids,
                 Err(error) => return Err(Status::internal(error.to_string())),
@@ -500,6 +562,49 @@ impl Authentication for Service {
     ) -> Result<Response<Token>, Status> {
         todo!()
     }
+
+    async fn github_login(&self, _: Request<()>) -> Result<Response<LoginUrl>, Status> {
+        Ok(Response::new(LoginUrl {
+            url: generate_github_login_url(),
+        }))
+    }
+}
+
+fn generate_github_login_url() -> String {
+    let github_client_id = ClientId::new(
+        env::var("GITHUB_CLIENT_ID")
+            .expect("Missing the GITHUB_CLIENT_ID environment variable."),
+    );
+    let github_client_secret = ClientSecret::new(
+        env::var("GITHUB_CLIENT_SECRET")
+            .expect("Missing the GITHUB_CLIENT_SECRET environment variable."),
+    );
+    let auth_url = AuthUrl::new("https://github.com/login/oauth/authorize".to_string())
+        .expect("Invalid authorization endpoint URL");
+    let token_url =
+        TokenUrl::new("https://github.com/login/oauth/access_token".to_string())
+            .expect("Invalid token endpoint URL");
+
+    let client = BasicClient::new(
+        github_client_id,
+        Some(github_client_secret),
+        auth_url,
+        Some(token_url),
+    )
+    .set_redirect_uri(
+        RedirectUrl::new(format!(
+            "https://localhost:{}",
+            REDIRECT_HANDLER_PORT.get_or_init(|| 8080)
+        ))
+        .expect("Invalid redirect URL"),
+    );
+
+    let (authorize_url, _csrf_state) = client
+        .authorize_url(CsrfToken::new_random)
+        .add_scope(Scope::new("user:email".to_string()))
+        .url();
+
+    authorize_url.to_string()
 }
 
 fn generate_token() -> String {
@@ -522,13 +627,24 @@ fn generate_token() -> String {
 /// 3. The inner tonic server returns an error during runtime.
 #[allow(clippy::missing_panics_doc)]
 pub async fn run_server(
-    run_legacy_server: Option<bool>,
     host: Option<String>,
     port: Option<u32>,
     requires_authentication: Option<bool>,
+    redirect_handler_port: Option<u16>,
 ) -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::try_init().ok();
+
+    if let Ok(value) = env::var("CENSOR_USERNAMES") {
+        if let Ok(value) = value.parse::<u8>() {
+            if value == 0 {
+                CENSOR_USERNAMES.get_or_init(|| false);
+            }
+        }
+        CENSOR_USERNAMES.get_or_init(|| true);
+    } else {
+        CENSOR_USERNAMES.get_or_init(|| true);
+    }
 
     let _token_secret = if let Ok(secret) = env::var("TOKEN_SECRET") {
         if secret.is_empty() {
@@ -556,6 +672,17 @@ pub async fn run_server(
         } else {
             false
         };
+
+    let handler_port;
+    if requires_authentication {
+        handler_port = if let Some(port) = redirect_handler_port {
+            port
+        } else {
+            8080
+        };
+
+        REDIRECT_HANDLER_PORT.get_or_init(|| handler_port);
+    };
 
     info!(
         "Data directory for CodeCTRL: {}",
@@ -588,12 +715,6 @@ pub async fn run_server(
 
     let db_connection = Database::connect(format!("sqlite:{db_file}")).await?;
 
-    // TODO: Add the legacy server thread and manage it through the gPRC server.
-    let run_legacy_server = if run_legacy_server.is_some() {
-        run_legacy_server.unwrap()
-    } else {
-        false
-    };
     let host = if host.is_some() {
         host.unwrap()
     } else {
@@ -614,10 +735,6 @@ pub async fn run_server(
     };
 
     logs_service.start_backup_thread();
-
-    if run_legacy_server {
-        info!("Legacy server compatiblity not yet implemented");
-    }
 
     let server_service = LogServerService::new(logs_service.clone());
     let client_service = LogClientService::new(logs_service.clone());

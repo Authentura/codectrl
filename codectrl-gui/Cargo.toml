@@ -1,6 +1,6 @@
 [package]
 name = "codectrl-gui"
-version = "0.5.0-nightly"
+version = "1.0.0-beta"
 edition = "2021"
 authors = [
     "Authentura <contact@authentura.com>",
@@ -20,15 +20,17 @@ license = "MIT"
 authentura-egui-styling = { git = "https://github.com/Authentura/authentura-egui-styling", tag = "v0.3.0" }
 ciborium = "0.2"
 clap = { version = "3.1", features = ["cargo"] }
-codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.8.0" }
+codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.8.2" }
 eframe = { version = "0.19", features = ["persistence"] }
 egui = { version = "0.19", features = ["persistence"] }
 egui_extras = "0.19"
 flate2 = "1.0"
 lazy_static = "1.4"
+once_cell = "1.15.0"
+open = "3.0.3"
 regex = "1.5"
 serde = { version = "1.0", features = ["derive"] }
-syntect = { version = "4.2", default-features = false, features = ["default-fancy"]}
+syntect = { version = "5.0", default-features = false, features = ["default-fancy"]}
 xxhash-rust = { version = "0.8", features = ["xxh3"]}
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

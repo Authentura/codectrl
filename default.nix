@@ -25,6 +25,11 @@ pkgs.stdenv.mkDerivation rec {
   ];
 
   shellHook = ''
+    nix-channel --add https://github.com/guibou/nixGL/archive/main.tar.gz nixgl && nix-channel --update
+    nix-env -iA nixgl.auto.nixGLDefault
+
+    alias cargo="nixGL cargo"
+
     echo "Entered Nix-Shell environment..."
   '';
 }
