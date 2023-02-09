@@ -1,5 +1,7 @@
 use egui::{Context, Id};
 
+use crate::widgets::CopyableLabel;
+
 pub fn message_preview_view(
     is_open: &mut bool,
     ctx: &Context,
@@ -19,7 +21,9 @@ pub fn message_preview_view(
         .show(ctx, |ui| {
             let mut message = message.to_string();
 
-            ui.horizontal(|ui| ui.label(format!("Message type: {}", message_type)));
+            ui.horizontal(|ui| {
+                ui.add(CopyableLabel::new(format!("Message type: {message_type}")))
+            });
 
             egui::ScrollArea::vertical()
                 .max_height(ui.available_height())

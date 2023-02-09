@@ -13,6 +13,7 @@ mod components;
 mod consts;
 mod data;
 mod login;
+mod widgets;
 mod wrapper;
 
 #[cfg(not(target_arch = "wasm32"))]

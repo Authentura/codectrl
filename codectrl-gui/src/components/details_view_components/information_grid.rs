@@ -1,6 +1,7 @@
 use crate::{
     components::{details_view_components::code_highlighter, message_preview_view},
     data::AppState,
+    widgets::CopyableLabel,
 };
 
 use authentura_egui_styling::DARK_HEADER_FOREGROUND_COLOUR;
@@ -10,7 +11,7 @@ use egui::{
     text::LayoutJob, Align, Context, Layout, RichText, Sense, TextStyle, Ui, Vec2,
     WidgetText,
 };
-use egui_extras::{Size, TableBuilder};
+use egui_extras::{Column, TableBuilder};
 use xxhash_rust::xxh3::xxh3_128 as xxhash;
 
 pub fn draw_information_grid(app_state: &mut AppState, ctx: &Context, ui: &mut Ui) {
@@ -48,12 +49,12 @@ pub fn draw_information_grid(app_state: &mut AppState, ctx: &Context, ui: &mut U
 
     TableBuilder::new(ui)
         .column(
-            Size::initial(half_width)
+            Column::initial(half_width)
                 .at_least(100.0)
                 .at_most(half_width + 200.0),
         )
-        .column(Size::remainder().at_least(400.0))
-        .scroll(true)
+        .column(Column::remainder().at_least(400.0))
+        .vscroll(true)
         .resizable(true)
         .header(20.0, |mut header| {
             header.col(|ui| heading(ui, "Details"));
@@ -96,14 +97,19 @@ fn detail_scroll(
             ui.vertical(|ui| {
                 ui.horizontal(|ui| {
                     ui.label("Position:");
-                    ui.monospace(format!("{}:{}", &log.file_name, log.line_number));
+                    ui.add(CopyableLabel::new_monospace(&format!(
+                        "{}:{}",
+                        &log.file_name, log.line_number
+                    )));
                 });
 
                 ui.horizontal(|ui| {
                     ui.label("Message:");
 
                     if log.message.len() <= 200 {
-                        ui.monospace(log.message.replace('\"', ""));
+                        ui.add(CopyableLabel::new_monospace(
+                            &log.message.replace('\"', ""),
+                        ));
                     } else {
                         // u25b6 = ▶
                         if ui.button("View message \u{25b6}").clicked() {
@@ -122,17 +128,17 @@ fn detail_scroll(
 
                 ui.horizontal(|ui| {
                     ui.label("Message type:");
-                    ui.monospace(&log.message_type);
+                    ui.add(CopyableLabel::new_monospace(&log.message_type));
                 });
 
                 ui.horizontal(|ui| {
                     ui.label("Received at:");
-                    ui.label(time.format("%F %X").to_string());
+                    ui.add(CopyableLabel::new(time.format("%F %X").to_string()));
                 });
 
                 ui.horizontal(|ui| {
                     ui.label("Received from:");
-                    ui.monospace(&log.address);
+                    ui.add(CopyableLabel::new_monospace(&log.address));
                 });
 
                 ui.collapsing(

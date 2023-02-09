@@ -5,7 +5,7 @@ use authentura_egui_styling::{CODECTRL_GREEN, DARK_HEADER_FOREGROUND_COLOUR};
 use chrono::{DateTime, Local};
 use codectrl_protobuf_bindings::data::Log;
 use egui::{Context, Direction, Layout, RichText, TextStyle, Ui};
-use egui_extras::{Size, TableBuilder};
+use egui_extras::{Column, TableBuilder};
 use regex::RegexBuilder;
 
 fn app_state_filter(
@@ -102,12 +102,12 @@ pub fn main_view(app_state: &mut AppState, ctx: &Context) {
                         .cell_layout(Layout::centered_and_justified(
                             Direction::LeftToRight,
                         ))
-                        .column(Size::exact(110.0))
-                        .column(Size::remainder().at_least(200.0).at_most(500.0))
-                        .column(Size::initial(100.0).at_least(100.0).at_most(150.0))
-                        .column(Size::remainder().at_least(200.0).at_most(500.0))
-                        .column(Size::initial(120.0).at_least(120.0).at_most(150.0))
-                        .column(Size::remainder().at_least(50.0))
+                        .column(Column::exact(110.0))
+                        .column(Column::remainder().at_least(200.0).at_most(500.0))
+                        .column(Column::initial(100.0).at_least(100.0).at_most(150.0))
+                        .column(Column::remainder().at_least(200.0).at_most(500.0))
+                        .column(Column::initial(120.0).at_least(120.0).at_most(150.0))
+                        .column(Column::remainder().at_least(50.0))
                         .header(30.0, |mut header| {
                             header.col(|ui| heading(ui, ""));
                             header.col(|ui| heading(ui, "Message"));

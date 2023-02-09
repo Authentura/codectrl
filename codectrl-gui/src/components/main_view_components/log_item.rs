@@ -1,3 +1,4 @@
+// use crate::widgets::CopyableLabel;
 use chrono::{DateTime, Local};
 use codectrl_protobuf_bindings::data::Log;
 use egui::{Align, Color32, Label, RichText, Sense, Ui};
@@ -110,6 +111,7 @@ pub fn draw_log_item(
                 }
             });
         })
+        .1
         .interact(Sense::click()),
     );
 
@@ -118,6 +120,7 @@ pub fn draw_log_item(
             row.col(|ui| {
                 ui.add(label.wrap(true));
             })
+            .1
             .interact(Sense::click()),
         );
     }

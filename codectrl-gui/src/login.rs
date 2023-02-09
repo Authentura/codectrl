@@ -1,4 +1,4 @@
-use crate::wrapper::WrapperMsg;
+use crate::{widgets::CopyableLabel, wrapper::WrapperMsg};
 
 use authentura_egui_styling::{application_style, fonts, FontSizes};
 use codectrl_protobuf_bindings::{
@@ -157,10 +157,10 @@ impl Login {
                                 };
                             }
 
-                            ui.label(format!(
+                            ui.add(CopyableLabel::new(format!(
                                 "Registered client: {}",
                                 registered_client.uuid
-                            ))
+                            )))
                         },
                         None => ui.spinner(),
                     }
@@ -351,10 +351,10 @@ impl App for Login {
                                         };
                                     }
 
-                                    ui.label(format!(
+                                    ui.add(CopyableLabel::new(format!(
                                         "Registered client: {}",
                                         registered_client.uuid
-                                    ))
+                                    )))
                                 },
                                 None => ui.spinner(),
                             }

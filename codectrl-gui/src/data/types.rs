@@ -22,7 +22,7 @@ impl TimeFormatString {
 impl fmt::Display for TimeFormatString {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let strftime_items = StrftimeItems::new(&self.0);
-        let datetime = NaiveDateTime::from_timestamp(45296, 0);
+        let datetime = NaiveDateTime::from_timestamp_opt(45296, 0).unwrap_or_default();
 
         for item in strftime_items {
             if format_item(
