@@ -441,7 +441,7 @@ impl App {
     fn load_file_dialog(&mut self) {
         let file_path = Arc::new(Mutex::new(FileHandle::wrap(
             web_sys::File::new_with_str_sequence(
-                &wasm_bindgen::JsValue::from_serde(&vec![""]).unwrap(),
+                &serde_wasm_bindgen::to_value(&vec![""]).unwrap(),
                 "",
             )
             .unwrap(),

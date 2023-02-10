@@ -80,8 +80,14 @@ impl WebHandle {
 }
 
 #[cfg(target_arch = "wasm32")]
-pub async fn run(host: &'static str, port: &'static str) -> Result<(), JsValue> {
+pub async fn run(
+    host: &'static str,
+    port: &'static str,
+    canvas_id: Option<&str>,
+) -> Result<WebHandle, JsValue> {
     use eframe::WebOptions;
+
+    let canvas_id = canvas_id.unwrap_or("codectrl-root");
 
     console_error_panic_hook::set_once();
     tracing_wasm::set_as_global_default();
@@ -89,7 +95,7 @@ pub async fn run(host: &'static str, port: &'static str) -> Result<(), JsValue> 
     let grpc_client = GrpcClient::new(WasmClient::new(format!("http://{host}:{port}")));
 
     eframe::start_web(
-        "codectrl-root",
+        canvas_id,
         WebOptions::default(),
         Box::new(move |cc| {
             Box::new(App::new(&cc.egui_ctx, None, grpc_client, host, port))
@@ -97,7 +103,6 @@ pub async fn run(host: &'static str, port: &'static str) -> Result<(), JsValue> 
     )
     .await
     .map(|handle| WebHandle { handle })
-    .map(|_| ())
 }
 
 #[cfg(not(target_arch = "wasm32"))]

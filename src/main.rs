@@ -26,7 +26,7 @@ fn main() -> Result<(), eframe::wasm_bindgen::JsValue> {
     };
 
     wasm_bindgen_futures::spawn_local(async move {
-        _ = run(host, port).await;
+        _ = run(host, port, None).await;
     });
 
     Ok(())
