@@ -1,5 +1,5 @@
 use super::{main_view_components::draw_log_item, regex_filter};
-use crate::data::{AppState, Filter};
+use crate::data::{AppState, Filter, ISO_8601_TIME_FORMAT};
 
 use authentura_egui_styling::{CODECTRL_GREEN, DARK_HEADER_FOREGROUND_COLOUR};
 use chrono::{DateTime, Local};
@@ -30,7 +30,10 @@ fn app_state_filter(
 
     match filter_by {
         Filter::Message => string_filter(search_filter, &log.message),
-        Filter::Time => time.format("%F %X").to_string().contains(search_filter),
+        Filter::Time => time
+            .format(ISO_8601_TIME_FORMAT)
+            .to_string()
+            .contains(search_filter),
         Filter::FileName => string_filter(search_filter, &log.file_name),
         Filter::Address => {
             let regex = if let Ok(regex) =  RegexBuilder::new(

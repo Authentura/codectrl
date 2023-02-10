@@ -1,6 +1,6 @@
 use crate::{
     components::{details_view_components::code_highlighter, message_preview_view},
-    data::AppState,
+    data::{AppState, ISO_8601_TIME_FORMAT, LOCALE_TIME_FORMAT},
     widgets::CopyableLabel,
 };
 
@@ -132,8 +132,17 @@ fn detail_scroll(
                 });
 
                 ui.horizontal(|ui| {
-                    ui.label("Received at:");
-                    ui.add(CopyableLabel::new(time.format("%F %X").to_string()));
+                    ui.label("Received at (ISO-8601):");
+                    ui.add(CopyableLabel::new(
+                        time.format(ISO_8601_TIME_FORMAT).to_string(),
+                    ));
+                });
+
+                ui.horizontal(|ui| {
+                    ui.label("Received at (locale):");
+                    ui.add(CopyableLabel::new(
+                        time.format(LOCALE_TIME_FORMAT).to_string(),
+                    ));
                 });
 
                 ui.horizontal(|ui| {

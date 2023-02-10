@@ -1,4 +1,5 @@
 use super::{window_states::AboutState, ApplicationSettings, Filter, Received};
+use crate::data::DEFAULT_FILENAME_FORMAT;
 
 use authentura_egui_styling::dark_theme;
 use chrono::{DateTime, Local};
@@ -96,7 +97,7 @@ impl Default for AppState {
             message_alerts: BTreeSet::new(),
             session_timestamp: "".into(),
             application_settings: ApplicationSettings::default(),
-            filename_format: "session_%F %X".into(),
+            filename_format: DEFAULT_FILENAME_FORMAT.into(),
             preserve_session: true,
             code_hash: 0,
             code_job: egui::text::LayoutJob::default(),

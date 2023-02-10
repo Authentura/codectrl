@@ -1,3 +1,5 @@
+use crate::data::DEFAULT_FILENAME_FORMAT;
+
 use authentura_egui_styling::FontSizes;
 use serde::{Deserialize, Serialize};
 
@@ -13,7 +15,7 @@ impl Default for ApplicationSettings {
         Self {
             font_sizes: FontSizes::default(),
             do_autosave: false,
-            filename_format: "session_%F %X".into(),
+            filename_format: DEFAULT_FILENAME_FORMAT.into(),
         }
     }
 }

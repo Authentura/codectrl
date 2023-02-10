@@ -1,4 +1,5 @@
-// use crate::widgets::CopyableLabel;
+use crate::data::ISO_8601_TIME_FORMAT;
+
 use chrono::{DateTime, Local};
 use codectrl_protobuf_bindings::data::Log;
 use egui::{Align, Color32, Label, RichText, Sense, Ui};
@@ -76,7 +77,7 @@ pub fn draw_log_item(
             Label::new(RichText::new(&log.file_name).monospace())
         },
         Label::new(RichText::new(format!("{}", log.line_number)).monospace()),
-        Label::new(time.format("%F %X").to_string()),
+        Label::new(time.format(ISO_8601_TIME_FORMAT).to_string()),
     ];
 
     let mut responses = vec![];
