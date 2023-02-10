@@ -97,7 +97,7 @@ fn detail_scroll(
             ui.vertical(|ui| {
                 ui.horizontal(|ui| {
                     ui.label("Position:");
-                    ui.add(CopyableLabel::new_monospace(&format!(
+                    ui.add(CopyableLabel::new_monospace(format!(
                         "{}:{}",
                         &log.file_name, log.line_number
                     )));
@@ -108,7 +108,7 @@ fn detail_scroll(
 
                     if log.message.len() <= 200 {
                         ui.add(CopyableLabel::new_monospace(
-                            &log.message.replace('\"', ""),
+                            log.message.replace('\"', ""),
                         ));
                     } else {
                         // u25b6 = ▶
@@ -163,7 +163,7 @@ fn detail_scroll(
                                 ui.horizontal(|ui| {
                                     ui.label(RichText::new("Position:").strong());
 
-                                    ui.add(CopyableLabel::new_monospace(&format!(
+                                    ui.add(CopyableLabel::new_monospace(format!(
                                         "{}:{} column {}",
                                         stack.file_path,
                                         stack.line_number,

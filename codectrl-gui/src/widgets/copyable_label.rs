@@ -2,7 +2,10 @@ use crate::TOASTS;
 
 use egui::{RichText, WidgetText};
 use egui_toast::ToastOptions;
-use std::time::{Duration, Instant};
+use std::{
+    borrow::Cow,
+    time::{Duration, Instant},
+};
 
 pub struct CopyableLabel {
     data: WidgetText,
@@ -13,8 +16,8 @@ impl CopyableLabel {
         Self { data: data.into() }
     }
 
-    pub fn new_monospace(data: &str) -> Self {
-        let rt = RichText::new(data).monospace();
+    pub fn new_monospace<'a>(data: impl Into<Cow<'a, str>>) -> Self {
+        let rt = RichText::new(data.into()).monospace();
 
         Self { data: rt.into() }
     }
