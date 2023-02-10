@@ -54,6 +54,7 @@ impl<'a> Wrapper<'a> {
 impl<'a> eframe::App for Wrapper<'a> {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         let msg = self.msg.borrow().clone();
+        egui::gui_zoom::zoom_with_keyboard_shortcuts(ctx, None);
 
         match msg {
             WrapperMsg::LogOut =>

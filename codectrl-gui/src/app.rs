@@ -8,8 +8,6 @@ use crate::{
 #[cfg(not(target_arch = "wasm32"))]
 use crate::{wrapper::WrapperMsg, TOASTS};
 
-#[cfg(not(target_arch = "wasm32"))]
-use authentura_egui_styling::FontSizes;
 use authentura_egui_styling::{application_style, fonts};
 use chrono::{DateTime, Local};
 use ciborium::de as ciborium_de;
@@ -275,34 +273,36 @@ impl App {
         for event in &input_state.events {
             match event {
                 // zoom bindings
-                Event::Key {
-                    key,
-                    pressed,
-                    modifiers,
-                } if *pressed
-                    && *key == Key::PageUp
-                    && (modifiers.ctrl || modifiers.mac_cmd) =>
-                {
-                    self.state.application_settings.font_sizes.scale(1.0);
-                },
-                Event::Key {
-                    key,
-                    pressed,
-                    modifiers,
-                } if *pressed
-                    && *key == Key::PageDown
-                    && (modifiers.ctrl || modifiers.mac_cmd) =>
-                    self.state.application_settings.font_sizes.scale(-1.0),
-                Event::Key {
-                    key,
-                    pressed,
-                    modifiers,
-                } if *pressed
-                    && *key == Key::Num0
-                    && (modifiers.ctrl || modifiers.mac_cmd) =>
-                {
-                    self.state.application_settings.font_sizes = FontSizes::default();
-                },
+                // Event::Key {
+                //     key,
+                //     pressed,
+                //     modifiers,
+                // } if *pressed
+                //     && *key == Key::PlusEquals
+                //     && (modifiers.ctrl || modifiers.mac_cmd) =>
+                // {
+                //     egui::gui_zoom::zoom_in(&context);
+                // },
+                // Event::Key {
+                //     key,
+                //     pressed,
+                //     modifiers,
+                // } if *pressed
+                //     && *key == Key::Minus
+                //     && (modifiers.ctrl || modifiers.mac_cmd) =>
+                //     egui::gui_zoom::zoom_with_keyboard_shortcuts(&context);
+                // Event::Key {
+                //     key,
+                //     pressed,
+                //     modifiers,
+                // } if *pressed
+                //     && *key == Key::Num0
+                //     && (modifiers.ctrl || modifiers.mac_cmd) =>
+                // {
+                //     // self.state.application_settings.font_sizes =
+                // FontSizes::default();
+
+                // },
                 Event::Zoom(zoom_delta) =>
                     if *zoom_delta > 1.0 {
                         self.state.application_settings.font_sizes.scale(1.0);
