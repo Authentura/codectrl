@@ -154,18 +154,18 @@ fn detail_scroll(
                                 ui.horizontal(|ui| {
                                     ui.label(RichText::new("Position:").strong());
 
-                                    ui.monospace(format!(
+                                    ui.add(CopyableLabel::new_monospace(&format!(
                                         "{}:{} column {}",
                                         stack.file_path,
                                         stack.line_number,
                                         stack.column_number
-                                    ));
+                                    )));
                                 });
 
                                 ui.horizontal(|ui| {
                                     ui.label(RichText::new("Code:").strong());
 
-                                    ui.monospace(&stack.code);
+                                    ui.add(CopyableLabel::new_monospace(&stack.code));
                                 });
                             });
                         }
@@ -175,7 +175,10 @@ fn detail_scroll(
                 if !log.warnings.is_empty() {
                     ui.collapsing(format!("{} Warning(s)", log.warnings.len()), |ui| {
                         for (index, warning) in log.warnings.iter().enumerate() {
-                            ui.label(format!("{}. {}", index + 1, warning));
+                            ui.add(CopyableLabel::new(format!(
+                                "{}. {warning}",
+                                index + 1
+                            )));
                         }
                     });
                 }

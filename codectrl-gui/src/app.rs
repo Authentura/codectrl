@@ -4,11 +4,8 @@ use crate::{
     components::{about_view, details_view, main_view, main_view_empty, settings_view},
     data::{AppState, Filter},
     wrapper::WrapperMsg,
+    TOASTS,
 };
-#[cfg(not(target_arch = "wasm32"))]
-use log::info;
-#[cfg(target_arch = "wasm32")]
-use tracing::info;
 
 #[cfg(not(target_arch = "wasm32"))]
 use authentura_egui_styling::FontSizes;
@@ -35,6 +32,8 @@ use futures_channel::oneshot::{channel, Receiver};
 #[cfg(target_arch = "wasm32")]
 use grpc_web_client::Client as WasmClient;
 #[cfg(not(target_arch = "wasm32"))]
+use log::info;
+#[cfg(not(target_arch = "wasm32"))]
 use poll_promise::Promise;
 #[cfg(target_arch = "wasm32")]
 use rfd::{AsyncFileDialog as FileDialog, FileHandle, MessageDialog};
@@ -60,6 +59,8 @@ use tokio::runtime::Handle;
 use tonic::transport::Channel;
 #[cfg(not(target_arch = "wasm32"))]
 use tonic::{Response, Status};
+#[cfg(target_arch = "wasm32")]
+use tracing::info;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_futures::spawn_local;
 #[cfg(target_arch = "wasm32")]
@@ -551,6 +552,9 @@ impl App {
 impl eframe::App for App {
     #[allow(clippy::used_underscore_binding)]
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
+        let binding = unsafe { &mut TOASTS };
+        let toasts = binding.get_mut();
+
         #[cfg(not(target_arch = "wasm32"))]
         self.handle_key_inputs(&ctx.input());
 
@@ -749,6 +753,10 @@ impl eframe::App for App {
                 });
 
                 ui.add_space(2.0);
+
+                if let Some(toasts) = toasts {
+                    toasts.borrow_mut().show(ctx);
+                }
             });
 
         let is_empty = {

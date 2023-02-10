@@ -22,7 +22,7 @@ ciborium = "0.2"
 clap = { version = "3.1", features = ["cargo"] }
 codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.8.2" }
 eframe = { version = "0.20", features = ["persistence"] }
-egui = { version = "0.20", features = ["persistence"] }
+egui = { version = "0.20", features = ["persistence", "deadlock_detection"] }
 egui_extras = "0.20"
 egui-toast = "0.5"
 flate2 = "1.0"
@@ -62,7 +62,7 @@ anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 codectrl-server = { path = "../codectrl-server" }
 console-subscriber = "0.1.7"
-egui_glow = "0.20"
+egui_glow = { version = "0.20", features = ["clipboard", "winit", "links"] }
 env_logger = "0.9.0"
 log = "0.4.17"
 poll-promise = { version = "0.1", features = ["tokio"] }

@@ -22,20 +22,34 @@ use clap::{crate_authors, crate_name, crate_version, Arg, Command};
 use codectrl_server::run_server;
 #[cfg(target_arch = "wasm32")]
 use eframe::wasm_bindgen::JsValue;
+use egui_toast::Toasts;
 #[cfg(target_arch = "wasm32")]
 use grpc_web_client::Client;
+use once_cell::unsync::OnceCell;
 #[cfg(not(target_arch = "wasm32"))]
 use rfd::MessageDialog;
+use std::cell::RefCell;
 #[cfg(not(target_arch = "wasm32"))]
 use std::{collections::HashMap, env, path::Path};
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::runtime::Handle;
 use wrapper::Wrapper;
 
+pub static mut TOASTS: OnceCell<RefCell<Toasts>> = OnceCell::new();
+
 #[cfg(target_arch = "wasm32")]
 pub fn run(host: &'static str, port: &'static str) -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
     tracing_wasm::set_as_global_default();
+
+    let binding = TOASTS;
+    binding.get_or_init(|| {
+        RefCell::new(
+            Toasts::new()
+                .anchor((0.0, 0.0))
+                .direction(egui::Direction::BottomUp),
+        )
+    });
 
     let grpc_client = LogServerClient::new(Client::new(format!("http://{host}:{port}")));
 
@@ -51,6 +65,15 @@ pub async fn run() {
     #[cfg(debug_assertions)]
     console_subscriber::init();
     env_logger::try_init().ok();
+
+    let binding = unsafe { &TOASTS };
+    binding.get_or_init(|| {
+        RefCell::new(
+            Toasts::new()
+                .anchor((0.0, 0.0))
+                .direction(egui::Direction::TopDown),
+        )
+    });
 
     let command_line = env::vars().collect::<HashMap<String, String>>();
 
