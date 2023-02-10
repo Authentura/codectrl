@@ -1,31 +1,17 @@
-#[cfg(not(target_arch = "wasm32"))]
-use crate::{app::App, login::Login};
-use codectrl_protobuf_bindings::logs_service::{
-    log_server_client::LogServerClient as Client, Connection,
-};
-use std::{cell::RefCell, collections::HashMap, path::PathBuf, sync::Arc};
-#[cfg(not(target_arch = "wasm32"))]
-use tokio::runtime::Handle;
-#[cfg(not(target_arch = "wasm32"))]
-use tonic::transport::Channel;
+#![cfg(not(target_arch = "wasm32"))]
 
-#[cfg(not(target_arch = "wasm32"))]
-type GrpcClient = Client<Channel>;
+use crate::{app::App, login::Login, GrpcClient};
+use codectrl_protobuf_bindings::logs_service::Connection;
+use std::{cell::RefCell, collections::HashMap, path::PathBuf, sync::Arc};
+use tokio::runtime::Handle;
 
 #[derive(Default, Debug, Clone)]
 pub enum WrapperMsg {
     LogOut,
     LogIn,
-    #[cfg(not(target_arch = "wasm32"))]
     Main {
         grpc_client: GrpcClient,
         grpc_client_connection: Connection,
-    },
-    #[cfg(target_arch = "wasm32")]
-    Main {
-        grpc_client: GrpcClient,
-        server_host: &'static str,
-        server_port: &'static str,
     },
     #[default]
     NoOp,
@@ -47,6 +33,7 @@ pub struct Wrapper<'a> {
     selected_state: &'static str,
     msg: Arc<RefCell<WrapperMsg>>,
     handle: Arc<Handle>,
+
     preload_project: PathBuf,
 }
 

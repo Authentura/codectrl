@@ -3,9 +3,10 @@ use crate::data::Received;
 use crate::{
     components::{about_view, details_view, main_view, main_view_empty, settings_view},
     data::{AppState, Filter},
-    wrapper::WrapperMsg,
-    TOASTS,
+    GrpcClient,
 };
+#[cfg(not(target_arch = "wasm32"))]
+use crate::{wrapper::WrapperMsg, TOASTS};
 
 #[cfg(not(target_arch = "wasm32"))]
 use authentura_egui_styling::FontSizes;
@@ -16,9 +17,7 @@ use ciborium::de as ciborium_de;
 use ciborium::ser as ciborium_ser;
 use codectrl_protobuf_bindings::{
     data::Log,
-    logs_service::{
-        log_server_client::LogServerClient as Client, Connection, ServerDetails,
-    },
+    logs_service::{Connection, ServerDetails},
 };
 use eframe::{Frame, Storage};
 use egui::{Context, Vec2};
@@ -29,8 +28,6 @@ use flate2::bufread;
 use flate2::{write, Compression};
 #[cfg(target_arch = "wasm32")]
 use futures_channel::oneshot::{channel, Receiver};
-#[cfg(target_arch = "wasm32")]
-use grpc_web_client::Client as WasmClient;
 #[cfg(not(target_arch = "wasm32"))]
 use log::info;
 #[cfg(not(target_arch = "wasm32"))]
@@ -43,9 +40,11 @@ use serde::{Deserialize, Serialize};
 #[cfg(target_arch = "wasm32")]
 use std::sync::Mutex;
 #[cfg(not(target_arch = "wasm32"))]
-use std::time::{Duration, Instant};
 use std::{
     cell::RefCell,
+    time::{Duration, Instant},
+};
+use std::{
     collections::{BTreeSet, VecDeque},
     error::Error,
     io::{BufReader, Error as IOError, ErrorKind},
@@ -55,8 +54,6 @@ use std::{
 use std::{fs::File, io::Write, path::Path};
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::runtime::Handle;
-#[cfg(not(target_arch = "wasm32"))]
-use tonic::transport::Channel;
 #[cfg(not(target_arch = "wasm32"))]
 use tonic::{Response, Status};
 #[cfg(target_arch = "wasm32")]
@@ -76,11 +73,6 @@ pub struct Session {
     pub received: VecDeque<(Log, DateTime<Local>)>,
     pub message_alerts: BTreeSet<String>,
 }
-
-#[cfg(not(target_arch = "wasm32"))]
-type GrpcClient = Client<Channel>;
-#[cfg(target_arch = "wasm32")]
-type GrpcClient = Client<WasmClient>;
 
 #[cfg(target_arch = "wasm32")]
 fn yield_loop() {
@@ -119,6 +111,7 @@ fn get_server_logs(
     mut grpc_client: GrpcClient,
     grpc_client_connection: Connection,
     received: Received,
+    context: Context,
 ) {
     let task = executor::spawn(async move {
         info!("Starting logs loop...");
@@ -131,6 +124,7 @@ fn get_server_logs(
                         .write()
                         .unwrap()
                         .push_front((message.clone(), Local::now()));
+                    context.request_repaint();
                     executor::yield_animation_frame().await;
                 }
             }
@@ -162,6 +156,7 @@ pub struct App {
     #[serde(skip)]
     server_port: &'static str,
     #[serde(skip)]
+    #[cfg(not(target_arch = "wasm32"))]
     wrapper_msg: Option<Arc<RefCell<WrapperMsg>>>,
 }
 
@@ -202,6 +197,7 @@ impl App {
         let received = Arc::clone(&app.state.received);
 
         ctx.set_visuals(app.state.current_theme.clone());
+        let context_clone = ctx.clone();
 
         let mut grpc_client = app.grpc_client.clone().unwrap();
         let grpc_client_connection =
@@ -223,6 +219,8 @@ impl App {
                             .write()
                             .unwrap()
                             .push_front((message.clone(), Local::now()));
+
+                        context_clone.request_repaint();
                     }
                 }
             }
@@ -552,7 +550,9 @@ impl App {
 impl eframe::App for App {
     #[allow(clippy::used_underscore_binding)]
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
+        #[cfg(not(target_arch = "wasm32"))]
         let binding = unsafe { &mut TOASTS };
+        #[cfg(not(target_arch = "wasm32"))]
         let toasts = binding.get_mut();
 
         #[cfg(not(target_arch = "wasm32"))]
@@ -565,11 +565,13 @@ impl eframe::App for App {
                 let grpc_client_connection = grpc_client_connection.clone();
 
                 self.started_logs_loop = true;
+                let context_clone = ctx.clone();
 
                 get_server_logs(
                     grpc_client,
                     grpc_client_connection,
                     Arc::clone(&self.state.received),
+                    context_clone,
                 );
             }
         } else {
@@ -644,6 +646,8 @@ impl eframe::App for App {
                         }
 
                         ui.separator();
+
+                        #[cfg(not(target_arch = "wasm32"))]
                         if ui.button("Log out").clicked() {
                             if let Some(wrapper_msg) = self.wrapper_msg.as_deref() {
                                 if let Ok(mut wrapper_msg) = wrapper_msg.try_borrow_mut()
@@ -754,6 +758,7 @@ impl eframe::App for App {
 
                 ui.add_space(2.0);
 
+                #[cfg(not(target_arch = "wasm32"))]
                 if let Some(toasts) = toasts {
                     toasts.borrow_mut().show(ctx);
                 }
@@ -790,8 +795,6 @@ impl eframe::App for App {
         } else {
             self.state.preview_height = 0.0;
         }
-
-        ctx.request_repaint();
     }
 
     fn max_size_points(&self) -> egui::Vec2 {

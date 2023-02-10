@@ -18,7 +18,9 @@ homepage = "https://codectrl.authentura.com"
 codectrl-gui = { path = "./codectrl-gui" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-eframe = "0.18"
+eframe = "0.20"
+wasm-rs-async-executor = { version = "0.9.0", features = ["cooperative"] }
+wasm-bindgen-futures = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 dotenv = "0.15.0"

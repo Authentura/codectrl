@@ -327,12 +327,38 @@ dependencies = [
 ]
 
 [[package]]
-name = "codectrl-protobuf-bindings"
-version = "0.8.0"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.2#d4bbbc63d9b9a6d73c60126978c915bfacde6822"
+name = "codectrl-bindings-native"
+version = "0.0.0"
+source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.3#8abafe7646555466cc65bc339eb60e3d8367fe82"
 dependencies = [
- "native",
- "web",
+ "prost",
+ "prost-build",
+ "serde",
+ "tonic",
+ "tonic-build",
+ "uuid",
+]
+
+[[package]]
+name = "codectrl-bindings-web"
+version = "0.0.0"
+source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.3#8abafe7646555466cc65bc339eb60e3d8367fe82"
+dependencies = [
+ "prost",
+ "prost-build",
+ "serde",
+ "tonic",
+ "tonic-build",
+ "uuid",
+]
+
+[[package]]
+name = "codectrl-protobuf-bindings"
+version = "0.8.3"
+source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.3#8abafe7646555466cc65bc339eb60e3d8367fe82"
+dependencies = [
+ "codectrl-bindings-native",
+ "codectrl-bindings-web",
 ]
 
 [[package]]
@@ -1182,19 +1208,6 @@ dependencies = [
  "safemem",
  "tempfile",
  "twoway",
-]
-
-[[package]]
-name = "native"
-version = "0.0.0"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.2#d4bbbc63d9b9a6d73c60126978c915bfacde6822"
-dependencies = [
- "prost",
- "prost-build",
- "serde",
- "tonic",
- "tonic-build",
- "uuid",
 ]
 
 [[package]]
@@ -2813,19 +2826,6 @@ name = "wasm-bindgen-shared"
 version = "0.2.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c38c045535d93ec4f0b4defec448e4291638ee608530863b1e2ba115d4fff7f"
-
-[[package]]
-name = "web"
-version = "0.0.0"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.2#d4bbbc63d9b9a6d73c60126978c915bfacde6822"
-dependencies = [
- "prost",
- "prost-build",
- "serde",
- "tonic",
- "tonic-build",
- "uuid",
-]
 
 [[package]]
 name = "web-sys"

@@ -1,3 +1,5 @@
+#![cfg(not(target_arch = "wasm32"))]
+
 use crate::{widgets::CopyableLabel, wrapper::WrapperMsg};
 
 use authentura_egui_styling::{application_style, fonts, FontSizes};
@@ -12,13 +14,12 @@ use egui::{
 };
 use once_cell::race::OnceBool;
 use poll_promise::Promise;
-use std::time::{Duration, Instant};
-#[cfg(not(target_arch = "wasm32"))]
-use std::{cell::RefCell, sync::Arc};
-#[cfg(not(target_arch = "wasm32"))]
-use tokio::runtime::Handle;
-use tokio::task::JoinHandle;
-#[cfg(not(target_arch = "wasm32"))]
+use std::{
+    cell::RefCell,
+    sync::Arc,
+    time::{Duration, Instant},
+};
+use tokio::{runtime::Handle, task::JoinHandle};
 use tonic::transport::Channel;
 
 static GITHUB_BUTTON_HAS_BEEN_CLICKED: OnceBool = OnceBool::new();
@@ -189,7 +190,6 @@ fn responsive_row(ctx: &Context, ui: &mut Ui, text: &str, data: &mut String) {
 
 impl App for Login {
     fn update(&mut self, ctx: &Context, frame: &mut Frame) {
-        #[cfg(not(target_arch = "wasm32"))]
         TopBottomPanel::top("top_bar")
             .resizable(false)
             .default_height(200.0)
@@ -226,7 +226,6 @@ impl App for Login {
                 .button(if self.is_local { "Start" } else { "Login" })
                 .clicked()
             {
-                #[cfg(not(target_arch = "wasm32"))]
                 {
                     let fun = || {
                         let (sender, promise) = Promise::new();

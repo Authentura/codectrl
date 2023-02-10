@@ -16,47 +16,88 @@ mod login;
 mod widgets;
 mod wrapper;
 
+#[cfg(target_arch = "wasm32")]
+use crate::app::App;
+
 #[cfg(not(target_arch = "wasm32"))]
 use clap::{crate_authors, crate_name, crate_version, Arg, Command};
+use codectrl_protobuf_bindings::logs_service::log_server_client::LogServerClient as Client;
 #[cfg(not(target_arch = "wasm32"))]
 use codectrl_server::run_server;
 #[cfg(target_arch = "wasm32")]
 use eframe::wasm_bindgen::JsValue;
+#[cfg(target_arch = "wasm32")]
+use eframe::wasm_bindgen::{self, prelude::*};
+#[cfg(target_arch = "wasm32")]
+use eframe::web::AppRunnerRef;
+#[cfg(not(target_arch = "wasm32"))]
 use egui_toast::Toasts;
 #[cfg(target_arch = "wasm32")]
-use grpc_web_client::Client;
+use grpc_web_client::Client as WasmClient;
+#[cfg(not(target_arch = "wasm32"))]
 use once_cell::unsync::OnceCell;
 #[cfg(not(target_arch = "wasm32"))]
 use rfd::MessageDialog;
+#[cfg(not(target_arch = "wasm32"))]
 use std::cell::RefCell;
 #[cfg(not(target_arch = "wasm32"))]
 use std::{collections::HashMap, env, path::Path};
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::runtime::Handle;
+#[cfg(not(target_arch = "wasm32"))]
+use tonic::transport::Channel;
+#[cfg(not(target_arch = "wasm32"))]
 use wrapper::Wrapper;
 
+#[cfg(not(target_arch = "wasm32"))]
 pub static mut TOASTS: OnceCell<RefCell<Toasts>> = OnceCell::new();
 
+#[cfg(not(target_arch = "wasm32"))]
+type GrpcClient = Client<Channel>;
 #[cfg(target_arch = "wasm32")]
-pub fn run(host: &'static str, port: &'static str) -> Result<(), JsValue> {
+type GrpcClient = Client<WasmClient>;
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub struct WebHandle {
+    handle: AppRunnerRef,
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+impl WebHandle {
+    #[wasm_bindgen]
+    pub fn stop_web(&self) -> Result<(), wasm_bindgen::JsValue> {
+        let mut app = self.handle.lock();
+        app.destroy()
+    }
+
+    #[wasm_bindgen]
+    pub fn set_some_content_from_javasript(&mut self, _some_data: &str) {
+        let _app = self.handle.lock().app_mut::<App>();
+        // _app.data = some_data;
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+pub async fn run(host: &'static str, port: &'static str) -> Result<(), JsValue> {
+    use eframe::WebOptions;
+
     console_error_panic_hook::set_once();
     tracing_wasm::set_as_global_default();
 
-    let binding = TOASTS;
-    binding.get_or_init(|| {
-        RefCell::new(
-            Toasts::new()
-                .anchor((0.0, 0.0))
-                .direction(egui::Direction::BottomUp),
-        )
-    });
-
-    let grpc_client = LogServerClient::new(Client::new(format!("http://{host}:{port}")));
+    let grpc_client = GrpcClient::new(WasmClient::new(format!("http://{host}:{port}")));
 
     eframe::start_web(
         "codectrl-root",
-        Box::new(move |cc| Box::new(App::new(cc, grpc_client, host, port))),
+        WebOptions::default(),
+        Box::new(move |cc| {
+            Box::new(App::new(&cc.egui_ctx, None, grpc_client, host, port))
+        }),
     )
+    .await
+    .map(|handle| WebHandle { handle })
+    .map(|_| ())
 }
 
 #[cfg(not(target_arch = "wasm32"))]

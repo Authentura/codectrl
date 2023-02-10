@@ -24,11 +24,9 @@ codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rus
 eframe = { version = "0.20", features = ["persistence"] }
 egui = { version = "0.20", features = ["persistence"] }
 egui_extras = "0.20"
-egui-toast = "0.5"
 flate2 = "1.0"
 lazy_static = "1.4"
 once_cell = "1.15.0"
-open = "3.0.3"
 regex = "1.5"
 serde = { version = "1.0", features = ["derive"] }
 syntect = { version = "5.0", default-features = false, features = [
@@ -63,8 +61,10 @@ chrono = { version = "0.4", features = ["serde"] }
 codectrl-server = { path = "../codectrl-server" }
 console-subscriber = "0.1.7"
 egui_glow = { version = "0.20", features = ["clipboard", "winit", "links"] }
+egui-toast = "0.5"
 env_logger = "0.9.0"
 log = "0.4.17"
+open = "3.0.3"
 poll-promise = { version = "0.1", features = ["tokio"] }
 rfd = "0.8"
 tokio = { version = "1.17", default-features = false, features = [

@@ -87,11 +87,14 @@ fn app_state_filter(
 
 pub fn main_view(app_state: &mut AppState, ctx: &Context) {
     egui::CentralPanel::default().show(ctx, |ui| {
+        let max_rect = ui.max_rect();
+
         ui.vertical_centered(|ui| {
             egui::ScrollArea::vertical()
                 .max_height(ui.available_height() - app_state.preview_height)
-                .auto_shrink([false, false])
-                .scroll2([true, false])
+                .max_width(ui.available_width())
+                .auto_shrink([true; 2])
+                .scroll2([true; 2])
                 .show(ui, |ui| {
                     let heading = |ui: &mut Ui, text| {
                         ui.heading(
@@ -99,18 +102,23 @@ pub fn main_view(app_state: &mut AppState, ctx: &Context) {
                         );
                     };
 
-                    TableBuilder::new(ui)
+                    let available_height = ui.available_height();
+
+                    let mut table = TableBuilder::new(ui)
                         .striped(true)
-                        .resizable(true)
+                        .resizable(false)
+                        .auto_shrink([true; 2])
+                        .max_scroll_height(available_height)
+                        .min_scrolled_height(0.0)
                         .cell_layout(Layout::centered_and_justified(
                             Direction::LeftToRight,
                         ))
-                        .column(Column::exact(110.0))
-                        .column(Column::remainder().at_least(200.0).at_most(500.0))
-                        .column(Column::initial(100.0).at_least(100.0).at_most(150.0))
-                        .column(Column::remainder().at_least(200.0).at_most(500.0))
-                        .column(Column::initial(120.0).at_least(120.0).at_most(150.0))
-                        .column(Column::remainder().at_least(50.0))
+                        .column(Column::exact(20.0))
+                        .column(Column::remainder())
+                        .column(Column::exact(150.0))
+                        .column(Column::remainder())
+                        .column(Column::exact(150.0))
+                        .column(Column::auto())
                         .header(30.0, |mut header| {
                             header.col(|ui| heading(ui, ""));
                             header.col(|ui| heading(ui, "Message"));
@@ -118,43 +126,45 @@ pub fn main_view(app_state: &mut AppState, ctx: &Context) {
                             header.col(|ui| heading(ui, "File name"));
                             header.col(|ui| heading(ui, "Line number"));
                             header.col(|ui| heading(ui, "Date & time"));
-                        })
-                        .body(|mut body| {
-                            let received_vec = app_state.received.read().unwrap();
-                            let mut received_vec: Vec<_> = received_vec.iter().collect();
+                        });
 
-                            received_vec.sort_by(|(_, a_time), (_, b_time)| {
-                                if app_state.is_newest_first {
-                                    b_time.partial_cmp(a_time).unwrap()
-                                } else {
-                                    a_time.partial_cmp(b_time).unwrap()
-                                }
-                            });
+                    table.ui_mut().set_max_width(max_rect.width());
 
-                            for received in received_vec.iter().filter(|(log, time)| {
-                                app_state_filter(
-                                    app_state.is_case_sensitive,
-                                    app_state.is_using_regex,
-                                    &app_state.search_filter,
-                                    &app_state.filter_by,
-                                    log,
-                                    time,
-                                )
-                            }) {
-                                body.row(40.0, |mut row| {
-                                    draw_log_item(
-                                        &app_state.message_alerts,
-                                        &mut app_state.clicked_item,
-                                        app_state.do_scroll_to_selected_log,
-                                        received,
-                                        &mut row,
-                                    );
-                                });
+                    table.body(|mut body| {
+                        let received_vec = app_state.received.read().unwrap();
+                        let mut received_vec: Vec<_> = received_vec.iter().collect();
+
+                        received_vec.sort_by(|(_, a_time), (_, b_time)| {
+                            if app_state.is_newest_first {
+                                b_time.partial_cmp(a_time).unwrap()
+                            } else {
+                                a_time.partial_cmp(b_time).unwrap()
                             }
                         });
+
+                        for received in received_vec.iter().filter(|(log, time)| {
+                            app_state_filter(
+                                app_state.is_case_sensitive,
+                                app_state.is_using_regex,
+                                &app_state.search_filter,
+                                &app_state.filter_by,
+                                log,
+                                time,
+                            )
+                        }) {
+                            body.row(60.0, |mut row| {
+                                draw_log_item(
+                                    &app_state.message_alerts,
+                                    &mut app_state.clicked_item,
+                                    app_state.do_scroll_to_selected_log,
+                                    received,
+                                    &mut row,
+                                );
+                            });
+                        }
+                    });
                 });
         });
-        // });
     });
 }
 
@@ -170,8 +180,7 @@ pub fn main_view_empty(ctx: &Context, socket_address: &str) {
             ui.add_space(ui.available_height() / 3.0);
 
             ui.heading(format!(
-                "Send logs to {} and they will appear here.",
-                socket_address
+                "Send logs to {socket_address} and they will appear here."
             ));
         });
     });

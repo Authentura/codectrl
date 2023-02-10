@@ -25,7 +25,9 @@ fn main() -> Result<(), eframe::wasm_bindgen::JsValue> {
         "3002"
     };
 
-    let _res = run(host, port);
+    wasm_bindgen_futures::spawn_local(async move {
+        _ = run(host, port).await;
+    });
 
     Ok(())
 }
