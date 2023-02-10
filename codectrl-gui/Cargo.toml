@@ -68,7 +68,7 @@ log = "0.4.17"
 open = "3.0.3"
 poll-promise = { version = "0.1", features = ["tokio"] }
 rfd = "0.8"
-tokio = { version = "1.17", default-features = false, features = [
+tokio = { version = "1.24", default-features = false, features = [
     "net",
     "rt-multi-thread",
     "io-util",
