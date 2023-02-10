@@ -87,15 +87,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "addr2line"
-version = "0.19.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a76fd60b23679b7d19bd066031410fb7e458ccc5e958eb5c325888ce4baedc97"
-dependencies = [
- "gimli",
-]
-
-[[package]]
 name = "adler"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -388,21 +379,6 @@ dependencies = [
  "rustversion",
  "tower-layer",
  "tower-service",
-]
-
-[[package]]
-name = "backtrace"
-version = "0.3.67"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "233d376d6d185f2a3093e58f283f60f880315b6c60075b01f36b3b85154564ca"
-dependencies = [
- "addr2line",
- "cc",
- "cfg-if 1.0.0",
- "libc",
- "miniz_oxide",
- "object",
- "rustc-demangle",
 ]
 
 [[package]]
@@ -826,6 +802,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "codectrl-bindings-native"
+version = "0.0.0"
+source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.3#8abafe7646555466cc65bc339eb60e3d8367fe82"
+dependencies = [
+ "prost 0.10.4",
+ "prost-build",
+ "serde",
+ "tonic 0.7.2",
+ "tonic-build",
+ "uuid",
+]
+
+[[package]]
+name = "codectrl-bindings-web"
+version = "0.0.0"
+source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.3#8abafe7646555466cc65bc339eb60e3d8367fe82"
+dependencies = [
+ "prost 0.10.4",
+ "prost-build",
+ "serde",
+ "tonic 0.7.2",
+ "tonic-build",
+ "uuid",
+]
+
+[[package]]
 name = "codectrl-gui"
 version = "1.0.0-beta"
 dependencies = [
@@ -871,11 +873,11 @@ dependencies = [
 
 [[package]]
 name = "codectrl-protobuf-bindings"
-version = "0.8.0"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.2#d4bbbc63d9b9a6d73c60126978c915bfacde6822"
+version = "0.8.3"
+source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.3#8abafe7646555466cc65bc339eb60e3d8367fe82"
 dependencies = [
- "native",
- "web",
+ "codectrl-bindings-native",
+ "codectrl-bindings-web",
 ]
 
 [[package]]
@@ -1669,7 +1671,6 @@ dependencies = [
  "ab_glyph",
  "ahash 0.8.2",
  "atomic_refcell",
- "backtrace",
  "bytemuck",
  "ecolor",
  "emath 0.20.0",
@@ -1998,12 +1999,6 @@ dependencies = [
  "wasi 0.11.0+wasi-snapshot-preview1",
  "wasm-bindgen",
 ]
-
-[[package]]
-name = "gimli"
-version = "0.27.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "221996f774192f0f718773def8201c4ae31f02616a54ccfc2d358bb0e5cefdec"
 
 [[package]]
 name = "gio-sys"
@@ -2837,19 +2832,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "native"
-version = "0.0.0"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.2#d4bbbc63d9b9a6d73c60126978c915bfacde6822"
-dependencies = [
- "prost 0.10.4",
- "prost-build",
- "serde",
- "tonic 0.7.2",
- "tonic-build",
- "uuid",
-]
-
-[[package]]
 name = "ndk"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3166,15 +3148,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c92d4ddb4bd7b50d730c215ff871754d0da6b2178849f8a2a2ab69712d0c073b"
 dependencies = [
  "objc",
-]
-
-[[package]]
-name = "object"
-version = "0.30.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea86265d3d3dcb6a27fc51bd29a4bf387fae9d2986b823079d4986af253eb439"
-dependencies = [
- "memchr",
 ]
 
 [[package]]
@@ -3871,12 +3844,6 @@ dependencies = [
  "serde",
  "serde_json",
 ]
-
-[[package]]
-name = "rustc-demangle"
-version = "0.1.21"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ef03e0a2b150c7a90d01faf6254c9c48a41e95fb2a8c2ac1c6f0d2b9aefc342"
 
 [[package]]
 name = "rustc_version"
@@ -5468,19 +5435,6 @@ dependencies = [
  "lazy_static",
  "log",
  "pkg-config",
-]
-
-[[package]]
-name = "web"
-version = "0.0.0"
-source = "git+https://github.com/Authentura/codectrl-rust-protobuf-bindings?tag=v0.8.2#d4bbbc63d9b9a6d73c60126978c915bfacde6822"
-dependencies = [
- "prost 0.10.4",
- "prost-build",
- "serde",
- "tonic 0.7.2",
- "tonic-build",
- "uuid",
 ]
 
 [[package]]

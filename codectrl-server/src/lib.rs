@@ -61,7 +61,7 @@ static CENSOR_USERNAMES: OnceBool = OnceBool::new();
 // Regexes each time `strip_username_from_path` is called would have overall on
 // the server, but "caching" them inside a lazy initialised static should
 // definitely be faster.
-static USERNAME_REGEXES: OnceCell<[Result<Regex, regex::Error>; 3]> = OnceCell::new();
+static USERNAME_REGEXES: OnceCell<[Result<Regex, regex::Error>; 4]> = OnceCell::new();
 static REDIRECT_HANDLER_PORT: OnceCell<u16> = OnceCell::new();
 
 #[derive(Debug, Clone)]
@@ -148,33 +148,30 @@ impl Service {
         // user account (depending on platform).
         let regexes = USERNAME_REGEXES.get_or_init(|| {
             [
-                // we account for [a-zA-Z] just in case of weird setups on Windows.
-                Regex::new(r"[a-zA-Z]:\Users\([a-zA-Z0-9]*)\*"),
-                Regex::new(r"/Users/([a-zA-Z0-9_\-]*)/*"),
-                Regex::new(r"/home/([a-zA-Z0-9_\-]*)/.*"),
+                // To ensure compatibility, we must account for a few things:
+                // 1. We need to account for [a-zA-Z] just in case of weird setups on
+                // Windows.
+                //
+                // 2. We also account for single backslash paths for Windows in case the
+                // logger already accounts for reformatting the directory paths.
+                //
+                // 3. We need to account for spaces in usernames on Windows systems.
+                Regex::new(r"[a-zA-Z]:\\Users\\([a-zA-Z0-9\s]*)\\*"),
+                Regex::new(r"[a-zA-Z]:\Users\([a-zA-Z0-9\s]*)\*"),
+                Regex::new(r"/Users/([a-zA-Z0-9_\-\s]*)/*"),
+                Regex::new(r"/home/([a-zA-Z0-9_\-\s]*)/.*"),
             ]
         });
 
-        for regex in regexes {
-            let regex = if let Ok(regex) = regex {
-                regex
-            } else {
-                continue;
-            };
-
-            let captures = regex.captures(&path);
-            let captures = if let Some(captures) = captures {
-                captures
-            } else {
-                continue;
-            };
-
-            if let Some(capture) = captures.get(1) {
-                return path.replace(capture.as_str(), "<username>").into();
-            };
-        }
-
-        path
+        regexes
+            .iter()
+            .filter_map(|regex| regex.as_ref().ok())
+            .filter_map(|pattern| pattern.captures(&path))
+            .filter_map(|captures| captures.get(1))
+            .map(|capture| path.clone().replace(capture.as_str(), "<USERNAME>".into()))
+            .next()
+            .unwrap_or(path.to_string())
+            .into()
     }
 
     #[allow(clippy::missing_panics_doc)]
