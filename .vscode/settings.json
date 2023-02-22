@@ -2,5 +2,6 @@
   "lldb.displayFormat": "auto",
   "lldb.showDisassembly": "always",
   "lldb.dereferencePointers": true,
-  "nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix"
+  "nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix",
+  // "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
 }
