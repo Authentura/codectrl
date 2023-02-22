@@ -1,3 +1,5 @@
+// region: imports
+
 use futures::Future;
 use log::{debug, info, trace};
 use parking_lot::Mutex;
@@ -19,6 +21,8 @@ use tokio::{
     time::{sleep, Duration},
 };
 use warp::Filter;
+
+// endregion
 
 #[derive(Debug, Clone, Copy)]
 enum OAuthProvider {

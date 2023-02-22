@@ -1,5 +1,4 @@
 use crate::data::DEFAULT_FILENAME_FORMAT;
-
 use authentura_egui_styling::FontSizes;
 use serde::{Deserialize, Serialize};
 

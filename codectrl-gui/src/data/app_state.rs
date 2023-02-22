@@ -1,6 +1,7 @@
+// region: imports
+
 use super::{window_states::AboutState, ApplicationSettings, Filter, Received};
 use crate::data::DEFAULT_FILENAME_FORMAT;
-
 use authentura_egui_styling::dark_theme;
 use chrono::{DateTime, Local};
 use codectrl_protobuf_bindings::{
@@ -8,15 +9,19 @@ use codectrl_protobuf_bindings::{
     logs_service::{Connection, ServerDetails},
 };
 use egui::Visuals;
-#[cfg(target_arch = "wasm32")]
-use instant::Instant;
 use serde::{Deserialize, Serialize};
-#[cfg(not(target_arch = "wasm32"))]
-use std::time::Instant;
 use std::{
     collections::{BTreeSet, VecDeque},
     sync::{Arc, RwLock},
 };
+
+// endregion
+
+#[cfg(target_arch = "wasm32")]
+use instant::Instant;
+
+#[cfg(not(target_arch = "wasm32"))]
+use std::time::Instant;
 
 pub fn time_details_last_checked_default() -> Instant { Instant::now() }
 pub fn refresh_server_details_default() -> bool { true }

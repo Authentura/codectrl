@@ -1,7 +1,8 @@
 #![cfg(not(target_arch = "wasm32"))]
 
-use crate::{widgets::CopyableLabel, wrapper::WrapperMsg};
+// region: imports
 
+use crate::{widgets::CopyableLabel, wrapper::WrapperMsg};
 use authentura_egui_styling::{application_style, fonts, FontSizes};
 use codectrl_protobuf_bindings::{
     auth_service::{authentication_client::AuthenticationClient, LoginUrl},
@@ -21,6 +22,8 @@ use std::{
 };
 use tokio::{runtime::Handle, task::JoinHandle};
 use tonic::transport::Channel;
+
+// endregion
 
 static GITHUB_BUTTON_HAS_BEEN_CLICKED: OnceBool = OnceBool::new();
 

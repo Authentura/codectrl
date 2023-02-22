@@ -1,3 +1,5 @@
+// region: imports
+
 use crate::{
     components::{details_view_components::code_highlighter, message_preview_view},
     data::{AppState, ISO_8601_TIME_FORMAT, LOCALE_TIME_FORMAT},
@@ -13,6 +15,8 @@ use egui::{
 };
 use egui_extras::{Column, TableBuilder};
 use xxhash_rust::xxh3::xxh3_128 as xxhash;
+
+// endregion
 
 pub fn draw_information_grid(app_state: &mut AppState, ctx: &Context, ui: &mut Ui) {
     app_state.preview_height = ui.available_height() + 2.0;

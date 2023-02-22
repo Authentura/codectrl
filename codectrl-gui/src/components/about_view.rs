@@ -1,6 +1,5 @@
 use super::about_view_components::{draw_about_body, draw_tab_bar};
 use crate::data::AppState;
-
 use authentura_egui_styling::DARK_HEADER_FOREGROUND_COLOUR;
 use egui::{Context, Id, RichText};
 

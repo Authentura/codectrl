@@ -16,24 +16,16 @@ mod login;
 mod widgets;
 mod wrapper;
 
-#[cfg(target_arch = "wasm32")]
-use crate::app::App;
+use codectrl_protobuf_bindings::logs_service::log_server_client::LogServerClient as Client;
+
+// region: native-only imports
 
 #[cfg(not(target_arch = "wasm32"))]
 use clap::{crate_authors, crate_name, crate_version, Arg, Command};
-use codectrl_protobuf_bindings::logs_service::log_server_client::LogServerClient as Client;
 #[cfg(not(target_arch = "wasm32"))]
 use codectrl_server::run_server;
-#[cfg(target_arch = "wasm32")]
-use eframe::wasm_bindgen::JsValue;
-#[cfg(target_arch = "wasm32")]
-use eframe::wasm_bindgen::{self, prelude::*};
-#[cfg(target_arch = "wasm32")]
-use eframe::web::AppRunnerRef;
 #[cfg(not(target_arch = "wasm32"))]
 use egui_toast::Toasts;
-#[cfg(target_arch = "wasm32")]
-use grpc_web_client::Client as WasmClient;
 #[cfg(not(target_arch = "wasm32"))]
 use once_cell::unsync::OnceCell;
 #[cfg(not(target_arch = "wasm32"))]
@@ -49,11 +41,23 @@ use tonic::transport::Channel;
 #[cfg(not(target_arch = "wasm32"))]
 use wrapper::Wrapper;
 
-#[cfg(not(target_arch = "wasm32"))]
-pub static mut TOASTS: OnceCell<RefCell<Toasts>> = OnceCell::new();
+// endregion
+// region: wasm-only imports
 
-#[cfg(not(target_arch = "wasm32"))]
-type GrpcClient = Client<Channel>;
+#[cfg(target_arch = "wasm32")]
+use crate::app::App;
+#[cfg(target_arch = "wasm32")]
+use eframe::wasm_bindgen::JsValue;
+#[cfg(target_arch = "wasm32")]
+use eframe::wasm_bindgen::{self, prelude::*};
+#[cfg(target_arch = "wasm32")]
+use eframe::web::AppRunnerRef;
+#[cfg(target_arch = "wasm32")]
+use grpc_web_client::Client as WasmClient;
+
+// endregion
+// region: wasm-only
+
 #[cfg(target_arch = "wasm32")]
 type GrpcClient = Client<WasmClient>;
 
@@ -104,6 +108,15 @@ pub async fn run(
     .await
     .map(|handle| WebHandle { handle })
 }
+
+// endregion
+// region: native-only
+
+#[cfg(not(target_arch = "wasm32"))]
+pub static mut TOASTS: OnceCell<RefCell<Toasts>> = OnceCell::new();
+
+#[cfg(not(target_arch = "wasm32"))]
+type GrpcClient = Client<Channel>;
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
@@ -236,3 +249,5 @@ pub async fn run() {
         );
     }
 }
+
+// endregion

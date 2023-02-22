@@ -1,5 +1,4 @@
 use crate::data::ISO_8601_TIME_FORMAT;
-
 use chrono::{DateTime, Local};
 use codectrl_protobuf_bindings::data::Log;
 use egui::{Align, Color32, Label, RichText, Sense, Ui};

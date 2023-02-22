@@ -1,5 +1,4 @@
 use crate::data::window_states::AboutState;
-
 use authentura_egui_styling::DARK_HEADER_FOREGROUND_COLOUR;
 use egui::{RichText, Ui};
 

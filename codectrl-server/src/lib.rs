@@ -3,6 +3,8 @@
 mod entity;
 pub mod redirect_handler;
 
+// region: imports
+
 use codectrl_protobuf_bindings::{
     auth_service::{
         authentication_server::{Authentication, AuthenticationServer},
@@ -56,6 +58,8 @@ use tonic::{
 };
 use uuid::Uuid;
 
+// endregion
+
 static CENSOR_USERNAMES: OnceBool = OnceBool::new();
 // STBoyden: I haven't measured how much of a performance impact recreating the
 // Regexes each time `strip_username_from_path` is called would have overall on
@@ -64,6 +68,7 @@ static CENSOR_USERNAMES: OnceBool = OnceBool::new();
 static USERNAME_REGEXES: OnceCell<[Result<Regex, regex::Error>; 4]> = OnceCell::new();
 static REDIRECT_HANDLER_PORT: OnceCell<u16> = OnceCell::new();
 
+// region: ConnectionState
 #[derive(Debug, Clone)]
 pub struct ConnectionState {
     last_update: Instant,
@@ -85,7 +90,9 @@ impl ConnectionState {
         self.last_update = Instant::now();
     }
 }
+// endregion
 
+// region: Service
 #[derive(Debug, Clone)]
 pub struct Service {
     logs: Arc<RwLock<VecDeque<Log>>>,
@@ -238,6 +245,8 @@ impl Service {
         self.requires_authentication = requires_authentication;
     }
 }
+
+// region: server-to-client implementation
 
 #[tonic::async_trait]
 impl LogServerTrait for Service {
@@ -463,6 +472,9 @@ impl LogServerTrait for Service {
     }
 }
 
+// endregion
+// region: client-to-server implementation
+
 #[tonic::async_trait]
 impl LogClientTrait for Service {
     async fn send_log(
@@ -515,6 +527,9 @@ impl LogClientTrait for Service {
         }))
     }
 }
+
+// endregion
+// region: oauth implementation
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct TokenClaims {
@@ -612,6 +627,10 @@ fn generate_token() -> String {
 
     secret
 }
+
+// endregion
+
+// endregion
 
 /// Runs the `gRPC` server to be used by the GUI or the standalone binary.
 ///

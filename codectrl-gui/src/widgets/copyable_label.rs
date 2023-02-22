@@ -1,12 +1,17 @@
+use egui::{RichText, WidgetText};
+use std::borrow::Cow;
+
+// region: native-only imports
+
 #[cfg(not(target_arch = "wasm32"))]
 use crate::TOASTS;
-
-use egui::{RichText, WidgetText};
 #[cfg(not(target_arch = "wasm32"))]
 use egui_toast::ToastOptions;
-use std::borrow::Cow;
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::{Duration, Instant};
+
+// endregion
+
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::wasm_bindgen;
 

@@ -1,6 +1,5 @@
 use super::details_view_components::draw_information_grid;
 use crate::data::AppState;
-
 use egui::Context;
 
 pub fn details_view(app_state: &mut AppState, ctx: &Context) {

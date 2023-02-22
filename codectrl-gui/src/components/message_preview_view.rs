@@ -1,6 +1,5 @@
-use egui::{Context, Id};
-
 use crate::widgets::CopyableLabel;
+use egui::{Context, Id};
 
 pub fn message_preview_view(
     is_open: &mut bool,

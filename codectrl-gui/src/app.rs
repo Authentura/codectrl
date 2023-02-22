@@ -1,52 +1,50 @@
-#[cfg(target_arch = "wasm32")]
-use crate::data::Received;
+// region: combined imports
+
 use crate::{
     components::{about_view, details_view, main_view, main_view_empty, settings_view},
     data::{AppState, Filter},
     GrpcClient,
 };
-#[cfg(not(target_arch = "wasm32"))]
-use crate::{wrapper::WrapperMsg, TOASTS};
 
 use authentura_egui_styling::{application_style, fonts};
 use chrono::{DateTime, Local};
 use ciborium::de as ciborium_de;
-#[cfg(not(target_arch = "wasm32"))]
-use ciborium::ser as ciborium_ser;
 use codectrl_protobuf_bindings::{
     data::Log,
     logs_service::{Connection, ServerDetails},
 };
 use eframe::{Frame, Storage};
-use egui::{Context, Vec2};
-#[cfg(not(target_arch = "wasm32"))]
-use egui::{Event, InputState, Key};
+use egui::{Context, Vec2, WidgetText};
 use flate2::bufread;
-#[cfg(not(target_arch = "wasm32"))]
-use flate2::{write, Compression};
-#[cfg(target_arch = "wasm32")]
-use futures_channel::oneshot::{channel, Receiver};
-#[cfg(not(target_arch = "wasm32"))]
-use log::info;
-#[cfg(not(target_arch = "wasm32"))]
-use poll_promise::Promise;
-#[cfg(target_arch = "wasm32")]
-use rfd::{AsyncFileDialog as FileDialog, FileHandle, MessageDialog};
-#[cfg(not(target_arch = "wasm32"))]
-use rfd::{FileDialog, MessageDialog};
 use serde::{Deserialize, Serialize};
-#[cfg(target_arch = "wasm32")]
-use std::sync::Mutex;
-#[cfg(not(target_arch = "wasm32"))]
-use std::{
-    cell::RefCell,
-    time::{Duration, Instant},
-};
 use std::{
     collections::{BTreeSet, VecDeque},
     error::Error,
     io::{BufReader, Error as IOError, ErrorKind},
     sync::Arc,
+};
+
+// endregion
+// region: native-only imports
+
+#[cfg(not(target_arch = "wasm32"))]
+use crate::{wrapper::WrapperMsg, TOASTS};
+#[cfg(not(target_arch = "wasm32"))]
+use ciborium::ser as ciborium_ser;
+#[cfg(not(target_arch = "wasm32"))]
+use egui::{Event, InputState, Key};
+#[cfg(not(target_arch = "wasm32"))]
+use flate2::{write, Compression};
+#[cfg(not(target_arch = "wasm32"))]
+use log::info;
+#[cfg(not(target_arch = "wasm32"))]
+use poll_promise::Promise;
+#[cfg(not(target_arch = "wasm32"))]
+use rfd::{FileDialog, MessageDialog};
+#[cfg(not(target_arch = "wasm32"))]
+use std::{
+    cell::RefCell,
+    time::{Duration, Instant},
 };
 #[cfg(not(target_arch = "wasm32"))]
 use std::{fs::File, io::Write, path::Path};
@@ -54,12 +52,26 @@ use std::{fs::File, io::Write, path::Path};
 use tokio::runtime::Handle;
 #[cfg(not(target_arch = "wasm32"))]
 use tonic::{Response, Status};
+
+// endregion
+// region: wasm-only imports
+
+#[cfg(target_arch = "wasm32")]
+use crate::data::Received;
+#[cfg(target_arch = "wasm32")]
+use futures_channel::oneshot::{channel, Receiver};
+#[cfg(target_arch = "wasm32")]
+use std::sync::Mutex;
+#[cfg(target_arch = "wasm32")]
+use std::sync::Mutex;
 #[cfg(target_arch = "wasm32")]
 use tracing::info;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_futures::spawn_local;
 #[cfg(target_arch = "wasm32")]
 use wasm_rs_async_executor::single_threaded as executor;
+
+// endregion
 
 type Decoder<T> = bufread::DeflateDecoder<T>;
 #[cfg(not(target_arch = "wasm32"))]
@@ -71,6 +83,8 @@ pub struct Session {
     pub received: VecDeque<(Log, DateTime<Local>)>,
     pub message_alerts: BTreeSet<String>,
 }
+
+// region: wasm functions
 
 #[cfg(target_arch = "wasm32")]
 fn yield_loop() {
@@ -132,6 +146,16 @@ fn get_server_logs(
     executor::run(Some(task.task()));
 }
 
+// endregion
+
+fn shortcut_button(
+    ui: &mut egui::Ui,
+    button_text: impl Into<WidgetText>,
+    shortcut_text: impl Into<WidgetText>,
+) -> egui::Response {
+    ui.add(egui::Button::new(button_text).shortcut_text(shortcut_text))
+}
+
 #[derive(Default, Deserialize, Serialize)]
 pub struct App {
     state: AppState,
@@ -159,6 +183,8 @@ pub struct App {
 }
 
 impl App {
+    // region: native functions
+
     #[cfg(not(target_arch = "wasm32"))]
     pub fn new(
         ctx: &egui::Context,
@@ -227,89 +253,10 @@ impl App {
         app
     }
 
-    #[cfg(target_arch = "wasm32")]
-    pub fn new(
-        ctx: &egui::Context,
-        storage: Option<&dyn Storage>,
-        grpc_client: GrpcClient,
-        server_host: &'static str,
-        server_port: &'static str,
-    ) -> Self {
-        let mut app = Self {
-            state: AppState::default(),
-            title: "CodeCTRL",
-            grpc_client: Some(grpc_client.clone()),
-            client_connection_channel: None,
-            started_logs_loop: false,
-            server_host,
-            server_port,
-        };
-
-        if let Some(storage) = storage {
-            let state: AppState =
-                eframe::get_value(storage, &format!("{}-appstate", eframe::APP_KEY))
-                    .unwrap_or_default();
-
-            if state.preserve_session {
-                app.state = state;
-            } else {
-                app.state = AppState::default();
-                app.state.preserve_session = false;
-            }
-        }
-
-        yield_loop();
-
-        app.client_connection_channel = Some(register_client(grpc_client));
-
-        ctx.set_fonts(fonts());
-        ctx.set_style(application_style(app.state.application_settings.font_sizes));
-
-        app
-    }
-
     #[cfg(not(target_arch = "wasm32"))]
     fn handle_key_inputs(&mut self, input_state: &InputState) {
         for event in &input_state.events {
             match event {
-                // zoom bindings
-                // Event::Key {
-                //     key,
-                //     pressed,
-                //     modifiers,
-                // } if *pressed
-                //     && *key == Key::PlusEquals
-                //     && (modifiers.ctrl || modifiers.mac_cmd) =>
-                // {
-                //     egui::gui_zoom::zoom_in(&context);
-                // },
-                // Event::Key {
-                //     key,
-                //     pressed,
-                //     modifiers,
-                // } if *pressed
-                //     && *key == Key::Minus
-                //     && (modifiers.ctrl || modifiers.mac_cmd) =>
-                //     egui::gui_zoom::zoom_with_keyboard_shortcuts(&context);
-                // Event::Key {
-                //     key,
-                //     pressed,
-                //     modifiers,
-                // } if *pressed
-                //     && *key == Key::Num0
-                //     && (modifiers.ctrl || modifiers.mac_cmd) =>
-                // {
-                //     // self.state.application_settings.font_sizes =
-                // FontSizes::default();
-
-                // },
-                Event::Zoom(zoom_delta) =>
-                    if *zoom_delta > 1.0 {
-                        self.state.application_settings.font_sizes.scale(1.0);
-                    } else if *zoom_delta < 1.0 {
-                        self.state.application_settings.font_sizes.scale(-1.0);
-                    },
-
                 // open/load bindings
                 Event::Key {
                     key,
@@ -327,7 +274,16 @@ impl App {
                     && *key == Key::S
                     && (modifiers.ctrl || modifiers.mac_cmd) =>
                     self.save_file_dialog(),
-
+                Event::Key {
+                    key,
+                    pressed,
+                    modifiers,
+                } if *pressed
+                    && *key == Key::P
+                    && (modifiers.ctrl || modifiers.mac_cmd) =>
+                {
+                    self.state.is_settings_open = true;
+                },
                 _ => (),
             }
         }
@@ -437,42 +393,6 @@ impl App {
         .show();
     }
 
-    #[cfg(target_arch = "wasm32")]
-    fn load_file_dialog(&mut self) {
-        let file_path = Arc::new(Mutex::new(FileHandle::wrap(
-            web_sys::File::new_with_str_sequence(
-                &serde_wasm_bindgen::to_value(&vec![""]).unwrap(),
-                "",
-            )
-            .unwrap(),
-        )));
-        let app = Arc::new(Mutex::new(unsafe {
-            std::mem::transmute::<_, &'static mut Self>(self)
-        }));
-
-        let file_path_clone = Arc::clone(&file_path);
-        let app_clone = Arc::clone(&app);
-
-        spawn_local(async move {
-            *file_path_clone.as_ref().lock().unwrap() = if let Some(file_path) =
-                FileDialog::new()
-                    .add_filter("CodeCTRL Session", &["cdctrl"])
-                    .pick_file()
-                    .await
-            {
-                file_path
-            } else {
-                return;
-            };
-
-            match Self::load_from_file(&file_path, &app_clone).await {
-                Ok(_) => MessageDialog::new().set_title("Successfully loaded file data"),
-                Err(error) => MessageDialog::new().set_title(&format!("{error}")),
-            }
-            .show();
-        });
-    }
-
     #[cfg(not(target_arch = "wasm32"))]
     pub fn load_from_file(
         file_path: &Path,
@@ -507,6 +427,87 @@ impl App {
         *message_alerts = session.message_alerts;
 
         Ok(())
+    }
+
+    // endregion
+
+    // region: wasm functions
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn new(
+        ctx: &egui::Context,
+        storage: Option<&dyn Storage>,
+        grpc_client: GrpcClient,
+        server_host: &'static str,
+        server_port: &'static str,
+    ) -> Self {
+        let mut app = Self {
+            state: AppState::default(),
+            title: "CodeCTRL",
+            grpc_client: Some(grpc_client.clone()),
+            client_connection_channel: None,
+            started_logs_loop: false,
+            server_host,
+            server_port,
+        };
+
+        if let Some(storage) = storage {
+            let state: AppState =
+                eframe::get_value(storage, &format!("{}-appstate", eframe::APP_KEY))
+                    .unwrap_or_default();
+
+            if state.preserve_session {
+                app.state = state;
+            } else {
+                app.state = AppState::default();
+                app.state.preserve_session = false;
+            }
+        }
+
+        yield_loop();
+
+        app.client_connection_channel = Some(register_client(grpc_client));
+
+        ctx.set_fonts(fonts());
+        ctx.set_style(application_style(app.state.application_settings.font_sizes));
+
+        app
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    fn load_file_dialog(&mut self) {
+        let file_path = Arc::new(Mutex::new(FileHandle::wrap(
+            web_sys::File::new_with_str_sequence(
+                &serde_wasm_bindgen::to_value(&vec![""]).unwrap(),
+                "",
+            )
+            .unwrap(),
+        )));
+        let app = Arc::new(Mutex::new(unsafe {
+            std::mem::transmute::<_, &'static mut Self>(self)
+        }));
+
+        let file_path_clone = Arc::clone(&file_path);
+        let app_clone = Arc::clone(&app);
+
+        spawn_local(async move {
+            *file_path_clone.as_ref().lock().unwrap() = if let Some(file_path) =
+                FileDialog::new()
+                    .add_filter("CodeCTRL Session", &["cdctrl"])
+                    .pick_file()
+                    .await
+            {
+                file_path
+            } else {
+                return;
+            };
+
+            match Self::load_from_file(&file_path, &app_clone).await {
+                Ok(_) => MessageDialog::new().set_title("Successfully loaded file data"),
+                Err(error) => MessageDialog::new().set_title(&format!("{error}")),
+            }
+            .show();
+        });
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -545,19 +546,33 @@ impl App {
 
         Ok(())
     }
+
+    // endregion
 }
 
 impl eframe::App for App {
     #[allow(clippy::used_underscore_binding)]
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
+        // region: toasts setup
         #[cfg(not(target_arch = "wasm32"))]
         let binding = unsafe { &mut TOASTS };
         #[cfg(not(target_arch = "wasm32"))]
         let toasts = binding.get_mut();
+        // endregion
 
+        // region: keyboard shortcuts
         #[cfg(not(target_arch = "wasm32"))]
         self.handle_key_inputs(&ctx.input());
 
+        if !_frame.is_web() {
+            egui::gui_zoom::zoom_with_keyboard_shortcuts(
+                ctx,
+                _frame.info().native_pixels_per_point,
+            );
+        }
+        // endregion
+
+        // region: wasm log fetching
         #[cfg(target_arch = "wasm32")]
         if let Some(grpc_client_connection) = &self.state.grpc_client_connection {
             if !self.started_logs_loop {
@@ -582,7 +597,9 @@ impl eframe::App for App {
                 }
             }
         }
+        // endregion
 
+        // region: native server details fetching
         #[cfg(not(target_arch = "wasm32"))]
         if self.state.refresh_server_details {
             let mut grpc_client = self.grpc_client.clone().unwrap();
@@ -613,7 +630,9 @@ impl eframe::App for App {
                 self.state.time_details_last_checked = Instant::now();
             }
         }
+        // endregion
 
+        // region: modals
         if self.state.is_about_open {
             about_view(&mut self.state, ctx);
         }
@@ -621,6 +640,9 @@ impl eframe::App for App {
         if self.state.is_settings_open {
             settings_view(&mut self.state, ctx);
         }
+        // endregion
+
+        // region: top bar
 
         egui::TopBottomPanel::top("top_bar")
             .resizable(false)
@@ -631,17 +653,17 @@ impl eframe::App for App {
                 ui.horizontal_wrapped(|ui| {
                     ui.menu_button("File", |ui| {
                         #[cfg(not(target_arch = "wasm32"))]
-                        if ui.button("Save project").clicked() {
+                        if shortcut_button(ui, "Save project", "Ctrl+S").clicked() {
                             self.save_file_dialog();
                         }
 
-                        if ui.button("Open project").clicked() {
+                        if shortcut_button(ui, "Open project", "Ctrl+O").clicked() {
                             self.load_file_dialog();
                         }
 
                         ui.separator();
 
-                        if ui.button("Settings").clicked() {
+                        if shortcut_button(ui, "Settings", "Ctrl+P").clicked() {
                             self.state.is_settings_open = !self.state.is_settings_open;
                         }
 
@@ -655,6 +677,16 @@ impl eframe::App for App {
                                     *wrapper_msg = WrapperMsg::LogOut;
                                 }
                             }
+                        }
+
+                        #[cfg(not(target_arch = "wasm32"))]
+                        {
+                            ui.separator();
+
+                            egui::gui_zoom::zoom_menu_buttons(
+                                ui,
+                                _frame.info().native_pixels_per_point,
+                            );
                         }
 
                         #[cfg(not(target_arch = "wasm32"))]
@@ -754,6 +786,11 @@ impl eframe::App for App {
 
                         ui.label(format!("Listening on: {host}:{port}"));
                     }
+
+                    #[cfg(all(not(target_arch = "wasm32"), debug_assertions))]
+                    if let Some(cpu_usage) = _frame.info().cpu_usage {
+                        ui.label(format!("CPU Usage (seconds): {cpu_usage}",));
+                    }
                 });
 
                 ui.add_space(2.0);
@@ -763,6 +800,10 @@ impl eframe::App for App {
                     toasts.borrow_mut().show(ctx);
                 }
             });
+
+        // endregion
+
+        // region: rendering view
 
         let is_empty = {
             let received = Arc::clone(&self.state.received);
@@ -795,6 +836,8 @@ impl eframe::App for App {
         } else {
             self.state.preview_height = 0.0;
         }
+
+        // endregion
     }
 
     fn max_size_points(&self) -> egui::Vec2 {

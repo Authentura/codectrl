@@ -1,12 +1,15 @@
+// region: imports
+
 use super::{main_view_components::draw_log_item, regex_filter};
 use crate::data::{AppState, Filter, ISO_8601_TIME_FORMAT};
-
 use authentura_egui_styling::{CODECTRL_GREEN, DARK_HEADER_FOREGROUND_COLOUR};
 use chrono::{DateTime, Local};
 use codectrl_protobuf_bindings::data::Log;
 use egui::{Context, Direction, Layout, RichText, TextStyle, Ui};
 use egui_extras::{Column, TableBuilder};
 use regex::RegexBuilder;
+
+// endregion
 
 fn app_state_filter(
     is_case_sensitive: bool,

@@ -1,3 +1,5 @@
+// region: imports
+
 use chrono::{
     format::{format_item, StrftimeItems},
     DateTime, Local, NaiveDateTime,
@@ -9,6 +11,8 @@ use std::{
     fmt,
     sync::{Arc, RwLock},
 };
+
+// endregion
 
 pub type Received = Arc<RwLock<VecDeque<(Log, DateTime<Local>)>>>;
 

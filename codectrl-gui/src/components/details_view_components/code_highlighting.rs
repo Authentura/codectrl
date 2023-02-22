@@ -1,3 +1,5 @@
+// region: imports
+
 use codectrl_protobuf_bindings::data::Log;
 use egui::{text::LayoutJob, Color32, Context, FontSelection, TextFormat, TextStyle};
 use std::path::Path;
@@ -7,6 +9,8 @@ use syntect::{
     parsing::SyntaxSet,
     util::LinesWithEndings,
 };
+
+// endregion
 
 pub fn code_highlighter(code: &str, log: &Log, ctx: &Context) -> LayoutJob {
     let syntax_set = SyntaxSet::load_defaults_newlines();
