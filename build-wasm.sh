@@ -17,6 +17,8 @@ if ! command -v wasm2wat &> /dev/null; then
     exit
 fi
 
+rustup target install wasm32-unknown-unknown
+
 export WASM_PATH="target/wasm32-unknown-unknown/release"
 
 cargo clean --target wasm32-unknown-unknown --release
