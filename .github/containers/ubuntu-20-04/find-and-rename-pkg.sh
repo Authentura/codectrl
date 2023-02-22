@@ -12,25 +12,25 @@ ROOT="."
 FILE_EXTENSION=""
 
 if [[ ! -z "$1" ]]; then
-  ROOT="$1"
+    ROOT="$1"
 fi
 
 case $ID in
-  "debian" | "ubuntu" | "elementary")
-    FILE_EXTENSION=".deb"
-    SUFFIX="-$ID-$VERSION_CODENAME-$VERSION_ID"
-    DIR="debian"
-  ;;
-  "fedora")
-    FILE_EXTENSION=".rpm"
-    SUFFIX=".$ID-f$(rpm -E %fedora)"
-    DIR="generate-rpm"
-  ;;
-  "rocky" | "centos")
-    FILE_EXTENSION=".rpm"
-    SUFFIX=".el$(rpm -E %rhel)"
-    DIR="generate-rpm"
-  ;;
+    "debian" | "ubuntu" | "elementary")
+        FILE_EXTENSION=".deb"
+        SUFFIX="-$ID-$VERSION_CODENAME-$VERSION_ID"
+        DIR="debian"
+    ;;
+    "fedora")
+        FILE_EXTENSION=".rpm"
+        SUFFIX=".$ID-f$(rpm -E %fedora)"
+        DIR="generate-rpm"
+    ;;
+    "rocky" | "centos")
+        FILE_EXTENSION=".rpm"
+        SUFFIX=".el$(rpm -E %rhel)"
+        DIR="generate-rpm"
+    ;;
 esac
 
 package_file=$(find "$ROOT"/target/"$DIR" | egrep '*\.(deb|rpm)' | head -n1)

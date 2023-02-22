@@ -1,0 +1,23 @@
+{
+  "name": "CodeCTRL",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/codectrl",
+  "remoteUser": "root",
+  "features": {
+    "ghcr.io/devcontainers/features/rust:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "bungcip.better-toml",
+        "vadimcn.vscode-lldb",
+        "streetsidesoftware.code-spell-checker",
+        "serayuzgur.crates",
+        "usernamehw.errorlens",
+        "EditorConfig.EditorConfig"
+      ]
+    }
+  }
+}

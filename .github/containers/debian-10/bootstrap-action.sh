@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 source /etc/os-release
 
 set -xe
@@ -10,7 +9,7 @@ echo -e "\nInstalling dependencies for your distro...\n"
 case $ID in
     "debian" | "ubuntu" | "elementary")
         export DEBIAN_FRONTEND=noninteractive
-
+        
         apt update -y
         pixbuf_dev=""
         libc_static=""
@@ -26,10 +25,10 @@ case $ID in
     ;;
     "fedora" | "rocky")
         packages=(gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake git)
-
+        
         dnf update -y
         dnf groupinstall "Development Tools" -y
-
+        
         if [[ "$ID" == "rocky" && $(rpm -E %rhel) -ge 9 ]]; then
             dnf --enablerepo=crb --allowerasing install ${packages[@]} -y
         else
@@ -40,7 +39,7 @@ case $ID in
         yum install epel-release -y
         yum update -y
         yum groupinstall "Development Tools" -y
-
+        
         yum install gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake3 git -y
         ln -s /usr/bin/cmake3 /usr/bin/cmake
     ;;
