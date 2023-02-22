@@ -5,8 +5,11 @@
   "workspaceFolder": "/codectrl",
   "remoteUser": "root",
   "features": {
-    "ghcr.io/devcontainers/features/rust:1": {}
+    "ghcr.io/devcontainers/features/rust:1": {},
+    "ghcr.io/devcontainers/features/desktop-lite:1": {}
   },
+  "forwardPorts": [6080, 5901, 3003],
+  "containerEnv": { "PORT": "3003" },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -16,7 +19,9 @@
         "streetsidesoftware.code-spell-checker",
         "serayuzgur.crates",
         "usernamehw.errorlens",
-        "EditorConfig.EditorConfig"
+        "EditorConfig.EditorConfig",
+        "ms-azuretools.vscode-docker",
+        "esbenp.prettier-vscode"
       ]
     }
   }
