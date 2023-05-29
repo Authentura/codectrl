@@ -19,8 +19,16 @@ case $ID in
         sudo apt install libglib2.0-dev libpango1.0-dev "$pixbuf_dev" libatk1.0-dev libgtk-3-dev libxcb-shape0-dev libxcb-xfixes0-dev curl -y
     ;;
     "fedora")
-        sudo dnf groupinstall "Development Tools" -y
-        sudo dnf install gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake -y
+        dnf="$(which dnf)"
+
+        if [ -f "$(command -v dnf5)" ]; then
+            dnf="$(which dnf5)"
+            sudo $dnf group install development-tools -y
+        else
+            sudo $dnf groupinstall "Development Tools" -y
+        fi
+
+        sudo $dnf install gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake -y
     ;;
     "arch")
         # TODO: Add Arch Linux packages
