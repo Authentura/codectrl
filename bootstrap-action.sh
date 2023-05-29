@@ -25,14 +25,22 @@ case $ID in
     ;;
     "fedora" | "rocky")
         packages=(gobject-introspection-devel cairo-devel atk-devel pango-devel gdk-pixbuf2-devel gtk3-devel clang curl cmake git)
+        dnf="$(which dnf)"
+
+        $dnf update -y
+
+        if [ -f "$(command -v dnf5)" ]; then
+            dnf="$(which dnf5)"
+            sudo $dnf group install development-tools -y
+        else
+            $dnf groupinstall "Development Tools" -y
+        fi
         
-        dnf update -y
-        dnf groupinstall "Development Tools" -y
         
         if [[ "$ID" == "rocky" && $(rpm -E %rhel) -ge 9 ]]; then
-            dnf --enablerepo=crb --allowerasing install ${packages[@]} -y
+            $dnf --enablerepo=crb --allowerasing install ${packages[@]} -y
         else
-            dnf install ${packages[@]} -y
+            $dnf install ${packages[@]} -y
         fi
     ;;
     "centos")
