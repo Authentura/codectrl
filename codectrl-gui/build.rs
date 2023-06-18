@@ -7,15 +7,23 @@ use std::{
 };
 use toml::value::Map;
 
-fn main() {
-    // Read Cargo.lock and de-toml it
-    let mut lock_buf = String::new();
-    fs::File::open("../Cargo.lock")
-        .unwrap()
-        .read_to_string(&mut lock_buf)
-        .unwrap();
+fn file_not_found(out_dir: &str) {
+    let mut versions_file =
+        fs::File::create(&path::Path::new(&out_dir).join("versions.include")).unwrap();
 
-    let lock_toml: Map<String, toml::Value> = toml::from_str(&lock_buf).unwrap();
+    let mut array_str = String::from("pub const build_deps: [(&str, &str); 0] = []");
+
+    if env::var("BUILT_WITH").is_ok() {
+        array_str = String::from(
+            "pub const build_deps: [(&str, &str); 1] = [(\"Built with Nix\", \"\")]",
+        );
+    }
+
+    versions_file.write_all(array_str.as_bytes()).unwrap();
+}
+
+fn file_found(lock_contents: &str) {
+    let lock_toml: Map<String, toml::Value> = toml::from_str(lock_contents).unwrap();
 
     // Get the table of [[package]]s. This is the deep list of dependencies and
     // dependencies of dependencies.
@@ -55,6 +63,20 @@ fn main() {
             .unwrap();
     }
     versions_file.write_all("];".as_ref()).unwrap();
+}
+
+fn main() {
+    let out_dir = env::var("OUT_DIR").unwrap();
+
+    // Read Cargo.lock and de-toml it
+    let mut lock_buf = String::new();
+
+    if let Ok(mut file) = fs::File::open("../Cargo.lock") {
+        file.read_to_string(&mut lock_buf).unwrap();
+        file_found(&lock_buf);
+    } else {
+        file_not_found(&out_dir);
+    };
 
     let mut time_file =
         fs::File::create(&path::Path::new(&out_dir).join("build_time.include")).unwrap();
