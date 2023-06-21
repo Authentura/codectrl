@@ -1,5 +1,5 @@
 use codectrl_gui::{
-    iced::{self, Sandbox, Settings},
+    iced::{self, Application, Settings},
     App,
 };
 

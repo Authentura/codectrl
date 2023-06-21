@@ -1,8 +1,10 @@
 use dark_light::{self, Mode as ThemeMode};
 pub use iced;
 use iced::{
+    executor,
     widget::{button, checkbox, column, container, row, text, text_input, Rule, Space},
-    Alignment, Element, Length, Sandbox, Theme,
+    window::close,
+    Alignment, Application, Command, Element, Length, Sandbox, Theme,
 };
 use iced_aw::menu::{ItemWidth, MenuBar, MenuTree, PathHighlight};
 use std::fmt;
@@ -45,6 +47,7 @@ pub enum Message {
     FilterRegexChanged(bool),
     ScrollToSelectedLogChanged(bool),
     LogAppearanceStateChanged,
+    Quit,
 }
 
 #[derive(Debug, Eq, PartialEq, Clone, Default)]
@@ -68,22 +71,53 @@ pub struct App {
     view_state: ViewState,
 }
 
-impl Sandbox for App {
+impl Application for App {
     type Message = Message;
+    type Executor = executor::Default;
+    type Theme = Theme;
+    type Flags = ();
 
-    fn new() -> Self { App::default() }
+    fn new(_: Self::Flags) -> (Self, Command<Message>) {
+        (App::default(), Command::none())
+    }
 
     fn title(&self) -> String { String::from("CodeCTRL") }
 
-    fn update(&mut self, message: Self::Message) {
+    fn update(&mut self, message: Self::Message) -> Command<Message> {
+        use Message::*;
+
         match message {
-            Message::FilterTextChanged(text) => self.filter = text,
-            Message::ClearFilterText => self.filter.clear(),
-            Message::FilterCaseSenitivityChanged(state) => self.case_sensitive = state,
-            Message::FilterRegexChanged(state) => self.regex_sensitive = state,
-            Message::ScrollToSelectedLogChanged(state) =>
-                self.scroll_to_selected_log = state,
-            Message::LogAppearanceStateChanged => self.log_appearance.toggle(),
+            FilterTextChanged(text) => {
+                self.filter = text;
+
+                Command::none()
+            },
+            ClearFilterText => {
+                self.filter.clear();
+
+                Command::none()
+            },
+            FilterCaseSenitivityChanged(state) => {
+                self.case_sensitive = state;
+
+                Command::none()
+            },
+            FilterRegexChanged(state) => {
+                self.regex_sensitive = state;
+
+                Command::none()
+            },
+            ScrollToSelectedLogChanged(state) => {
+                self.scroll_to_selected_log = state;
+
+                Command::none()
+            },
+            LogAppearanceStateChanged => {
+                self.log_appearance.toggle();
+
+                Command::none()
+            },
+            Quit => close(),
         }
     }
 
