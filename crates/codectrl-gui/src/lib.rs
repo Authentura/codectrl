@@ -17,6 +17,8 @@ use iced_aw::{
     helpers::{menu_bar, menu_tree},
     menu::PathHighlight,
     menu_tree, quad,
+    split::Axis,
+    Split,
 };
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -33,6 +35,7 @@ pub enum Message {
 
     // general
     UpdateViewState(ViewState),
+    SplitResize(u16),
     Quit,
 }
 
@@ -53,12 +56,26 @@ fn separator<'a, Message>()
     })
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct App {
+    // splits
+    split_size: Option<u16>,
+
     // views and view state
     view_state: ViewState,
     main_view: views::Main,
     searching_view: views::Searching,
+}
+
+impl Default for App {
+    fn default() -> Self {
+        Self {
+            split_size: Some(208),
+            view_state: ViewState::default(),
+            main_view: views::Main::default(),
+            searching_view: views::Searching::default(),
+        }
+    }
 }
 
 impl Application for App {
@@ -87,6 +104,10 @@ impl Application for App {
 
             UpdateViewState(state) => {
                 self.view_state = state;
+                Command::none()
+            },
+            SplitResize(size) => {
+                self.split_size = Some(size);
                 Command::none()
             },
             Quit => close(),
@@ -154,14 +175,20 @@ impl Application for App {
             menu_bar,
             Rule::horizontal(1.0),
             row![
-                side_bar.width(Length::FillPortion(2)),
-                Rule::vertical(1.0),
-                match self.view_state {
-                    ViewState::Main => column![self.main_view.view()],
-                    ViewState::Searching => column![self.searching_view.view()],
-                }
-                .width(Length::FillPortion(6))
-                .padding(10.0),
+                Split::new(
+                    side_bar.width(Length::Fill),
+                    container(match self.view_state {
+                        ViewState::Main => self.main_view.view(),
+                        ViewState::Searching => self.searching_view.view(),
+                    })
+                    .width(Length::Fill)
+                    .padding(10.0),
+                    self.split_size,
+                    Axis::Vertical,
+                    Message::SplitResize
+                )
+                .min_size_first(208)
+                .min_size_second(600)
             ]
         ]
         .into()
