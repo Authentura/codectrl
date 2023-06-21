@@ -670,6 +670,7 @@ dependencies = [
  "dark-light",
  "iced",
  "iced_aw",
+ "iced_native",
 ]
 
 [[package]]
@@ -2061,8 +2062,7 @@ dependencies = [
 [[package]]
 name = "iced_aw"
 version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0068dfea60d5767a8e15d691c425c550a8e9e06b8d9cea559a26a3ccb4b6d77"
+source = "git+https://github.com/iced-rs/iced_aw#d5950f7c467495e3ca1ec95692cef331ded7a748"
 dependencies = [
  "chrono",
  "iced_graphics",

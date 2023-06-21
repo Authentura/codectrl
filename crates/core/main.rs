@@ -3,4 +3,12 @@ use codectrl_gui::{
     App,
 };
 
-fn main() -> iced::Result { App::run(Settings::default()) }
+fn main() -> iced::Result {
+    App::run(Settings {
+        id: Some(String::from("CodeCTRL")),
+        flags: (),
+        text_multithreading: true,
+        antialiasing: true,
+        ..Settings::default()
+    })
+}

@@ -11,4 +11,5 @@ edition.workspace = true
 [dependencies]
 dark-light = "1.0.0"
 iced = { version = "0.9", features = ["tokio", "iced_glow", "default_system_font", "iced_wgpu", "system"] }
-iced_aw = "0.5.2"
+iced_aw = { git = "https://github.com/iced-rs/iced_aw", version = "0.5.2" }
+iced_native = "0.10.3"

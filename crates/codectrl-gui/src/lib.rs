@@ -1,74 +1,64 @@
+#![feature(associated_type_defaults)]
+
+mod view;
+mod views;
+
+use crate::view::View;
+
 use dark_light::{self, Mode as ThemeMode};
 pub use iced;
 use iced::{
     executor,
-    widget::{button, checkbox, column, container, row, text, text_input, Rule, Space},
+    widget::{button, checkbox, column, container, row, text, text_input, Rule},
     window::close,
-    Alignment, Application, Command, Element, Length, Sandbox, Theme,
+    Alignment, Application, Command, Element, Length, Theme,
 };
-use iced_aw::menu::{ItemWidth, MenuBar, MenuTree, PathHighlight};
-use std::fmt;
-
-#[derive(Debug, Eq, PartialEq, Clone, Default)]
-pub enum LogAppearanceState {
-    #[default]
-    NewestFirst,
-    OldestFirst,
-}
-
-impl LogAppearanceState {
-    fn toggle(&mut self) {
-        if *self == Self::NewestFirst {
-            *self = Self::OldestFirst;
-        } else {
-            *self = Self::NewestFirst;
-        }
-    }
-}
-
-impl fmt::Display for LogAppearanceState {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let out;
-
-        match *self {
-            Self::NewestFirst => out = String::from("Newest first"),
-            Self::OldestFirst => out = String::from("Oldest first"),
-        }
-
-        write!(f, "{out}")
-    }
-}
+use iced_aw::{
+    helpers::{menu_bar, menu_tree},
+    menu::PathHighlight,
+    menu_tree, quad,
+};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Message {
+    // main view
+    ScrollToSelectedLogChanged(bool),
+    LogAppearanceStateChanged,
+
+    // searching view
     FilterTextChanged(String),
     ClearFilterText,
     FilterCaseSenitivityChanged(bool),
     FilterRegexChanged(bool),
-    ScrollToSelectedLogChanged(bool),
-    LogAppearanceStateChanged,
+
+    // general
+    UpdateViewState(ViewState),
     Quit,
 }
 
 #[derive(Debug, Eq, PartialEq, Clone, Default)]
 pub enum ViewState {
-    Searching {
-        filter: String,
-        case_sensitive: bool,
-        regex_sensitive: bool,
-    },
+    Searching,
     #[default]
     Main,
 }
 
+fn separator<'a, Message>()
+-> iced_aw::menu::menu_tree::MenuTree<'a, Message, iced::Renderer> {
+    menu_tree!(quad::Quad {
+        color: [0.5; 3].into(),
+        border_radius: 4.0.into(),
+        inner_bounds: quad::InnerBounds::Ratio(0.98, 0.1),
+        ..Default::default()
+    })
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct App {
-    case_sensitive: bool,
-    filter: String,
-    regex_sensitive: bool,
-    scroll_to_selected_log: bool,
-    log_appearance: LogAppearanceState,
+    // views and view state
     view_state: ViewState,
+    main_view: views::Main,
+    searching_view: views::Searching,
 }
 
 impl Application for App {
@@ -87,34 +77,16 @@ impl Application for App {
         use Message::*;
 
         match message {
-            FilterTextChanged(text) => {
-                self.filter = text;
+            ScrollToSelectedLogChanged(_) | LogAppearanceStateChanged =>
+                self.main_view.update(message),
 
-                Command::none()
-            },
-            ClearFilterText => {
-                self.filter.clear();
+            FilterTextChanged(_)
+            | ClearFilterText
+            | FilterCaseSenitivityChanged(_)
+            | FilterRegexChanged(_) => self.searching_view.update(message),
 
-                Command::none()
-            },
-            FilterCaseSenitivityChanged(state) => {
-                self.case_sensitive = state;
-
-                Command::none()
-            },
-            FilterRegexChanged(state) => {
-                self.regex_sensitive = state;
-
-                Command::none()
-            },
-            ScrollToSelectedLogChanged(state) => {
-                self.scroll_to_selected_log = state;
-
-                Command::none()
-            },
-            LogAppearanceStateChanged => {
-                self.log_appearance.toggle();
-
+            UpdateViewState(state) => {
+                self.view_state = state;
                 Command::none()
             },
             Quit => close(),
@@ -122,46 +94,53 @@ impl Application for App {
     }
 
     fn view(&self) -> Element<Self::Message> {
-        let file_menu_tree = MenuTree::with_children(
+        let file_menu_tree = menu_tree(
             button("File"),
             vec![
-                MenuTree::new(button("Save project").width(Length::Fill)),
-                MenuTree::new(button("Open project").width(Length::Fill)),
-                MenuTree::new(button("Settings").width(Length::Fill)),
-                MenuTree::new(button("Log out").width(Length::Fill)),
-                MenuTree::new(button("Quit").width(Length::Fill)),
+                menu_tree!(button("Save project").width(Length::Fill)),
+                menu_tree!(button("Open project").width(Length::Fill)),
+                separator(),
+                menu_tree!(button("Settings").width(Length::Fill)),
+                menu_tree!(button("Log out").width(Length::Fill)),
+                separator(),
+                menu_tree!(button("Quit").width(Length::Fill).on_press(Message::Quit)),
             ],
         );
 
-        let help_menu_tree = MenuTree::with_children(
+        let help_menu_tree = menu_tree(
             button("Help"),
-            vec![MenuTree::new(button("About").width(Length::Fill))],
+            vec![menu_tree!(button("About").width(Length::Fill))],
         );
 
-        let menu_bar = MenuBar::new(vec![file_menu_tree, help_menu_tree])
+        let menu_bar = menu_bar(vec![file_menu_tree, help_menu_tree])
             .path_highlight(Some(PathHighlight::Full))
             .spacing(1.0)
             .padding(2.0);
 
         let side_bar = container(
             column![
-                text_input("Filter", &self.filter).on_input(Message::FilterTextChanged),
+                text_input("Filter", &self.searching_view.filter)
+                    .on_input(Message::FilterTextChanged),
                 button("Clear").on_press(Message::ClearFilterText),
                 checkbox(
                     "Case sensitive",
-                    self.case_sensitive,
+                    self.searching_view.case_sensitive,
                     Message::FilterCaseSenitivityChanged
                 ),
-                checkbox("Regex", self.regex_sensitive, Message::FilterRegexChanged),
+                checkbox(
+                    "Regex",
+                    self.searching_view.regex_sensitive,
+                    Message::FilterRegexChanged
+                ),
                 Rule::horizontal(1.0),
                 checkbox(
                     "Scroll to selected log",
-                    self.scroll_to_selected_log,
+                    self.main_view.scroll_to_selected_log,
                     Message::ScrollToSelectedLogChanged
                 ),
                 row![
                     text("Sort logs by: "),
-                    button(text(&self.log_appearance.to_string()))
+                    button(text(&self.main_view.log_appearance))
                         .on_press(Message::LogAppearanceStateChanged)
                 ]
                 .align_items(Alignment::Center)
@@ -171,20 +150,23 @@ impl Application for App {
             .padding(10.0),
         );
 
-        match self.view_state {
-            _ => column![
-                menu_bar,
-                Rule::horizontal(1.0),
-                row![
-                    side_bar.width(Length::FillPortion(2)),
-                    Rule::vertical(1.0),
-                    column![text(&self.filter)]
+        column![
+            menu_bar,
+            Rule::horizontal(1.0),
+            row![
+                side_bar.width(Length::FillPortion(2)),
+                Rule::vertical(1.0),
+                match self.view_state {
+                    ViewState::Main => column![self.main_view.view()]
                         .width(Length::FillPortion(6))
                         .padding(10.0),
-                ],
+                    ViewState::Searching {} => column![self.searching_view.view()]
+                        .width(Length::FillPortion(6))
+                        .padding(10.0),
+                }
             ]
-            .into(),
-        }
+        ]
+        .into()
     }
 
     fn theme(&self) -> Theme {
