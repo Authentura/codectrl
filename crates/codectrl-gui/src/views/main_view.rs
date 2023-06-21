@@ -41,7 +41,7 @@ pub struct Main {
 impl View for Main {
     type Message = Message;
 
-    fn title(&self) -> String { todo!() }
+    fn title(&self) -> String { String::new() }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         use Message::*;

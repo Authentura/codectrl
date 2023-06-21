@@ -11,7 +11,7 @@ pub struct Searching {
 impl View for Searching {
     type Message = Message;
 
-    fn title(&self) -> String { String::from("Searching for logs...") }
+    fn title(&self) -> String { String::from("Searching logs...") }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         use Message::*;
