@@ -157,13 +157,11 @@ impl Application for App {
                 side_bar.width(Length::FillPortion(2)),
                 Rule::vertical(1.0),
                 match self.view_state {
-                    ViewState::Main => column![self.main_view.view()]
-                        .width(Length::FillPortion(6))
-                        .padding(10.0),
-                    ViewState::Searching {} => column![self.searching_view.view()]
-                        .width(Length::FillPortion(6))
-                        .padding(10.0),
+                    ViewState::Main => column![self.main_view.view()],
+                    ViewState::Searching => column![self.searching_view.view()],
                 }
+                .width(Length::FillPortion(6))
+                .padding(10.0),
             ]
         ]
         .into()
