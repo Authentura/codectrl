@@ -1,9 +1,15 @@
-#![feature(associated_type_defaults)]
+#![feature(
+    associated_type_defaults,
+    trait_alias,
+    return_position_impl_trait_in_trait
+)]
 #![warn(clippy::perf, clippy::pedantic)]
-#![allow(clippy::enum_glob_use)]
+#![allow(clippy::enum_glob_use, incomplete_features)]
 
 mod view;
 mod views;
+mod widget;
+mod widgets;
 
 use crate::view::View;
 

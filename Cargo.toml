@@ -23,6 +23,7 @@ readme = "README.md"
 homepage = "https://codectrl.authentura.com"
 
 [workspace.dependencies]
+codectrl-protobuf-bindings = { git = "https://github.com/Authentura/codectrl-rust-protobuf-bindings", tag = "v0.8.3" }
 tokio = { version = "1.0", features = [
     "rt-multi-thread",
     "macros",

@@ -667,10 +667,14 @@ dependencies = [
 name = "codectrl-gui"
 version = "1.0.0-beta"
 dependencies = [
+ "chrono",
+ "codectrl-protobuf-bindings",
  "dark-light",
  "iced",
  "iced_aw",
+ "iced_graphics",
  "iced_native",
+ "iced_wgpu",
 ]
 
 [[package]]
