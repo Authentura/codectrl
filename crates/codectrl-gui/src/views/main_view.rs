@@ -1,4 +1,5 @@
 use crate::{view::View, Message};
+
 use iced::{widget::text, Command};
 use std::fmt;
 
@@ -21,12 +22,10 @@ impl LogAppearanceState {
 
 impl fmt::Display for LogAppearanceState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let out;
-
-        match *self {
-            Self::NewestFirst => out = String::from("Newest first"),
-            Self::OldestFirst => out = String::from("Oldest first"),
-        }
+        let out = match *self {
+            Self::NewestFirst => String::from("Newest first"),
+            Self::OldestFirst => String::from("Oldest first"),
+        };
 
         write!(f, "{out}")
     }

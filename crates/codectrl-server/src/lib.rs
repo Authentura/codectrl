@@ -1,4 +1,5 @@
 #![warn(clippy::pedantic)]
+#![allow(clippy::invalid_regex)]
 
 mod entity;
 pub mod redirect_handler;
@@ -175,7 +176,7 @@ impl Service {
             .filter_map(|regex| regex.as_ref().ok())
             .filter_map(|pattern| pattern.captures(&path))
             .filter_map(|captures| captures.get(1))
-            .map(|capture| path.clone().replace(capture.as_str(), "<USERNAME>".into()))
+            .map(|capture| path.clone().replace(capture.as_str(), "<USERNAME>"))
             .next()
             .unwrap_or(path.to_string())
             .into()

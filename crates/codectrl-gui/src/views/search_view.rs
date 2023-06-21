@@ -1,5 +1,6 @@
 use crate::{view::View, Message, ViewState};
-use iced::{widget::text, Command};
+
+use iced::{widget::text, Command, Element};
 
 #[derive(Debug, Clone, Default)]
 pub struct Searching {
@@ -16,7 +17,7 @@ impl View for Searching {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         use Message::*;
 
-        match message.clone() {
+        match message {
             FilterTextChanged(text) => {
                 self.filter = text;
 
@@ -30,19 +31,17 @@ impl View for Searching {
                 self.send_message(Message::FilterTextChanged(String::new())),
             FilterCaseSenitivityChanged(state) => {
                 self.case_sensitive = state;
-
                 Command::none()
             },
             FilterRegexChanged(state) => {
                 self.regex_sensitive = state;
-
                 Command::none()
             },
             _ => Command::none(),
         }
     }
 
-    fn view(&self) -> iced::Element<'_, Self::Message> {
+    fn view(&self) -> Element<'_, Self::Message> {
         text(format!("Searching view: {}", self.filter)).into()
     }
 }

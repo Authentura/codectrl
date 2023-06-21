@@ -1,4 +1,6 @@
 #![feature(associated_type_defaults)]
+#![warn(clippy::perf, clippy::pedantic)]
+#![allow(clippy::enum_glob_use)]
 
 mod view;
 mod views;

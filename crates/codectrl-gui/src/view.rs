@@ -11,6 +11,6 @@ pub trait View {
     where
         Self::Message: 'static + Send,
     {
-        Command::perform((|| async {})(), |_| message)
+        Command::perform(async {}, |_| message)
     }
 }
