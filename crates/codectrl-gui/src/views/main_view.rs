@@ -1,3 +1,5 @@
+use codectrl_protobuf_bindings::data::Log;
+
 use crate::{view::View, Message};
 
 use iced::{widget::text, Command};

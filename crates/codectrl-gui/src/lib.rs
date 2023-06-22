@@ -7,13 +7,15 @@ mod views;
 
 use crate::view::View;
 
+use anyhow::Error;
+use codectrl_server::{self, ServerResult};
 use dark_light::{self, Mode as ThemeMode};
 pub use iced;
 use iced::{
-    executor,
+    executor, subscription,
     widget::{button, checkbox, column, container, row, text, text_input, Rule},
     window::close,
-    Alignment, Application, Command, Element, Length, Theme,
+    Alignment, Application, Command, Element, Length, Subscription, Theme,
 };
 use iced_aw::{
     helpers::{menu_bar, menu_tree},
@@ -22,8 +24,11 @@ use iced_aw::{
     split::Axis,
     Split,
 };
+use parking_lot::Mutex;
+use std::sync::Arc;
+use tokio::sync::mpsc::{self, error::TryRecvError};
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub enum Message {
     // main view
     ScrollToSelectedLogChanged(bool),
@@ -38,6 +43,14 @@ pub enum Message {
     // general
     UpdateViewState(ViewState),
     SplitResize(u16),
+    ServerStarted {
+        server_result: Arc<ServerResult>,
+        details: (String, u32),
+    },
+    ServerConnection(String, u32),
+    ShowServerError(Arc<anyhow::Error>),
+    SetServerErrorChannel(Arc<mpsc::UnboundedReceiver<anyhow::Error>>),
+    ServerNoOp,
     Quit,
 }
 
@@ -59,7 +72,27 @@ fn separator<'a, Message>()
 }
 
 #[derive(Debug, Clone)]
+pub struct Flags {
+    host: String,
+    port: u32,
+}
+
+impl Default for Flags {
+    fn default() -> Self {
+        Self {
+            host: String::from("127.0.0.1"),
+            port: 3002,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct App {
+    // server communication
+    server_errors: Option<Arc<Mutex<mpsc::UnboundedReceiver<anyhow::Error>>>>,
+    host: String,
+    port: u32,
+
     // splits
     split_size: Option<u16>,
 
@@ -70,13 +103,24 @@ pub struct App {
 }
 
 impl Default for App {
-    fn default() -> Self {
+    fn default() -> Self { Self::new_no_server(Flags::default()) }
+}
+
+impl App {
+    fn new_no_server(flags: Flags) -> Self {
         Self {
+            host: flags.host,
+            port: flags.port,
+            server_errors: None,
             split_size: Some(208),
             view_state: ViewState::default(),
             main_view: views::Main::default(),
             searching_view: views::Searching::default(),
         }
+    }
+
+    fn send_message(&self, message: Message) -> Command<Message> {
+        Command::perform(async {}, |_| message)
     }
 }
 
@@ -84,10 +128,24 @@ impl Application for App {
     type Message = Message;
     type Executor = executor::Default;
     type Theme = Theme;
-    type Flags = ();
+    type Flags = Flags;
 
-    fn new(_: Self::Flags) -> (Self, Command<Message>) {
-        (App::default(), Command::none())
+    fn new(flags: Self::Flags) -> (Self, Command<Message>) {
+        (
+            App::default(),
+            Command::perform(
+                codectrl_server::run_server(
+                    Some(flags.host.clone()),
+                    Some(flags.port),
+                    None,
+                    None,
+                ),
+                move |result| Message::ServerStarted {
+                    server_result: Arc::new(result),
+                    details: (flags.host, flags.port),
+                },
+            ),
+        )
     }
 
     fn title(&self) -> String { String::from("CodeCTRL") }
@@ -112,8 +170,56 @@ impl Application for App {
                 self.split_size = Some(size);
                 Command::none()
             },
+            ServerStarted {
+                server_result,
+                details: (host, port),
+            } => match Arc::try_unwrap(server_result) {
+                Ok(x) if matches!(x, Ok(_)) => {
+                    let channel = x.unwrap();
+                    self.host = host;
+                    self.port = port;
+
+                    self.send_message(SetServerErrorChannel(Arc::new(channel)))
+                },
+                Ok(x) if matches!(x, Err(_)) => {
+                    let error = x.unwrap_err();
+
+                    self.send_message(ShowServerError(Arc::new(error)))
+                },
+                Ok(_) => unreachable!(),
+                Err(_) => self.send_message(ShowServerError(Arc::new(Error::msg(
+                    "Could not unwrap server result",
+                )))),
+            },
+            SetServerErrorChannel(rx) => {
+                if let Ok(rx) = Arc::try_unwrap(rx) {
+                    self.server_errors = Some(Arc::new(Mutex::new(rx)));
+                } else {
+                    return self.send_message(ShowServerError(Arc::new(
+                        anyhow::Error::msg("Could not unwrap server error receiver"),
+                    )));
+                }
+
+                Command::none()
+            },
+            ServerConnection(host, port) => {
+                dbg!(&host);
+                dbg!(&port);
+
+                Command::none()
+            },
+            ShowServerError(error) => {
+                dbg!(error);
+                Command::none()
+            },
+            ServerNoOp => Command::none(),
             Quit => close(),
         }
+    }
+
+    fn subscription(&self) -> Subscription<Self::Message> {
+        Subscription::none()
+        // subscription::run(|| ).into())
     }
 
     fn view(&self) -> Element<Self::Message> {

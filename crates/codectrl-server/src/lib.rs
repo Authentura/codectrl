@@ -633,6 +633,8 @@ fn generate_token() -> String {
 
 // endregion
 
+pub type ServerResult = anyhow::Result<mpsc::UnboundedReceiver<anyhow::Error>>;
+
 /// Runs the `gRPC` server to be used by the GUI or the standalone binary.
 ///
 /// # Errors
@@ -648,7 +650,7 @@ pub async fn run_server(
     port: Option<u32>,
     requires_authentication: Option<bool>,
     redirect_handler_port: Option<u16>,
-) -> anyhow::Result<()> {
+) -> ServerResult {
     dotenv().ok();
     env_logger::try_init().ok();
 
@@ -761,13 +763,18 @@ pub async fn run_server(
 
     info!("Starting gPRC server on {grpc_addr}...");
 
-    Server::builder()
-        .accept_http1(true)
-        .add_service(tonic_web::enable(server_service))
-        .add_service(tonic_web::enable(client_service))
-        .add_service(tonic_web::enable(auth_service))
-        .serve(grpc_addr)
-        .await?;
+    let (error_sender, error_receiver) = mpsc::unbounded_channel();
 
-    Ok(())
+    tokio::spawn(async move {
+        Server::builder()
+            .accept_http1(true)
+            .add_service(tonic_web::enable(server_service))
+            .add_service(tonic_web::enable(client_service))
+            .add_service(tonic_web::enable(auth_service))
+            .serve(grpc_addr)
+            .await
+            .map_err(|error| error_sender.send(error.into()))
+    });
+
+    Ok(error_receiver)
 }
