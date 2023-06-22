@@ -10,6 +10,7 @@ edition.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
+async-stream = "0.3.5"
 codectrl-protobuf-bindings = { workspace = true }
 codectrl-server = { path = "../codectrl-server" }
 dark-light = "1.0.0"

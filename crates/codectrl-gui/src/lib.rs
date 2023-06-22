@@ -25,8 +25,13 @@ use iced_aw::{
     Split,
 };
 use parking_lot::Mutex;
-use std::sync::Arc;
-use tokio::sync::mpsc::{self, error::TryRecvError};
+use std::{sync::Arc, time::Duration};
+use tokio::sync::mpsc;
+
+pub enum PauseState {
+    Paused,
+    InProgress,
+}
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -48,8 +53,11 @@ pub enum Message {
         details: (String, u32),
     },
     ServerConnection(String, u32),
+    ShowServerErrors,
     ShowServerError(Arc<anyhow::Error>),
     SetServerErrorChannel(Arc<mpsc::UnboundedReceiver<anyhow::Error>>),
+    GetServerErrors(Arc<Mutex<mpsc::UnboundedReceiver<anyhow::Error>>>),
+    AddServerError(Option<Arc<anyhow::Error>>),
     ServerNoOp,
     Quit,
 }
@@ -89,7 +97,8 @@ impl Default for Flags {
 #[derive(Debug, Clone)]
 pub struct App {
     // server communication
-    server_errors: Option<Arc<Mutex<mpsc::UnboundedReceiver<anyhow::Error>>>>,
+    server_errors_channel: Option<Arc<Mutex<mpsc::UnboundedReceiver<anyhow::Error>>>>,
+    server_errors: Vec<Arc<anyhow::Error>>,
     host: String,
     port: u32,
 
@@ -111,7 +120,8 @@ impl App {
         Self {
             host: flags.host,
             port: flags.port,
-            server_errors: None,
+            server_errors: vec![],
+            server_errors_channel: None,
             split_size: Some(208),
             view_state: ViewState::default(),
             main_view: views::Main::default(),
@@ -184,23 +194,42 @@ impl Application for App {
                 Ok(x) if matches!(x, Err(_)) => {
                     let error = x.unwrap_err();
 
-                    self.send_message(ShowServerError(Arc::new(error)))
+                    self.send_message(AddServerError(Some(Arc::new(error))))
                 },
                 Ok(_) => unreachable!(),
-                Err(_) => self.send_message(ShowServerError(Arc::new(Error::msg(
+                Err(_) => self.send_message(AddServerError(Some(Arc::new(Error::msg(
                     "Could not unwrap server result",
-                )))),
+                ))))),
             },
             SetServerErrorChannel(rx) => {
                 if let Ok(rx) = Arc::try_unwrap(rx) {
-                    self.server_errors = Some(Arc::new(Mutex::new(rx)));
+                    self.server_errors_channel = Some(Arc::new(Mutex::new(rx)));
                 } else {
-                    return self.send_message(ShowServerError(Arc::new(
+                    return self.send_message(AddServerError(Some(Arc::new(
                         anyhow::Error::msg("Could not unwrap server error receiver"),
-                    )));
+                    ))));
                 }
 
                 Command::none()
+            },
+
+            GetServerErrors(rx) => Command::perform(
+                async move {
+                    let mut lock = rx.lock();
+                    if let Ok(msg) = lock.try_recv() {
+                        Some(Arc::new(msg))
+                    } else {
+                        None
+                    }
+                },
+                |msg| AddServerError(msg),
+            ),
+            AddServerError(error) => {
+                if let Some(error) = error {
+                    self.server_errors.push(error);
+                }
+
+                self.send_message(ShowServerErrors)
             },
             ServerConnection(host, port) => {
                 dbg!(&host);
@@ -208,18 +237,60 @@ impl Application for App {
 
                 Command::none()
             },
+            ShowServerErrors => {
+                let get = if self.server_errors_channel.is_some() {
+                    let channel = self.server_errors_channel.as_ref().unwrap();
+                    let channel = Arc::clone(channel);
+
+                    self.send_message(GetServerErrors(channel))
+                } else {
+                    Command::none()
+                };
+
+                let mut show = vec![];
+
+                while let Some(current) = self.server_errors.pop() {
+                    show.push(current);
+                }
+
+                let show =
+                    Command::batch(show.iter().map(|error| {
+                        self.send_message(ShowServerError(Arc::clone(error)))
+                    }));
+
+                Command::batch(vec![get, show])
+            },
+
             ShowServerError(error) => {
                 dbg!(error);
                 Command::none()
             },
             ServerNoOp => Command::none(),
+
             Quit => close(),
         }
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        Subscription::none()
-        // subscription::run(|| ).into())
+        if self.server_errors_channel.is_none() {
+            return Subscription::none();
+        }
+
+        subscription::unfold(
+            "RefreshErrors",
+            PauseState::InProgress,
+            move |state| async move {
+                match state {
+                    PauseState::Paused => {
+                        tokio::time::sleep(Duration::new(1, 0)).await;
+
+                        (Message::ServerNoOp, PauseState::InProgress)
+                    },
+                    PauseState::InProgress =>
+                        (Message::ShowServerErrors, PauseState::Paused),
+                }
+            },
+        )
     }
 
     fn view(&self) -> Element<Self::Message> {
