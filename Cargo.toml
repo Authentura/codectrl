@@ -33,6 +33,7 @@ tokio = { version = "1.0", features = [
     "time",
 ] }
 tokio-stream = "0.1"
+tonic = "0.7"
 
 [[bin]]
 path = "crates/core/main.rs"

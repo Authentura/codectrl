@@ -8,6 +8,10 @@ mod views;
 use crate::view::View;
 
 use anyhow::Error;
+use codectrl_protobuf_bindings::{
+    data::Log,
+    logs_service::{log_server_client::LogServerClient, Connection, RequestStatus},
+};
 use codectrl_server::{self, ServerResult};
 use dark_light::{self, Mode as ThemeMode};
 pub use iced;
@@ -27,10 +31,20 @@ use iced_aw::{
 use parking_lot::Mutex;
 use std::{sync::Arc, time::Duration};
 use tokio::sync::mpsc;
+use tonic::{transport::Channel, Status};
 
 pub enum PauseState {
     Paused,
     InProgress,
+}
+
+type Client = LogServerClient<Channel>;
+
+pub enum GrpcConnection {
+    NotConnected(String, u32),
+    Connected(Client, Option<Connection>),
+    Registered(Connection, Client),
+    Error(Status, Client, Option<Connection>),
 }
 
 #[derive(Debug, Clone)]
@@ -58,6 +72,7 @@ pub enum Message {
     SetServerErrorChannel(Arc<mpsc::UnboundedReceiver<anyhow::Error>>),
     GetServerErrors(Arc<Mutex<mpsc::UnboundedReceiver<anyhow::Error>>>),
     AddServerError(Option<Arc<anyhow::Error>>),
+    ServerAddLog(Log),
     ServerNoOp,
     Quit,
 }
@@ -101,6 +116,7 @@ pub struct App {
     server_errors: Vec<Arc<anyhow::Error>>,
     host: String,
     port: u32,
+    logs: Vec<Log>,
 
     // splits
     split_size: Option<u16>,
@@ -122,6 +138,7 @@ impl App {
             port: flags.port,
             server_errors: vec![],
             server_errors_channel: None,
+            logs: vec![],
             split_size: Some(208),
             view_state: ViewState::default(),
             main_view: views::Main::default(),
@@ -266,17 +283,19 @@ impl Application for App {
                 Command::none()
             },
             ServerNoOp => Command::none(),
-
+            ServerAddLog(log) => {
+                dbg!(&log.message);
+                self.logs.push(log);
+                Command::none()
+            },
             Quit => close(),
         }
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        if self.server_errors_channel.is_none() {
-            return Subscription::none();
-        }
+        let mut batch = vec![];
 
-        subscription::unfold(
+        batch.push(subscription::unfold(
             "RefreshErrors",
             PauseState::InProgress,
             move |state| async move {
@@ -290,7 +309,112 @@ impl Application for App {
                         (Message::ShowServerErrors, PauseState::Paused),
                 }
             },
-        )
+        ));
+
+        batch.push(subscription::unfold(
+            "GetLogs",
+            GrpcConnection::NotConnected(self.host.clone(), self.port),
+            move |state| async move {
+                match state {
+                    GrpcConnection::NotConnected(host, port) => {
+                        let grpc_client = loop {
+                            let res =
+                                LogServerClient::connect(format!("http://{host}:{port}"))
+                                    .await;
+
+                            if let Ok(res) = res {
+                                break res;
+                            }
+                        };
+
+                        (
+                            Message::ServerNoOp,
+                            GrpcConnection::Connected(grpc_client, None),
+                        )
+                    },
+                    GrpcConnection::Connected(mut client, connection) => {
+                        if let Some(connection) = connection {
+                            match client
+                                .register_existing_client(connection.clone())
+                                .await
+                            {
+                                Ok(response) => match RequestStatus::from_i32(
+                                    response.into_inner().status,
+                                )
+                                .unwrap()
+                                {
+                                    RequestStatus::Confirmed => (
+                                        Message::ServerNoOp,
+                                        GrpcConnection::Registered(connection, client),
+                                    ),
+                                    RequestStatus::Error => todo!(),
+                                },
+                                Err(status) => (
+                                    Message::ServerNoOp,
+                                    GrpcConnection::Error(
+                                        status,
+                                        client,
+                                        Some(connection),
+                                    ),
+                                ),
+                            }
+                        } else {
+                            match client.register_client(()).await {
+                                Ok(response) => (
+                                    Message::ServerNoOp,
+                                    GrpcConnection::Registered(
+                                        response.into_inner(),
+                                        client,
+                                    ),
+                                ),
+                                Err(status) => (
+                                    Message::ServerNoOp,
+                                    GrpcConnection::Error(status, client, connection),
+                                ),
+                            }
+                        }
+                    },
+                    GrpcConnection::Registered(connection, mut client) => {
+                        match client.get_log(connection.clone()).await {
+                            Ok(res) => {
+                                let log = res.into_inner();
+
+                                (
+                                    Message::ServerAddLog(log),
+                                    GrpcConnection::Registered(connection, client),
+                                )
+                            },
+                            Err(status) => (
+                                Message::ServerNoOp,
+                                GrpcConnection::Error(status, client, Some(connection)),
+                            ),
+                        }
+                    },
+                    GrpcConnection::Error(status, client, connection) => {
+                        let code = status.code().clone();
+                        let message = status.message().to_string();
+
+                        match code {
+                            tonic::Code::Ok | tonic::Code::ResourceExhausted => {
+                                tokio::time::sleep(Duration::new(5, 0)).await;
+                                (
+                                    Message::ServerNoOp,
+                                    GrpcConnection::Connected(client, connection),
+                                )
+                            },
+                            _ => (
+                                Message::AddServerError(Some(Arc::new(
+                                    anyhow::Error::msg(message),
+                                ))),
+                                GrpcConnection::Connected(client, connection),
+                            ),
+                        }
+                    },
+                }
+            },
+        ));
+
+        Subscription::batch(batch)
     }
 
     fn view(&self) -> Element<Self::Message> {

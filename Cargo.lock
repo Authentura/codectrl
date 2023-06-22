@@ -678,6 +678,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "tokio",
  "tokio-stream",
+ "tonic",
 ]
 
 [[package]]
